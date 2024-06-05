@@ -1,0 +1,12 @@
+
+fn foo(int a) int:
+    i + 3
+    u - 5
+10+80
+
+foo(0)
+
+foo.bar
+foo0[32].bar.b
+foo()
+foo()()
