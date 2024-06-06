@@ -222,10 +222,21 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
 
 def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
     last = NoneValue()
+    # defer all direct function calls in first pass
+    defer = []
     for statement in stmt.body:
+        if isinstance(statement, ast.CallExpression):
+            defer.append(statement)
+        else:
+            last = interpret(statement, env)
+            if last == None:
+                raise Exception("must return a runtime value") # this is a development check mainly
+
+    # then interpret everything else
+    for statement in defer:
         last = interpret(statement, env)
         if last == None:
-            raise Exception("must return a runtime value")
+            raise Exception("must return a runtime value") # this is a development check mainly
     return last
 
 def interpret_functiondeclare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
@@ -259,19 +270,19 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 # evaluate value of provided argument (if provided)
                 # evaluate value per provided function default (if provided)
                 if argument != None:
-                    value = eval(argument, env)
+                    value = interpret(argument, env)
                 elif param.default != None:
-                    value = eval(param.default, env)
+                    value = interpret(param.default, env)
                 else:
                     raise Exception("Either argument default or a value for argument must be provided")
 
-                scope.declare(param.identifier, value, param.type.constant)
-
-            raise Exception("(function) variable type to declare not implemented '%s'" % param.type.type)
+                scope.declare(param.identifier.value, value, False)
+            else:
+                raise Exception("(function) variable type to declare not implemented '%s'" % param.type.type)
 
         for statement in function.function.body:
             if isinstance(statement, ast.ReturnExpression):
-                return interpret_return_expression(statement, env)
+                return interpret_return_expression(statement, scope)
             interpret(statement, scope)
         return NoneValue()
 

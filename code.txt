@@ -16,5 +16,17 @@ print(b + 10E15)
 # fn foo(int a) int:
 #     i + 3
 #     u - 5
-# 
+#
 # foo(4)
+
+foo(4)
+
+const int u = 0x50
+
+fn foo(int i) int:
+    i += i + 3
+    return bar(u - 5 / i, i)
+
+fn bar(int baaar, int q) int:
+    return baaar * 5.56 + q
+
