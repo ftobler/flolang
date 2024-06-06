@@ -265,7 +265,7 @@ class Parser:
 
     def parse_statement(self) -> Statement:
         type = self.at().type
-        if type is lexer.VAR or type is lexer.CONST:
+        if type is lexer.LET or type is lexer.CONST:
             return self.parse_var_declaration()
         if type is lexer.FUNCTION:
             return self.parse_function_declaration()
@@ -283,8 +283,8 @@ class Parser:
             return self.parse_unreachable_declaration()
         return self.parse_expression()
 
-    # var a
-    # var a = (...)
+    # let a
+    # let a = (...)
     # const a
     # const a = (...)
     def parse_var_declaration(self):
@@ -297,7 +297,7 @@ class Parser:
         else:
             error("Expect identifier or builtin type for variable declaration", self.at().symbols)
 
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect type and indentifier after '%s' | '%s' keywords" % (lexer.VAR, lexer.CONST)).value
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect type and indentifier after '%s' | '%s' keywords" % (lexer.LET, lexer.CONST)).value
 
         if is_const:
             # handle const a = (...)
@@ -305,14 +305,14 @@ class Parser:
             value = self.parse_expression()
             return VarDeclaration(True, type, identifier, value)
         else:
-            # handle var a
-            #        var a = (...)
+            # handle let a
+            #        let a = (...)
             if self.at().type is lexer.ASSIGN:
                 self.eat() # consume the assignment operator
                 value = self.parse_expression() # eval (...)
                 return VarDeclaration(is_const, type, identifier, value)
             else:
-                # handle var a
+                # handle let a
                 return VarDeclaration(is_const, type, identifier, None)
 
     # fn foo():

@@ -88,7 +88,7 @@ bar()
 def test_condition():
     # check an if which is branching
     assert eval("""
-var int i = 0
+let int i = 0
 if True:
     i = 1
 i
@@ -96,7 +96,7 @@ i
 
     # check an if which is skipping
     assert eval("""
-var int i = 0
+let int i = 0
 if False:
     i = 1
 i
@@ -104,7 +104,7 @@ i
 
     # check an if-else which is iffing
     assert eval("""
-var int i = 0
+let int i = 0
 if True:
     i = 1
 else:
@@ -114,7 +114,7 @@ i
 
     # check an if-else which is elseing
     assert eval("""
-var int i = 0
+let int i = 0
 if False:
     i = 1
 else:
@@ -124,7 +124,7 @@ i
 
     # check an if-elif-else which is ifing
     assert eval("""
-var int i = 0
+let int i = 0
 if True:
     i = 1
 elif False:
@@ -136,7 +136,7 @@ i
 
     # check an if-elif-else which is elifing
     assert eval("""
-var int i = 0
+let int i = 0
 if False:
     i = 1
 elif True:
@@ -148,7 +148,7 @@ i
 
     # check an if-elif-else which is elseing
     assert eval("""
-var int i = 0
+let int i = 0
 if False:
     i = 1
 elif False:
@@ -160,7 +160,7 @@ i
 
     # check an if-elif which is ifing
     assert eval("""
-var int i = 0
+let int i = 0
 if True:
     i = 1
 elif True:
@@ -170,7 +170,7 @@ i
 
     # check an if-elif-else which is elifing
     assert eval("""
-var int i = 0
+let int i = 0
 if False:
     i = 1
 elif True:
@@ -180,7 +180,7 @@ i
 
     # check an if-elif-else which is skipping
     assert eval("""
-var int i = 0
+let int i = 0
 if False:
     i = 1
 elif False:
@@ -193,7 +193,7 @@ def test_while():
     # check a simple while loop with pass
     # expect count to 0
     assert eval("""
-var int i = 10
+let int i = 10
 while --i:
     pass
 i
@@ -202,8 +202,8 @@ i
     # check a simple while loop
     # expect 9 loops
     assert eval("""
-var int i = 10
-var int n = 0
+let int i = 10
+let int n = 0
 while --i:
     n++
 n
@@ -214,8 +214,8 @@ n
     # pass is not allowed after a statement
     with pytest.raises(Exception):
         assert eval("""
-var int i = 10
-var int n = 0
+let int i = 10
+let int n = 0
 while --i:
     n++
     pass
@@ -226,8 +226,8 @@ n # this 'n' is an extra statement after the block
     # pass is not allowed after a statement
     with pytest.raises(Exception):
         assert eval("""
-var int i = 10
-var int n = 0
+let int i = 10
+let int n = 0
 while --i:
     n++
     pass
@@ -236,8 +236,8 @@ while --i:
 #     # check a simple while loop with break
 #     # expect 5 loops
 #     assert eval("""
-# var int i = 10
-# var int n = 0
+# let int i = 10
+# let int n = 0
 # while --i:
 #     if i < 5:
 #         break
@@ -247,7 +247,7 @@ while --i:
     # check a simple while loop with break
     # the check decrement has been executed once
     assert eval("""
-var int i = 10
+let int i = 10
 while i--:
     break
 i
@@ -255,7 +255,7 @@ i
 
     # check a simple while loop with break
     assert eval("""
-var int i = 10
+let int i = 10
 while i:
     i--
 i
@@ -286,19 +286,19 @@ unreachable
 def test_scopes():
     # if block has its own scope and does not change base variable
     assert eval("""
-var int a = 123
+let int a = 123
 if True:
-    var int a = 456
+    let int a = 456
 a
 """) == 123
 
     # if block has its own scope and in itself the new variable is used
     # on assignment
     assert eval("""
-var int a = 123
-var int b = 0
+let int a = 123
+let int b = 0
 if True:
-    var int a = 456
+    let int a = 456
     b = a
 b
 """) == 456

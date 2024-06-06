@@ -186,44 +186,44 @@ def test_logic_math_expressions():
 def test_variables():
     assert eval("const int i = 0") == 0
     assert eval("const int i = 1") == 1
-    assert eval("var int i") == 0 #it is an integer and therefore a number
-    assert eval("var int i = 0") == 0
-    assert eval("var int i = 1") == 1
+    assert eval("let int i") == 0 #it is an integer and therefore a number
+    assert eval("let int i = 0") == 0
+    assert eval("let int i = 1") == 1
 
     #these are critical because they start with keywords
-    assert eval("var int function = 1") == 1
-    assert eval("var int returnee = 1") == 1
-    assert eval("var int forloop = 1") == 1
-    assert eval("var int whilenot = 1") == 1
-    assert eval("var int importieren = 1") == 1
-    assert eval("var int iffy = 1") == 1
-    assert eval("var int instance = 1") == 1
-    assert eval("var int variable = 1") == 1
-    assert eval("var int constant = 1") == 1
-    assert eval("var int integer = 1") == 1
+    assert eval("let int function = 1") == 1
+    assert eval("let int returnee = 1") == 1
+    assert eval("let int forloop = 1") == 1
+    assert eval("let int whilenot = 1") == 1
+    assert eval("let int importieren = 1") == 1
+    assert eval("let int iffy = 1") == 1
+    assert eval("let int instance = 1") == 1
+    assert eval("let int variable = 1") == 1
+    assert eval("let int constant = 1") == 1
+    assert eval("let int integer = 1") == 1
 
     # some a bit more exotic names we allow
-    eval("var int __name  ")
-    eval("var int __0name ")
-    eval("var int _0_name ")
-    eval("var int   _name0")
-    eval("var int __name__")
+    eval("let int __name  ")
+    eval("let int __0name ")
+    eval("let int _0_name ")
+    eval("let int   _name0")
+    eval("let int __name__")
 
 def test_illegal_variable():
     with pytest.raises(Exception):
         eval("some_identifier_is_here")
 
     with pytest.raises(Exception):
-        eval("var i")
+        eval("let i")
 
     with pytest.raises(Exception):
-        eval("let int i")
+        eval("var int i")
 
     with pytest.raises(Exception):
         eval("mut int i")
 
     with pytest.raises(Exception):
-        eval("var int* i")
+        eval("let int* i")
 
     with pytest.raises(Exception):
         eval("😥")

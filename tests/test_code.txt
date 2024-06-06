@@ -11,7 +11,7 @@ print(rand())
 print(rand())
 
 
-var int a = 4 / 8 + (1 * 6)
+let int a = 4 / 8 + (1 * 6)
 a
 a += 2
 
@@ -37,7 +37,7 @@ fn foo(int i) int:
 fn bar(int baaar, int q) int:
     return baaar * 5.56 + q
 
-var int pre_post_test = 0
+let int pre_post_test = 0
 pre_post_test++
 pre_post_test--
 ++pre_post_test
