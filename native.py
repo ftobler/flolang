@@ -79,5 +79,8 @@ fn rand() int:
 fn srand(int seed) int:
     __rand_seed__(seed)
 
+fn sqrt(int x) int:
+    return x ** 0.5
+
 
 """
