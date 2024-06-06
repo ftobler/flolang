@@ -7,6 +7,9 @@ from flolang.lexer import tokenize
 from flolang.abstract_source_tree import Parser
 from flolang.interpreter import interpret
 
+def to_native(val : inter.RuntimeValue):
+    return val.value
+
 def create_default_environment():
     env = inter.Environment()
 
