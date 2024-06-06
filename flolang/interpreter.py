@@ -179,7 +179,7 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
 def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Environment) -> RuntimeValue:
     expression = interpret(stmt.expr, env)
     if stmt.operator is lexer.NOT:
-        return BooleanValue(not expression)
+        return BooleanValue(not expression.value)
     if stmt.operator is lexer.BITNOT:
         return NumberValue(~expression.value)
     if stmt.operator is lexer.PLUS:
