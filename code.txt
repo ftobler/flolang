@@ -1,3 +1,10 @@
+print("this is a string literal!")
+
+const int hello = "hello, "
+const int world = "world!"
+print("'" + hello + world + "'")
+
+print(sqrt(125))
 
 print(sin(2**0.5))
 print(rand())
@@ -30,3 +37,8 @@ fn foo(int i) int:
 fn bar(int baaar, int q) int:
     return baaar * 5.56 + q
 
+var int pre_post_test = 0
+pre_post_test++
+pre_post_test--
+++pre_post_test
+# --pre_post_test # 1 THIS one is stubborn right now and does not work
