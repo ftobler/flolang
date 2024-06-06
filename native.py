@@ -82,5 +82,7 @@ fn srand(int seed) int:
 fn sqrt(int x) int:
     return x ** 0.5
 
+const int True = 1
+const int False = 0
 
 """
