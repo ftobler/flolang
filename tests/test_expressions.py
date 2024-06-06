@@ -5,10 +5,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native
 
-def eval(expression: str):
+def eval(expression: str, env=None):
     tok = tokenize(expression)
     ast = parse(tok)
-    env = default_environment()
+    if not env:
+        env = default_environment()
     val = interpret(ast, env)
     return to_native(val)
 
@@ -187,6 +188,52 @@ def test_variables():
     assert eval("var int i") == 0 #it is an integer and therefore a number
     assert eval("var int i = 0") == 0
     assert eval("var int i = 1") == 1
+
+def test_builtin_native_functions():
+    import time, math
+
+    #these are pure native functions
+    assert eval("print(1)") == None
+    assert abs(eval("time()") - time.time()) < 0.01 #might break if interpreter is suuuper slow
+    assert eval("sin(1)") == math.sin(1)
+    assert eval("cos(1)") == math.cos(1)
+    assert eval("tan(1)") == math.tan(1)
+    assert eval("atan2(1, 1)") == math.pi / 4
+    assert eval("atan2(1, 2)") == math.atan2(1, 2)
+    assert eval("round(0.49)") == 0
+    assert eval("round(0.51)") == 1
+
+def test_builtin_functions():
+    import time, math, statistics
+
+    # these are pure native functions
+    assert eval("pi") == math.pi
+    assert eval("euler") == math.e
+
+    assert eval("floor(0.49)") == 0
+    assert eval("floor(0.51)") == 0
+
+    randmax = 2**32 - 1
+    assert eval("RAND_MAX") == randmax
+
+    # test the random number generator. Since this is not stateless, need an
+    # environment which stays between eval calls
+    env = default_environment()
+
+    # check if value is each time in designated bounds
+    for i in range(50):
+        value = eval("rand()", env)
+        assert value >= 0 and value <= randmax
+
+    # check statistically that random is random (basic check)
+    values = [eval("rand()", env) for i in range(50)]
+    mean_value = statistics.mean(values)
+    print(values)
+    variance_value = statistics.variance(values)
+    #mean must be about
+    assert mean_value > randmax * 0.4 and mean_value < randmax * 0.6
+    assert variance_value > randmax
+
 
 
 def test_comments():

@@ -42,11 +42,12 @@ def create_default_environment():
         return inter.NumberValue(y)
     env.declare("tan", inter.NativeFunction(native_tan), True)
 
-    def native_tan2(arguments: list[inter.RuntimeValue]):
-        x = arguments[0].value
-        y = math.tan2(x)
+    def native_atan2(arguments: list[inter.RuntimeValue]):
+        x1 = arguments[0].value
+        x2 = arguments[1].value
+        y = math.atan2(x1, x2)
         return inter.NumberValue(y)
-    env.declare("tan2", inter.NativeFunction(native_tan2), True)
+    env.declare("atan2", inter.NativeFunction(native_atan2), True)
 
     env.rng = random.Random(0)
 
@@ -59,6 +60,12 @@ def create_default_environment():
         output = env.rng.random()
         return inter.NumberValue(output)
     env.declare("__rand_value__", inter.NativeFunction(native_rand_seed), True)
+
+    def native_round(arguments: list[inter.RuntimeValue]):
+        input = arguments[0].value
+        output = round(input)
+        return inter.NumberValue(output)
+    env.declare("round", inter.NativeFunction(native_round), True)
 
     env.declare("None", inter.NoneValue(), True)
 
@@ -75,8 +82,11 @@ builtin = """
 const int pi = 3.141592653589793238462643
 const int euler = 2.718281828459045
 
+fn floor(int x) int:
+    return x // 1
+
 # random (RNG) stuff
-const int RAND_MAX = 0xFFFFFFFF
+const int RAND_MAX = 2**32 - 1 # 0xFFFFFFFF
 
 fn rand() int:
     return (RAND_MAX * __rand_value__()) // 1
@@ -86,6 +96,24 @@ fn srand(int seed) int:
 
 fn sqrt(int x) int:
     return x ** 0.5
+
+# fn abs(int value) int:
+#     if value >= 0:
+#         return value
+#     return -value
+
+fn pow(int base, int exponent) int:
+    return base**exponent
+
+# fn max(int in1, int in2) int:
+#     if in1 > in2:
+#         return in1
+#     return in2
+
+# fn min(int in1, int in2) int:
+#     if in1 < in2:
+#         return in1
+#     return in2
 
 const int True = 1
 const int False = 0
