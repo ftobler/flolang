@@ -226,7 +226,7 @@ def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
 
             # search for names
             if not found:
-                match = re.search("^[a-zA-Z_\-]+[a-zA-Z_\-0-9]*", source)
+                match = re.search("^[a-zA-Z_]+[a-zA-Z_0-9]*", source)
                 if match:
                     identifier = match[0]
                     tokens.append(Token(symbols, IDENTIFIER, identifier))

@@ -96,8 +96,10 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_binary_expression(stmt, env)
     if isinstance(stmt, ast.UnaryBeforeExpression):
         return interpret_unary_before_expression(stmt, env)
-    if isinstance(stmt, ast.UnaryAfterExpression):
-        return interpret_unary_after_expression(stmt, env)
+    if isinstance(stmt, ast.UnaryIdentifierBeforeExpression):
+        return interpret_unary_identifier_before_expression(stmt, env)
+    if isinstance(stmt, ast.UnaryIdentifierAfterExpression):
+        return interpret_unary_identifier_after_expression(stmt, env)
     if isinstance(stmt, ast.AssignmentExpression):
         return interpret_assignment_expression(stmt, env)
 
@@ -175,7 +177,7 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
 
 
 def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Environment) -> RuntimeValue:
-    expression = interpret(stmt.left, env)
+    expression = interpret(stmt.expr, env)
     if stmt.operator is lexer.NOT:
         return BooleanValue(not expression)
     if stmt.operator is lexer.BITNOT:
@@ -184,14 +186,32 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
         return expression #does nothing
     if stmt.operator is lexer.MINUS:
         return NumberValue(-expression.value)
-    if stmt.operator is lexer.INCREMENT:
-        return NumberValue(expression.value + 1)
-    if stmt.operator is lexer.DECREMENT:
-        return NumberValue(expression.value - 1)
     raise Exception("statement operator invalid '%s'" % stmt.operator)
 
 
-def interpret_unary_after_expression(stmt: ast.UnaryAfterExpression, env: Environment) -> RuntimeValue:
+def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBeforeExpression, env: Environment) -> RuntimeValue:
+    variable = env.lookup(stmt.identifier)
+    if stmt.operator is lexer.INCREMENT:
+        variable = NumberValue(variable.value + 1)
+        env.assign(stmt.identifier, variable)
+        return variable
+    if stmt.operator is lexer.DECREMENT:
+        variable = NumberValue(variable.value - 1)
+        env.assign(stmt.identifier, variable)
+        return variable
+
+def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterExpression, env: Environment) -> RuntimeValue:
+    variable_original = env.lookup(stmt.identifier)
+    if stmt.operator is lexer.INCREMENT:
+        variable = NumberValue(variable_original.value + 1)
+        env.assign(stmt.identifier, variable)
+        return variable_original
+    if stmt.operator is lexer.DECREMENT:
+        variable = NumberValue(variable_original.value - 1)
+        env.assign(stmt.identifier, variable)
+        return variable_original
+
+
     raise Exception("interpret_unary_after_expression unimplemented")
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:

@@ -92,7 +92,7 @@ class BinaryExpression(Expression):
         self.right = right
         self.operator = operator
 
-class UnaryAfterExpression(Expression):
+class UnaryBeforeExpression(Expression):
     expr: Expression
     operator: str
     def __init__(self, expr: Expression, operator: str):
@@ -100,12 +100,20 @@ class UnaryAfterExpression(Expression):
         self.expr = expr
         self.operator = operator
 
-class UnaryBeforeExpression(Expression):
-    expr: Expression
+class UnaryIdentifierBeforeExpression(Expression):
+    identifier: str
     operator: str
-    def __init__(self, expr: Expression, operator: str):
+    def __init__(self, identifier: str, operator: str):
         super().__init__()
-        self.expr = expr
+        self.identifier = identifier
+        self.operator = operator
+
+class UnaryIdentifierAfterExpression(Expression):
+    identifier: str
+    operator: str
+    def __init__(self, identifier: str, operator: str):
+        super().__init__()
+        self.identifier = identifier
         self.operator = operator
 
 class CallExpression(Expression):
@@ -510,11 +518,18 @@ class Parser:
     # ++i
     # --i
     def parse_single_operator_before_expr(self):
-        expressions = [lexer.NOT, lexer.BITNOT, lexer.PLUS, lexer.MINUS, lexer.INCREMENT, lexer.DECREMENT]
+        expressions = [lexer.NOT, lexer.BITNOT, lexer.PLUS, lexer.MINUS]
         if self.at().type in expressions:
             operator = self.eat().type
             expr = self.parse_single_operator_after_expr()
             return UnaryBeforeExpression(expr, operator)
+        identifier_expressions = [lexer.INCREMENT, lexer.DECREMENT]
+        if self.at().type in identifier_expressions:
+            operator = self.eat().type
+            expr = self.parse_single_operator_after_expr()
+            if not isinstance(expr, Identifier):
+                error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), self.at().symbols)
+            return UnaryIdentifierBeforeExpression(expr.symbol, operator)
         return self.parse_single_operator_after_expr()
 
     # i++
@@ -523,8 +538,10 @@ class Parser:
         expr = self.parse_call_member_expr()
         expressions = [lexer.INCREMENT, lexer.DECREMENT]
         if self.at().type in expressions:
+            if not isinstance(expr, Identifier):
+                error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), self.at().symbols)
             operator = self.eat().type
-            return UnaryAfterExpression(expr, operator)
+            return UnaryIdentifierAfterExpression(expr.symbol, operator)
         return expr
 
     # (...)
