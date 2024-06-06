@@ -279,6 +279,12 @@ def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
             if not found:
                 error("Encountered unknown token in sourcecode.", symbols)
 
+        if len(tokens):
+            last_token = tokens[-1]
+            if last_token.type is RETURN:
+                last_token.value = 1
+
+
     # insert the needed amount of block endings according current operating ident.
     while current_ident > 0:
         tokens.append(Token(symbols, BLOCKEND))

@@ -48,7 +48,7 @@ class Parameter(Statement):
     type: Type
     identifier: str
     default: Expression
-    def __init__(self, type: Type, identifier: str, default: Expression):
+    def __init__(self, type: Type, identifier: str, default: Expression = None):
         super().__init__()
         self.type = type
         self.identifier = identifier
@@ -65,6 +65,12 @@ class FunctionDeclaration(Statement):
         self.result = result
         self.identifier = identifier
         self.body = body
+
+class ReturnExpression(Statement):
+    value: Expression
+    def __init__(self, value: Expression = None):
+        super().__init__()
+        self.value = value
 
 class AssignmentExpression(Expression):
     assignee: Expression
@@ -216,6 +222,8 @@ class Parser:
             return self.parse_var_declaration()
         if type is lexer.FUNCTION:
             return self.parse_function_declaration()
+        if type is lexer.RETURN:
+            return self.parse_return_declaration()
         return self.parse_expression()
 
     # var a
@@ -306,6 +314,20 @@ class Parser:
         elif self.at().type is lexer.BUILTINTYPE:
             return Type(self.eat().value, True)
         return None
+
+    def parse_return_declaration(self):
+        # eat the 'return' keyword
+        value = self.eat().value 
+        # the current token might be on the next line or not. There is no way
+        # the token system has this information because a new line is not a thing
+        # that exists for that. Instead the value of the retur keyword has been
+        # annotated and is 1 for end of line and default None if there are more
+        # tokens on the same line.
+        if value == None:
+            right = self.parse_expression()
+            return ReturnExpression(right)
+        return ReturnExpression()
+
 
     # (...)
     def parse_expression(self):
@@ -622,9 +644,6 @@ class Parser:
 
 
 if __name__ == "__main__":
-    import lexer
-    p = Parser()
-    t = lexer.tokenize("10 + 5")
-    ast = p.parse(t)
-    print(ast.json())
+    import main
+    main.run4()
 

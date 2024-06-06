@@ -1,5 +1,7 @@
 
 print(sin(2**0.5))
+print(rand())
+print(rand())
 
 
 var int a = 4 / 8 + (1 * 6)

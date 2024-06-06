@@ -74,7 +74,7 @@ const int euler = 2.718281828459045
 const int RAND_MAX = 0xFFFFFFFF
 
 fn rand() int:
-    RAND_MAX * __rand_value__()
+    return (RAND_MAX * __rand_value__()) // 1
 
 fn srand(int seed) int:
     __rand_seed__(seed)

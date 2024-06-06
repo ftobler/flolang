@@ -1,5 +1,6 @@
 import abstract_source_tree as ast
 import lexer
+import itertools
 
 class RuntimeValue:
     variant: str
@@ -11,7 +12,9 @@ class RuntimeValue:
         return vars(self)
 
 class NoneValue(RuntimeValue):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
 class BooleanValue(RuntimeValue):
     def __init__(self, value: bool):
@@ -82,7 +85,7 @@ class Environment:
         if name in self.scope:
             return self
         if self.parent:
-            return self.parent.resolve()
+            return self.parent._resolve(name)
         return None
 
 
@@ -111,6 +114,8 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_functiondeclare(stmt, env)
     if isinstance(stmt, ast.CallExpression):
         return interpret_call_expression(stmt, env)
+    if isinstance(stmt, ast.ReturnExpression):
+        return interpret_return_expression(stmt, env)
     raise Exception("unable to interpret '%s'" % stmt.kind)
 
 def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> RuntimeValue:
@@ -161,7 +166,7 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
     if stmt.operator is lexer.MOD:
         return NumberValue(left.value % right.value)
     if stmt.operator is lexer.INTDIV:
-        return NumberValue(left.value // right.value)
+        return NumberValue(int(left.value // right.value))
     if stmt.operator is lexer.POW:
         return NumberValue(left.value ** right.value)
     raise Exception("statement operator invalid '%s'" % stmt.operator)
@@ -239,17 +244,43 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             raise Exception("result of native function call is not of a runtime type")
         return result
 
+    if isinstance(function, RuntimeFunction):
+        # create new function scope
+        # optionally this scope could be passed from function runtime variable, but that is a script
+        # thing to do and not how C works. To keep compatibility with C, need to do it the boring way.
+        scope = Environment(env)
+        for param, argument in itertools.zip_longest(function.function.parameters, stmt.arguments):
+            # make sure the function has enough parameters if not, that is fatal
+            if param == None:
+                raise Exception("function does not have enough parameters.")
 
-    # # create new function scope
-    # # optionally this scope could be passed from function runtime variable, but that is a script
-    # # thing to do and not how C works. To keep compatibility with C, need to do it the boring way.
-    # scope = Environment(env)
-    # # put the passed arguments into the scope environment
-    # for argument, parameter in zip(stmt.arguments, runtime_function.function.parameters):
-    #     argument_value = interpret(argument, env)
+            if param.type.type is lexer.INT:
+
+                # evaluate value of provided argument (if provided)
+                # evaluate value per provided function default (if provided)
+                if argument != None:
+                    value = eval(argument, env)
+                elif param.default != None:
+                    value = eval(param.default, env)
+                else:
+                    raise Exception("Either argument default or a value for argument must be provided")
+
+                scope.declare(param.identifier, value, param.type.constant)
+
+            raise Exception("(function) variable type to declare not implemented '%s'" % param.type.type)
+
+        for statement in function.function.body:
+            if isinstance(statement, ast.ReturnExpression):
+                return interpret_return_expression(statement, env)
+            interpret(statement, scope)
+        return NoneValue()
 
 
 
+    raise Exception("function type not implemented")
+
+def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
+    return interpret(stmt.value, env)
 
 
 
