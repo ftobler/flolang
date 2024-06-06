@@ -86,7 +86,7 @@ bar()
 """) == 963
 
 def test_condition():
-    #check an if which is branching
+    # check an if which is branching
     assert eval("""
 var int i = 0
 if True:
@@ -94,7 +94,7 @@ if True:
 i
 """) == 1
 
-    #check an if which is skipping
+    # check an if which is skipping
     assert eval("""
 var int i = 0
 if False:
@@ -102,7 +102,7 @@ if False:
 i
 """) == 0
 
-    #check an if-else which is iffing
+    # check an if-else which is iffing
     assert eval("""
 var int i = 0
 if True:
@@ -112,7 +112,7 @@ else:
 i
 """) == 1
 
-    #check an if-else which is elseing
+    # check an if-else which is elseing
     assert eval("""
 var int i = 0
 if False:
@@ -122,7 +122,7 @@ else:
 i
 """) == 2
 
-    #check an if-elif-else which is ifing
+    # check an if-elif-else which is ifing
     assert eval("""
 var int i = 0
 if True:
@@ -134,7 +134,7 @@ else:
 i
 """) == 1
 
-    #check an if-elif-else which is elifing
+    # check an if-elif-else which is elifing
     assert eval("""
 var int i = 0
 if False:
@@ -146,7 +146,7 @@ else:
 i
 """) == 2
 
-    #check an if-elif-else which is elseing
+    # check an if-elif-else which is elseing
     assert eval("""
 var int i = 0
 if False:
@@ -158,7 +158,7 @@ else:
 i
 """) == 3
 
-    #check an if-elif which is ifing
+    # check an if-elif which is ifing
     assert eval("""
 var int i = 0
 if True:
@@ -168,7 +168,7 @@ elif True:
 i
 """) == 1
 
-    #check an if-elif-else which is elifing
+    # check an if-elif-else which is elifing
     assert eval("""
 var int i = 0
 if False:
@@ -178,7 +178,7 @@ elif True:
 i
 """) == 2
 
-    #check an if-elif-else which is skipping
+    # check an if-elif-else which is skipping
     assert eval("""
 var int i = 0
 if False:
@@ -189,6 +189,9 @@ i
 """) == 0
 
 def test_while():
+
+    # check a simple while loop with pass
+    # expect count to 0
     assert eval("""
 var int i = 10
 while --i:
@@ -196,13 +199,61 @@ while --i:
 i
 """) == 0
 
+    # check a simple while loop
+    # expect 9 loops
     assert eval("""
 var int i = 10
+var int n = 0
 while --i:
+    n++
+n
+""") == 9
+
+
+    # check a simple while loop with pass
+    # pass is not allowed after a statement
+    with pytest.raises(Exception):
+        assert eval("""
+var int i = 10
+var int n = 0
+while --i:
+    n++
+    pass
+n # this 'n' is an extra statement after the block
+    """) == 10
+
+    # check a simple while loop with pass
+    # pass is not allowed after a statement
+    with pytest.raises(Exception):
+        assert eval("""
+var int i = 10
+var int n = 0
+while --i:
+    n++
+    pass
+    """) == 10
+
+#     # check a simple while loop with break
+#     # expect 5 loops
+#     assert eval("""
+# var int i = 10
+# var int n = 0
+# while --i:
+#     if i < 5:
+#         break
+# n
+# """) == 5
+
+    # check a simple while loop with break
+    # the check decrement has been executed once
+    assert eval("""
+var int i = 10
+while i--:
     break
 i
-""") == 0
+""") == 9
 
+    # check a simple while loop with break
     assert eval("""
 var int i = 10
 while i:
@@ -211,11 +262,14 @@ i
 """) == 0
 
 def test_unreachable_code():
+    #unreachable keyword is never reached
     assert eval("""
 if False:
     unreachable
 """) == None
 
+    # unreachable is used to assert that control flow will never reach a
+    # particular location (1:1 what they state in zig)
     assert eval("""
 const int x = 1
 const int y = 2
@@ -223,7 +277,28 @@ if x + y != 3:
     unreachable
 """) == None
 
+    # unreachable at runtime creates an exception
     with pytest.raises(Exception):
         assert eval("""
 unreachable
 """) == None
+
+def test_scopes():
+    # if block has its own scope and does not change base variable
+    assert eval("""
+var int a = 123
+if True:
+    var int a = 456
+a
+""") == 123
+
+    # if block has its own scope and in itself the new variable is used
+    # on assignment
+    assert eval("""
+var int a = 123
+var int b = 0
+if True:
+    var int a = 456
+    b = a
+b
+""") == 456

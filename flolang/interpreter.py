@@ -327,7 +327,9 @@ def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> Runtime
     condition = interpret(stmt.condition, env)
     # make the conditional check
     if condition.value:
-        interpret_block_expression(stmt.positive_case, env)
+        ret, last = interpret_block_expression(stmt.positive_case, env)
+        if ret == 1: #return
+            return last
     else:
         if stmt.negative_case:
             interpret(stmt.negative_case, env)
@@ -337,21 +339,26 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
     # make the conditional check and loop.
     # must do this every time
     while interpret(stmt.condition, env).value:
-        interpret_block_expression(stmt.body, env)
+        ret, last = interpret_block_expression(stmt.body, env)
+        if ret == 2: # break
+            break
+        elif ret == 1: # return
+            return last
     return NoneValue()
 
 def interpret_block_expression(stmt: ast.BlockExpression, env: Environment) -> RuntimeValue:
     # create a new local environment. C has this, so we need too.
     scope = Environment(env)
     # go through all statements and execute
+    last = NoneValue()
     for statement in stmt.body:
         if isinstance(statement, ast.ReturnExpression):
-            raise Exception("Return inside loop is unimplemented.")
-            return interpret_return_expression(statement, scope)
+            last = interpret_return_expression(statement, scope)
+            return 1, last
         if isinstance(statement, ast.BreakExpression):
-            return NoneValue()
-        interpret(statement, scope)
-    return NoneValue()
+            return 2, None
+        last = interpret(statement, scope)
+    return 0, None
 
 def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
     if stmt.value:
