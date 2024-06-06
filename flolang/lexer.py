@@ -99,7 +99,7 @@ PASS = "pass"
 IN = "in"
 IS = "is"
 keyword_tokens = [
-    AND, OR, NOT, XOR, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, WHILE,
+    AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, WHILE,
     FOR, RETURN, NONE, VAR, CONST, PASS, IN, IS
 ]
 
@@ -180,11 +180,20 @@ def remove_comments(line):
     # except the comment is at the start of the input.
     return re.sub("(?:^| * )#(?: .*|$)", "", line)
 
+def starts_with_alphanumeric(string, prefix):
+    if string.startswith(prefix):
+        if len(string) > len(prefix):
+            return not string[len(prefix)].isalnum()
+    return False
+
 def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
     tokens = []
-    tokenlist = string_tokens + small_tokens + keyword_tokens + variable_tokens
-    tokenlist.sort()
-    tokenlist.reverse()
+    tokenlist_symbolic = string_tokens + small_tokens
+    tokenlist_symbolic.sort()
+    tokenlist_symbolic.reverse()
+    tokenlist_alphanumeric = keyword_tokens + variable_tokens
+    tokenlist_alphanumeric.sort()
+    tokenlist_alphanumeric.reverse()
     lines = sourcecode.splitlines()
     current_ident = 0 # everything starts out as not idented
     for line_nr, full_line in enumerate(lines):
@@ -207,11 +216,11 @@ def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
             found = False
             symbols = (filename, line_nr, line_pos, full_line)
 
-            # search the basic tokens
-            # and for builtin type matches
-            # this is combined to be able to distinguish 'in' from 'int'.
-            # it is also the reason the tokenlist is sorted and reversed to first match 'in'
-            for s in tokenlist:
+            # search the basic symbolic tokens
+            # this is combined to be able to distinguish '+' from '+='.
+            # it is also the reason the tokenlist is sorted and reversed to first match '+'
+            for s in tokenlist_symbolic:
+                # if source.startswith(s):
                 if source.startswith(s):
                     if s in variable_tokens:
                         tokens.append(Token(symbols, BUILTINTYPE, s))
@@ -223,6 +232,26 @@ def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
                         source = source[len(s):]
                         found = True
                         break
+
+            # search for the basic alphanumeric tokens
+            # also includes builtin type matches
+            # this is combined to be able to distinguish 'in' from 'int'.
+            # it is also the reason the tokenlist is sorted and reversed to first match 'in'
+            # this uses starts_with_alphanumeric(..) to make sure a keyword is not mached in a
+            # identifier: e.g keyword 'fn' must not match in identifier 'function'
+            if not found:
+                for s in tokenlist_alphanumeric:
+                    if starts_with_alphanumeric(source, s):
+                        if s in variable_tokens:
+                            tokens.append(Token(symbols, BUILTINTYPE, s))
+                            source = source[len(s):]
+                            found = True
+                            break
+                        else:
+                            tokens.append(Token(symbols, s))
+                            source = source[len(s):]
+                            found = True
+                            break
 
             # search for names
             if not found:
