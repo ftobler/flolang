@@ -115,7 +115,7 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.Program):
         return interpret_program(stmt, env)
     if isinstance(stmt, ast.FunctionDeclaration):
-        return interpret_functiondeclare(stmt, env)
+        return interpret_function_declare(stmt, env)
     if isinstance(stmt, ast.CallExpression):
         return interpret_call_expression(stmt, env)
     if isinstance(stmt, ast.ReturnExpression):
@@ -124,9 +124,10 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
 
 def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
-        value = 0
         if stmt.value:
             value = interpret(stmt.value, env)
+        else:
+            value = NumberValue(0)
         return env.declare(stmt.identifier, value, stmt.constant)
     raise Exception("variable type to declare not implemented '%s'" % stmt.type)
 
@@ -210,8 +211,6 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
         variable = NumberValue(variable_original.value - 1)
         env.assign(stmt.identifier, variable)
         return variable_original
-
-
     raise Exception("interpret_unary_after_expression unimplemented")
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
@@ -261,7 +260,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             raise Exception("must return a runtime value") # this is a development check mainly
     return last
 
-def interpret_functiondeclare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
+def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
     return env.declare(stmt.identifier, RuntimeFunction(stmt), True) # function declarations are always constant
 
 def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> RuntimeValue:

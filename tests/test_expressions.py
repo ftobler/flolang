@@ -170,7 +170,7 @@ def test_logic_math_expressions():
     assert eval("(8 | (1 ^ 2)) == 11") == True
     assert eval("8 | (1 ^ 2) == 11") == 8
 
-    #differs from python because == has more precidence
+    # differs from python because == has more precidence
     # assert eval("7 & (3 << 2) == 4") == True
     assert eval("(7 & (3 << 2)) == 4") == True
     assert eval("7 & (3 << 2) == 4") == 0
@@ -180,6 +180,13 @@ def test_logic_math_expressions():
     # assert eval("6 | 2 > 4") == True
     assert eval("6 | 2 > 4") == 6
     # assert eval("4 ^ 1 < 6") == True
+
+def test_variables():
+    assert eval("const int i = 0") == 0
+    assert eval("const int i = 1") == 1
+    assert eval("var int i") == 0 #it is an integer and therefore a number
+    assert eval("var int i = 0") == 0
+    assert eval("var int i = 1") == 1
 
 
 def test_comments():

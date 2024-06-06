@@ -60,6 +60,8 @@ def create_default_environment():
         return inter.NumberValue(output)
     env.declare("__rand_value__", inter.NativeFunction(native_rand_seed), True)
 
+    env.declare("None", inter.NoneValue(), True)
+
     return env
 
 def _run_builtin_code(env: inter.Environment):
