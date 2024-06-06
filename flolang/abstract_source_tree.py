@@ -8,7 +8,6 @@ from .error import warning
 class Statement:
     kind: str
     def __init__(self):
-        self.kind = type(self).__name__.upper()
         self.kind = type(self).__name__
     def __repr__(self):
         return str(self.json())
@@ -67,11 +66,40 @@ class FunctionDeclaration(Statement):
         self.identifier = identifier
         self.body = body
 
+class BlockExpression(Statement):
+    body: list[Statement]
+    def __init__(self, body: list[Statement]):
+        super().__init__()
+        self.body = body
+
+class IfExpression(Statement):
+    condition: Expression
+    positive_case: BlockExpression
+    negative_case: BlockExpression
+    def __init__(self, condition: Expression, positive_case: BlockExpression, negative_case: BlockExpression = None):
+        super().__init__()
+        self.condition = condition
+        self.positive_case = positive_case
+        self.negative_case = negative_case
+
+
+class WhileExpression(Statement):
+    condition: Expression
+    body: BlockExpression
+    def __init__(self, condition: Expression, body: BlockExpression):
+        super().__init__()
+        self.condition = condition
+        self.body = body
+
 class ReturnExpression(Statement):
     value: Expression
     def __init__(self, value: Expression = None):
         super().__init__()
         self.value = value
+
+class BreakExpression(Statement):
+    def __init__(self):
+        super().__init__()
 
 class AssignmentExpression(Expression):
     assignee: Expression
@@ -204,7 +232,13 @@ class Parser:
     def eat_expect(self, token_type: str, error_comment: any) -> Token:
         prev = self.eat()
         if prev.type is not token_type:
-            # message = "Parser Error:\n" + error_comment + "\nExpecting: " + token_type
+            message = "%s\nExpecting: %s" % (error_comment, token_type)
+            error(message, prev.symbols)
+        return prev
+
+    def at_expect(self, token_type: str, error_comment: any) -> Token:
+        prev = self.at()
+        if prev.type is not token_type:
             message = "%s\nExpecting: %s" % (error_comment, token_type)
             error(message, prev.symbols)
         return prev
@@ -231,8 +265,16 @@ class Parser:
             return self.parse_var_declaration()
         if type is lexer.FUNCTION:
             return self.parse_function_declaration()
+        if type is lexer.IF:
+            return self.parse_if_declaration()
+        if type is lexer.FOR:
+            return self.parse_for_declaration()
+        if type is lexer.WHILE:
+            return self.parse_while_declatation()
         if type is lexer.RETURN:
             return self.parse_return_declaration()
+        if type is lexer.BREAK:
+            return self.parse_break_declaration()
         return self.parse_expression()
 
     # var a
@@ -271,20 +313,20 @@ class Parser:
     # fn foo(a, b, c) d:
     def parse_function_declaration(self):
         self.eat() # eat 'fn' keyword
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword" % lexer.FUNCTION).value
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword." % lexer.FUNCTION).value
 
         args = self.parse_function_arguments()
         result = self.parse_next_type()
 
         self.eat_expect(lexer.COLON, "Expect '%s' following function declaration." % lexer.COLON)
-        self.eat_expect(lexer.BLOCKSTART, "Expect indented function body after function declaration")
+        self.eat_expect(lexer.BLOCKSTART, "Expect indented function body after function declaration.")
 
         body = []
         while self.not_eof() and self.at().type is not lexer.BLOCKEND:
             body.append(self.parse_statement())
 
         #lexer should create the blockend(s) already, so this message will probably never be seen
-        self.eat_expect(lexer.BLOCKEND, "Expect indented function body to end before End of File")
+        self.eat_expect(lexer.BLOCKEND, "Expect indented function body to end before End of File.")
 
         return FunctionDeclaration(args, result, identifier, body)
 
@@ -299,7 +341,7 @@ class Parser:
             type = self.parse_next_type()
             if not type:
                 error("Unable to determine argument type", self.at().symbols)
-            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list")
+            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.")
 
             default = None #assume no default available
             if self.at().type is lexer.ASSIGN:
@@ -310,7 +352,7 @@ class Parser:
             # expect close ")" or if not expect a ","
             if self.at().type is not lexer.COURVE_R:
                 # expect a ","
-                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument" % (lexer.COMMA, lexer.COURVE_R))
+                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument." % (lexer.COMMA, lexer.COURVE_R))
 
             args.append(Parameter(type, identifier, default))
 
@@ -323,6 +365,61 @@ class Parser:
         elif self.at().type is lexer.BUILTINTYPE:
             return Type(self.eat().value, True)
         return None
+
+    def parse_if_declaration(self):
+        # eat the 'if' or 'elif' keyword
+        self.eat()
+        # parse the expressional condition
+        # if ...... :
+        #    ^^^^^^
+        expr = self.parse_expression()
+        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF))
+        positive_case = self.parse_block_declaration()
+
+        at_type = self.at().type
+        if at_type is lexer.ELSE:
+            self.eat() # eat 'ELSE'
+            self.eat_expect(lexer.COLON, "Expect '%s' after '%s' | '%s' keywords in '%s' condition." % (lexer.COLON, lexer.ELSE, lexer.ELIF, lexer.IF))
+            return IfExpression(expr, positive_case, self.parse_block_declaration())
+        elif at_type is lexer.ELIF:
+            return IfExpression(expr, positive_case, self.parse_if_declaration())
+        return IfExpression(expr, positive_case, None)
+
+    def parse_block_declaration(self):
+        self.eat_expect(lexer.BLOCKSTART, "Expect indented block body after function declaration.")
+
+        body = []
+        pass_encountered = False
+        while self.not_eof() and self.at().type is not lexer.BLOCKEND:
+            if self.at().type is lexer.PASS:
+                self.eat()
+                pass_encountered = True
+                break
+            body.append(self.parse_statement())
+
+        if len(body) == 0 and not pass_encountered:
+            error(lexer.PASS, "Expect '%s' when block is empty." % lexer.PASS, self.at().symbols)
+
+        # lexer should create the blockend(s) already, so this message will probably never be seen
+        self.eat_expect(lexer.BLOCKEND, "Expect indented block body to end before End of File.")
+
+        return BlockExpression(body)
+
+    def parse_for_declaration(self):
+        # eat the 'for' keyword
+        self.eat()
+        self.unimplemented()
+
+    def parse_while_declatation(self):
+        # eat the 'while' keyword
+        self.eat()
+        # parse the expressional condition
+        # while ...... :
+        #       ^^^^^^
+        expr = self.parse_expression()
+        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF))
+        body = self.parse_block_declaration()
+        return WhileExpression(expr, body)
 
     def parse_return_declaration(self):
         # eat the 'return' keyword
@@ -337,6 +434,10 @@ class Parser:
             return ReturnExpression(right)
         return ReturnExpression()
 
+    def parse_break_declaration(self):
+        # eat the 'break' keyword
+        self.eat()
+        return BreakExpression()
 
     # (...)
     def parse_expression(self):

@@ -8,7 +8,9 @@ from flolang.abstract_source_tree import Parser
 from flolang.interpreter import interpret
 
 def to_native(val : inter.RuntimeValue):
-    return val.value
+    if hasattr(val, "value"):
+        return val.value
+    return "<" + val.variant + ">"
 
 def create_default_environment():
     env = inter.Environment()

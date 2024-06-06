@@ -5,7 +5,7 @@ import itertools
 class RuntimeValue:
     variant: str
     def __init__(self):
-        self.variant = type(self).__name__.upper()
+        self.variant = type(self).__name__
     def __repr__(self):
         return str(self.json())
     def json(self):
@@ -118,8 +118,16 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_function_declare(stmt, env)
     if isinstance(stmt, ast.CallExpression):
         return interpret_call_expression(stmt, env)
+    if isinstance(stmt, ast.IfExpression):
+        return interpret_if_expression(stmt, env)
+    if isinstance(stmt, ast.WhileExpression):
+        return interpret_while_expression(stmt, env)
+    if isinstance(stmt, ast.BlockExpression):
+        return interpret_block_expression(stmt, env)
     if isinstance(stmt, ast.ReturnExpression):
         return interpret_return_expression(stmt, env)
+    if isinstance(stmt, ast.BreakExpression):
+        return interpret_break_expression(stmt, env)
     raise Exception("unable to interpret '%s'" % stmt.kind)
 
 def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> RuntimeValue:
@@ -301,21 +309,54 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             else:
                 raise Exception("(function) variable type to declare not implemented '%s'" % param.type.type)
 
+        # go through all statements and execute
         for statement in function.function.body:
             if isinstance(statement, ast.ReturnExpression):
                 return interpret_return_expression(statement, scope)
+            if isinstance(statement, ast.BreakExpression):
+                raise Exception("Break not allowed in fuction.")
             interpret(statement, scope)
         return NoneValue()
 
-
-
     raise Exception("function type not implemented")
 
+def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
+    condition = interpret(stmt.condition, env)
+    # make the conditional check
+    if condition.value:
+        interpret_block_expression(stmt.positive_case, env)
+    else:
+        if stmt.negative_case:
+            interpret(stmt.negative_case, env)
+    return NoneValue()
+
+def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> RuntimeValue:
+    # make the conditional check and loop.
+    # must do this every time
+    while interpret(stmt.condition, env).value:
+        interpret_block_expression(stmt.body, env)
+    return NoneValue()
+
+def interpret_block_expression(stmt: ast.BlockExpression, env: Environment) -> RuntimeValue:
+    # create a new local environment. C has this, so we need too.
+    scope = Environment(env)
+    # go through all statements and execute
+    for statement in stmt.body:
+        if isinstance(statement, ast.ReturnExpression):
+            raise Exception("Return inside loop is unimplemented.")
+            return interpret_return_expression(statement, scope)
+        if isinstance(statement, ast.BreakExpression):
+            return NoneValue()
+        interpret(statement, scope)
+    return NoneValue()
+
 def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
-    return interpret(stmt.value, env)
+    if stmt.value:
+        return interpret(stmt.value, env)
+    return NoneValue()
 
-
-
+def interpret_break_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
+    return NoneValue()
 
 
 

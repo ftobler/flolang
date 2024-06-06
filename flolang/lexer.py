@@ -89,18 +89,20 @@ IMPORT = "import"
 FROM = "from"
 IF = "if"
 ELSE = "else"
+ELIF = "elif"
 WHILE = "while"
 FOR = "for"
 RETURN = "return"
-NONE = "None"
+BREAK = "break"
+NONE = "None"    # keep this in here?
 VAR = "var"
 CONST = "const"
 PASS = "pass"
 IN = "in"
 IS = "is"
 keyword_tokens = [
-    AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, WHILE,
-    FOR, RETURN, NONE, VAR, CONST, PASS, IN, IS
+    AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
+    FOR, RETURN, BREAK, NONE, VAR, CONST, PASS, IN, IS
 ]
 
 # keywords for types
@@ -184,6 +186,7 @@ def starts_with_alphanumeric(string, prefix):
     if string.startswith(prefix):
         if len(string) > len(prefix):
             return not string[len(prefix)].isalnum()
+        return True # end of input, keyword still matches
     return False
 
 def tokenize(sourcecode: str, filename: str=None) -> list[Token]:

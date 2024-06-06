@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native
+import pytest
 
 def eval(expression: str, env=None):
     tok = tokenize(expression)
@@ -189,6 +190,70 @@ def test_variables():
     assert eval("var int i = 0") == 0
     assert eval("var int i = 1") == 1
 
+    #these are critical because they start with keywords
+    assert eval("var int function = 1") == 1
+    assert eval("var int returnee = 1") == 1
+    assert eval("var int forloop = 1") == 1
+    assert eval("var int whilenot = 1") == 1
+    assert eval("var int importieren = 1") == 1
+    assert eval("var int iffy = 1") == 1
+    assert eval("var int instance = 1") == 1
+    assert eval("var int variable = 1") == 1
+    assert eval("var int constant = 1") == 1
+    assert eval("var int integer = 1") == 1
+
+    # some a bit more exotic names we allow
+    eval("var int __name  ")
+    eval("var int __0name ")
+    eval("var int _0_name ")
+    eval("var int   _name0")
+    eval("var int __name__")
+
+def test_illegal_variable():
+    with pytest.raises(Exception):
+        eval("some_identifier_is_here")
+
+    with pytest.raises(Exception):
+        eval("var i")
+
+    with pytest.raises(Exception):
+        eval("let int i")
+
+    with pytest.raises(Exception):
+        eval("mut int i")
+
+    with pytest.raises(Exception):
+        eval("var int* i")
+
+    with pytest.raises(Exception):
+        eval("😥")
+
+    eval('"🥰"') # that just belongs here now
+
+    with pytest.raises(Exception):
+        eval("let int kebap-case")
+
+    with pytest.raises(Exception):
+        eval("let int emojy😥case")
+
+    with pytest.raises(Exception):
+        eval("let int illegal_@_name")
+
+    with pytest.raises(Exception):
+        eval("let int illegal_ä_name")
+
+    with pytest.raises(Exception):
+        eval("let int illegal_$_name")
+
+    with pytest.raises(Exception):
+        eval("let int illegal_!_name")
+
+    with pytest.raises(Exception):
+        eval("let int illegal.name")
+
+    with pytest.raises(Exception):
+        eval("let int illegalname()")
+
 def test_builtin_native_functions():
     import time, math
 
@@ -219,7 +284,7 @@ def test_builtin_native_functions():
     assert eval("isinf(nan)") == False
 
 def test_builtin_functions():
-    import time, math, statistics
+    import math, statistics
 
     # these are normal functions
     assert eval("pi") == math.pi
@@ -233,8 +298,6 @@ def test_builtin_functions():
 
     assert eval("degrees(1.3)") == math.degrees(1.3)
     assert eval("radians(123)") == math.radians(123)
-
-
 
     randmax = 2**32 - 1
     assert eval("RAND_MAX") == randmax
@@ -257,8 +320,6 @@ def test_builtin_functions():
     assert mean_value > randmax * 0.4 and mean_value < randmax * 0.6
     assert variance_value > randmax
 
-
-
 def test_comments():
     assert eval("") == None
     assert eval("#") == None
@@ -270,5 +331,3 @@ def test_comments():
     assert eval("1 # comment") == 1
     assert eval("1     #           comment") == 1
 
-def test_math_epressions():
-    assert eval("1 + 2") == 3
