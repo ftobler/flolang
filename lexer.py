@@ -178,7 +178,7 @@ def remove_comments(line):
     # removes the comments from the source line.
     # note that it is enforced that the '#' has a space before and after.
     # except the comment is at the start of the input.
-    return re.sub("(?:^| * )# .*", "", line)
+    return re.sub("(?:^| * )#(?: .*|$)", "", line)
 
 def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
     tokens = []
