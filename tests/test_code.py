@@ -1,4 +1,8 @@
-from context import resolve_path
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret
 
 
@@ -41,5 +45,5 @@ def run4():
         value = interpret(ast, env)
         # print(value)
 
-if __name__ == "__main__":
-    run4()
+def test_code():
+     run4()
