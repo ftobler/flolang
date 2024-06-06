@@ -31,7 +31,7 @@ def main():
 
 
 
-def main_fn():
+def main_func():
     """
     entry case for python package entry_points console_scripts
     """
