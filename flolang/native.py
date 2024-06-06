@@ -13,8 +13,6 @@ def to_native(val : inter.RuntimeValue):
 def create_default_environment():
     env = inter.Environment()
 
-    _run_builtin_code(env)
-
     def native_print(arguments: list[inter.RuntimeValue]):
         args = [runtime_var.value for runtime_var in arguments]
         print(*args)
@@ -42,6 +40,24 @@ def create_default_environment():
         return inter.NumberValue(y)
     env.declare("tan", inter.NativeFunction(native_tan), True)
 
+    def native_asin(arguments: list[inter.RuntimeValue]):
+        x = arguments[0].value
+        y = math.asin(x)
+        return inter.NumberValue(y)
+    env.declare("asin", inter.NativeFunction(native_asin), True)
+
+    def native_acos(arguments: list[inter.RuntimeValue]):
+        x = arguments[0].value
+        y = math.acos(x)
+        return inter.NumberValue(y)
+    env.declare("acos", inter.NativeFunction(native_acos), True)
+
+    def native_atan(arguments: list[inter.RuntimeValue]):
+        x = arguments[0].value
+        y = math.atan(x)
+        return inter.NumberValue(y)
+    env.declare("atan", inter.NativeFunction(native_atan), True)
+
     def native_atan2(arguments: list[inter.RuntimeValue]):
         x1 = arguments[0].value
         x2 = arguments[1].value
@@ -67,20 +83,39 @@ def create_default_environment():
         return inter.NumberValue(output)
     env.declare("round", inter.NativeFunction(native_round), True)
 
+    def native_isnan(arguments: list[inter.RuntimeValue]):
+        input = arguments[0].value
+        output = math.isnan(input)
+        return inter.NumberValue(output)
+    env.declare("isnan", inter.NativeFunction(native_isnan), True)
+
+    def native_isinf(arguments: list[inter.RuntimeValue]):
+        input = arguments[0].value
+        output = math.isinf(input)
+        return inter.NumberValue(output)
+    env.declare("isinf", inter.NativeFunction(native_isinf), True)
+
     env.declare("None", inter.NoneValue(), True)
+    env.declare("inf", inter.NumberValue(float("inf")), True)
+    env.declare("nan", inter.NumberValue(float("nan")), True)
+
+    _run_builtin_code(env)
 
     return env
 
 def _run_builtin_code(env: inter.Environment):
-
     tok = tokenize(builtin)
     ast = Parser().parse(tok)
     interpret(ast, env)
 
 builtin = """
 
+const int True = 1
+const int False = 0
+
 const int pi = 3.141592653589793238462643
 const int euler = 2.718281828459045
+const int tau = 6.283185307179586
 
 fn floor(int x) int:
     return x // 1
@@ -96,6 +131,12 @@ fn srand(int seed) int:
 
 fn sqrt(int x) int:
     return x ** 0.5
+
+fn degrees(int x) int:
+    return x / pi * 180
+
+fn radians(int x) int:
+    return x * pi / 180
 
 # fn abs(int value) int:
 #     if value >= 0:
@@ -115,7 +156,5 @@ fn pow(int base, int exponent) int:
 #         return in1
 #     return in2
 
-const int True = 1
-const int False = 0
 
 """

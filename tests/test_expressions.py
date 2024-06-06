@@ -195,23 +195,46 @@ def test_builtin_native_functions():
     #these are pure native functions
     assert eval("print(1)") == None
     assert abs(eval("time()") - time.time()) < 0.01 #might break if interpreter is suuuper slow
+
     assert eval("sin(1)") == math.sin(1)
     assert eval("cos(1)") == math.cos(1)
     assert eval("tan(1)") == math.tan(1)
+
+    assert eval("asin(1)") == math.asin(1)
+    assert eval("acos(1)") == math.acos(1)
+    assert eval("atan(1)") == math.atan(1)
+
     assert eval("atan2(1, 1)") == math.pi / 4
     assert eval("atan2(1, 2)") == math.atan2(1, 2)
+
     assert eval("round(0.49)") == 0
     assert eval("round(0.51)") == 1
+
+    assert eval("isnan(nan)") == True
+    assert eval("isnan(pi)") == False
+    assert eval("isnan(inf)") == False
+    assert eval("isinf(inf)") == True
+    assert eval("isinf(-inf)") == True
+    assert eval("isinf(pi)") == False
+    assert eval("isinf(nan)") == False
 
 def test_builtin_functions():
     import time, math, statistics
 
-    # these are pure native functions
+    # these are normal functions
     assert eval("pi") == math.pi
     assert eval("euler") == math.e
+    assert eval("tau") == math.tau
+    assert math.isnan(eval("nan")) == True
+    assert math.isinf(eval("inf")) == True
 
     assert eval("floor(0.49)") == 0
     assert eval("floor(0.51)") == 0
+
+    assert eval("degrees(1.3)") == math.degrees(1.3)
+    assert eval("radians(123)") == math.radians(123)
+
+
 
     randmax = 2**32 - 1
     assert eval("RAND_MAX") == randmax
