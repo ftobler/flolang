@@ -101,6 +101,10 @@ class BreakExpression(Statement):
     def __init__(self):
         super().__init__()
 
+class UnreachableExpression(Statement):
+    def __init__(self):
+        super().__init__()
+
 class AssignmentExpression(Expression):
     assignee: Expression
     value: Expression
@@ -275,6 +279,8 @@ class Parser:
             return self.parse_return_declaration()
         if type is lexer.BREAK:
             return self.parse_break_declaration()
+        if type is lexer.UNREACHABLE:
+            return self.parse_unreachable_declaration()
         return self.parse_expression()
 
     # var a
@@ -431,13 +437,28 @@ class Parser:
         # tokens on the same line.
         if value == None:
             right = self.parse_expression()
+            self.skip_until_end_of_code_block()
             return ReturnExpression(right)
         return ReturnExpression()
 
     def parse_break_declaration(self):
         # eat the 'break' keyword
         self.eat()
+        self.skip_until_end_of_code_block()
         return BreakExpression()
+
+    def parse_unreachable_declaration(self):
+        # eat the 'unreachable' keyword
+        self.eat()
+        # unreachable expression is put in to assert that control flow will never reach
+        # this expression and when it does at runtime the program can abort or trap
+        # Can stop parsing at this point until EOF or end of current code block.
+        self.skip_until_end_of_code_block()
+        return UnreachableExpression()
+
+    def skip_until_end_of_code_block(self):
+        while self.not_eof() and self.at().type is not lexer.BLOCKEND:
+            self.parse_statement() #throw it away
 
     # (...)
     def parse_expression(self):

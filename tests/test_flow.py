@@ -210,3 +210,20 @@ while i:
 i
 """) == 0
 
+def test_unreachable_code():
+    assert eval("""
+if False:
+    unreachable
+""") == None
+
+    assert eval("""
+const int x = 1
+const int y = 2
+if x + y != 3:
+    unreachable
+""") == None
+
+    with pytest.raises(Exception):
+        assert eval("""
+unreachable
+""") == None

@@ -128,6 +128,9 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_return_expression(stmt, env)
     if isinstance(stmt, ast.BreakExpression):
         return interpret_break_expression(stmt, env)
+    if isinstance(stmt, ast.UnreachableExpression):
+        raise Exception("Reached unreachable expression.")
+
     raise Exception("unable to interpret '%s'" % stmt.kind)
 
 def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> RuntimeValue:

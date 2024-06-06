@@ -100,9 +100,10 @@ CONST = "const"
 PASS = "pass"
 IN = "in"
 IS = "is"
+UNREACHABLE = "unreachable"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
-    FOR, RETURN, BREAK, NONE, VAR, CONST, PASS, IN, IS
+    FOR, RETURN, BREAK, NONE, VAR, CONST, PASS, IN, IS, UNREACHABLE
 ]
 
 # keywords for types
