@@ -181,7 +181,7 @@ class ListLiteral(Expression):
 
 
 class Parser:
-    tokens: list[Token] #tokens from lexer
+    tokens: list[Token] # tokens from lexer
 
     def not_eof(self) -> bool:
         return self.tokens[0].type is not lexer.EOF
@@ -206,12 +206,12 @@ class Parser:
             return self.parse_expression()
         error("Unimplemented token encountered and End of File reached.", self.at().symbols)
 
-    #make the AST (Abstract Syntax Tree)
+    # make the AST (Abstract Syntax Tree)
     def parse(self, tokens: list[Token]) -> Program:
         self.tokens = tokens
         program = Program()
         self.program = program
-        #parse until there is nothing left
+        # parse until there is nothing left
         while self.not_eof():
             program.body.append(self.parse_statement())
         return program
@@ -317,10 +317,10 @@ class Parser:
 
     def parse_return_declaration(self):
         # eat the 'return' keyword
-        value = self.eat().value 
+        value = self.eat().value
         # the current token might be on the next line or not. There is no way
         # the token system has this information because a new line is not a thing
-        # that exists for that. Instead the value of the retur keyword has been
+        # that exists for that. Instead the value of the return keyword has been
         # annotated and is 1 for end of line and default None if there are more
         # tokens on the same line.
         if value == None:
