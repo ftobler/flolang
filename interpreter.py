@@ -100,11 +100,13 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_unary_after_expression(stmt, env)
     if isinstance(stmt, ast.AssignmentExpression):
         return interpret_assignment_expression(stmt, env)
-    
+
     if isinstance(stmt, ast.NumericLiteral):
         return NumberValue(stmt.value)
     if isinstance(stmt, ast.FloatLiteral):
         return NumberValue(stmt.value)
+    if isinstance(stmt, ast.StringLiteral):
+        return StringValue(stmt.value)
     if isinstance(stmt, ast.Identifier):
         return env.lookup(stmt.symbol)
 
