@@ -3,17 +3,16 @@ from lexer import Token
 from error import error
 from error import warning
 
+
 class Statement:
     kind: str
     def __init__(self):
         self.kind = type(self).__name__.upper()
+        self.kind = type(self).__name__
     def __repr__(self):
         return str(self.json())
     def json(self):
         return vars(self)
-
-
-
 
 class Expression(Statement):
     pass
@@ -47,24 +46,24 @@ class VarDeclaration(Statement):
 
 class Parameter(Statement):
     type: Type
-    name: str
+    identifier: str
     default: Expression
-    def __init__(self, type: Type, name: str, default: Expression):
+    def __init__(self, type: Type, identifier: str, default: Expression):
         super().__init__()
         self.type = type
-        self.name = name
+        self.identifier = identifier
         self.default = default
 
 class FunctionDeclaration(Statement):
     parameters: list[Parameter]
     result: Type
-    name: str
+    identifier: str
     body: list[Statement]
-    def __init__(self, parameters: list[Parameter], result: Type, name: str, body: list[Statement]):
+    def __init__(self, parameters: list[Parameter], result: Type, identifier: str, body: list[Statement]):
         super().__init__()
         self.parameters = parameters
         self.result = result
-        self.name = name
+        self.identifier = identifier
         self.body = body
 
 class AssignmentExpression(Expression):
@@ -137,7 +136,6 @@ class NumericLiteral(Expression):
             self.value = int(value_raw, base=16)
         else:
             self.value = int(value_raw)
-
 
 class FloatLiteral(Expression):
     value: float
@@ -256,7 +254,7 @@ class Parser:
     # fn foo(a, b, c) d:
     def parse_function_declaration(self):
         self.eat() # eat 'fn' keyword
-        name = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword" % lexer.FUNCTION).value
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword" % lexer.FUNCTION).value
 
         args = self.parse_function_arguments()
         result = self.parse_next_type()
@@ -271,7 +269,7 @@ class Parser:
         #lexer should create the blockend(s) already, so this message will probably never be seen
         self.eat_expect(lexer.BLOCKEND, "Expect indented function body to end before End of File")
 
-        return FunctionDeclaration(args, result, name, body)
+        return FunctionDeclaration(args, result, identifier, body)
 
     # (int a)
     # (int a, int b)
@@ -284,7 +282,7 @@ class Parser:
             type = self.parse_next_type()
             if not type:
                 error("Unable to determine argument type", self.at().symbols)
-            name = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list")
+            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list")
 
             default = None #assume no default available
             if self.at().type is lexer.ASSIGN:
@@ -297,7 +295,7 @@ class Parser:
                 # expect a ","
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument" % (lexer.COMMA, lexer.COURVE_R))
 
-            args.append(Parameter(type, name, default))
+            args.append(Parameter(type, identifier, default))
 
         self.eat_expect(lexer.COURVE_R, "Expect function argument list ending with '%s'." % lexer.COURVE_R)
         return args
@@ -397,6 +395,15 @@ class Parser:
 
     # (...) ^ (...)
     def parse_bit_logic_xor_expr(self):
+        left = self.parse_bit_logic_and_expr()
+        while self.at().type is lexer.XOR:
+            operator = self.eat().type
+            right = self.parse_bit_logic_and_expr()
+            left = BinaryExpression(left, right, operator)
+        return left # no more things to do, return last expression
+
+    # (...) & (...)
+    def parse_bit_logic_and_expr(self):
         left = self.parse_logic_equality_expr()
         while self.at().type is lexer.BITAND:
             operator = self.eat().type

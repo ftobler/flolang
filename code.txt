@@ -1,12 +1,18 @@
 
-fn foo(int a) int:
-    i + 3
-    u - 5
-10+80
+print(sin(2**0.5))
 
-foo(0)
 
-foo.bar
-foo0[32].bar.b
-foo()
-foo()()
+var int a = 4 / 8 + (1 * 6)
+a
+a += 2
+
+print(a)
+const int b = time()
+print(b + 10E15)
+
+
+# fn foo(int a) int:
+#     i + 3
+#     u - 5
+# 
+# foo(4)
