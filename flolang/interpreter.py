@@ -1,5 +1,5 @@
-import abstract_source_tree as ast
-import lexer
+import flolang.abstract_source_tree as ast
+import flolang.lexer as lexer
 import itertools
 
 class RuntimeValue:

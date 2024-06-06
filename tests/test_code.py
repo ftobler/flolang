@@ -1,7 +1,5 @@
-from lexer import tokenize
-from abstract_source_tree import Parser
-from interpreter import interpret
-from native import create_default_environment
+from context import resolve_path
+from flolang import tokenize, default_environment, parse, interpret
 
 
 def run1():
@@ -11,37 +9,37 @@ def run1():
 
 def run2():
     print("flolang v0.1 by ftobler")
+    env = default_environment()
     while True:
         # try:
-            p = Parser()
             print("# ", end="")
             t = tokenize(input())
             print(t)
-            ast = p.parse(t)
+            ast = parse(t)
             print(ast.json())
+            value = interpret(ast, env)
+            print(value)
         # except Exception as e:
         #     print(e)
 
 def run3():
-    with open("code.txt", "r") as f:
+    with open(resolve_path("test_code.txt"), "r") as f:
         code = f.read()
-        p = Parser()
         t = tokenize(code)
         print(t)
-        ast = p.parse(t)
+        ast = parse(t)
         print(ast.json())
         # print(json.dumps(json.loads(str(ast.json()).replace("'", '"')), indent=4))
 
 
 def run4():
-    with open("code.txt", "r") as f:
+    with open(resolve_path("test_code.txt"), "r") as f:
         code = f.read()
         tok = tokenize(code)
-        ast = Parser().parse(tok)
-        env = create_default_environment()
+        ast = parse(tok)
+        env = default_environment()
         value = interpret(ast, env)
         # print(value)
-
 
 if __name__ == "__main__":
     run4()

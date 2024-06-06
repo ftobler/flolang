@@ -21,6 +21,3 @@ def error_text(comment, full_line, file=None, line_nr=0, line_pos=0):
     return msg
 
 
-
-if __name__ == "__main__":
-    error("the comment", "this is my line", None, 42, 5)

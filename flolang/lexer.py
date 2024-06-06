@@ -1,6 +1,6 @@
 from enum import auto
 import re
-from error import error
+from .error import error
 
 ignores = [" ", "\t", "\n", "\r"]
 

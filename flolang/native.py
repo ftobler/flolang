@@ -1,11 +1,11 @@
-import interpreter as inter
+import flolang.interpreter as inter
 import time
 import math
 import random
 
-from lexer import tokenize
-from abstract_source_tree import Parser
-from interpreter import interpret
+from flolang.lexer import tokenize
+from flolang.abstract_source_tree import Parser
+from flolang.interpreter import interpret
 
 def create_default_environment():
     env = inter.Environment()

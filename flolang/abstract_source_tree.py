@@ -1,7 +1,8 @@
-import lexer
-from lexer import Token
-from error import error
-from error import warning
+
+import flolang.lexer as lexer
+from .lexer import Token
+from .error import error
+from .error import warning
 
 
 class Statement:
