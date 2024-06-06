@@ -3,16 +3,8 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from tests.context import resolve_path
-from flolang import tokenize, default_environment, parse, interpret, to_native
+from flolang import tokenize, default_environment, parse, interpret, to_native, eval
 import pytest
-
-def eval(expression: str, env=None):
-    tok = tokenize(expression)
-    ast = parse(tok)
-    if not env:
-        env = default_environment()
-    val = interpret(ast, env)
-    return to_native(val)
 
 def test_literal_number_epressions():
     assert eval("0") == 0
