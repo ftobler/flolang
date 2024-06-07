@@ -406,14 +406,35 @@ foo()
 def test_for_loop():
     assert eval("""
 let int n = 0
-for int i in 10..50:
+for int i in 10..20:
     n++
 n
-""") == 40
+""") == 10
 
     assert eval("""
 let int n = 0
-for int i in 50:
+for int i in 20 ..31:
     n++
 n
-""") == 50
+""") == 11
+
+    assert eval("""
+let int n = 0
+for int i in 30.. 42:
+    n++
+n
+""") == 12
+
+    assert eval("""
+let int n = 0
+for int i in 40 .. 53:
+    n++
+n
+""") == 13
+
+    assert eval("""
+let int n = 0
+for int i in 14:
+    n++
+n
+""") == 14
