@@ -346,6 +346,13 @@ def test_comments():
     assert eval("1 # comment") == 1
     assert eval("1     #           comment") == 1
 
+def test_comments_shebang():
+    # want to allow this. Normally the ' ' after the '#' is
+    # mandatory, so this is an exception
+    assert eval("#!/bin/sh") == None
+    assert eval("#!/usr/bin/python") == None
+    assert eval("#!flolang") == None
+
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_dict_literal_1():
     eval("{a: 1, b: 2}")

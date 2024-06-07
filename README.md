@@ -32,6 +32,7 @@ concepts:
 
 With return and break not yet working, use is inconvenient. But below samples execute with the interpreter.
 ```python
+#!flollang
 fn crc8_update(int data, int polynomial=0x07) int:
     crc ^= data
     for int _ in 0..8:
@@ -52,6 +53,7 @@ print(crc)
 ```
 
 ```python
+#!flollang
 fn recur_factorial(int n) int:
     let int result
     if n == 1:
@@ -92,6 +94,7 @@ else:
 # usage
 
 ```python
+#!python
 import flolang
 flolang.eval('print("Hello Wörld!")')
 ```

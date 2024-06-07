@@ -183,7 +183,9 @@ def remove_comments(line):
     # removes the comments from the source line.
     # note that it is enforced that the '#' has a space before and after.
     # except the comment is at the start of the input.
-    return re.sub("(?:^| * )#(?: .*|$)", "", line)
+    return re.sub("(?:^| * )#(?: .*|$|!.*)", "", line) # allow shebang
+    # return re.sub("(?:^| * )#(?: .*|$)", "", line) #do not allow shebang
+
 
 def starts_with_alphanumeric(string, prefix):
     if string.startswith(prefix):
