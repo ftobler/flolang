@@ -355,10 +355,12 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
 
     # for loop has the limited scope iteration variable. Make a new Environment for it.
     scope = Environment(env)
-    scope.declare(stmt.type.type, stmt.identifier, True)
+    loopvarname = stmt.identifier.value
+    scope.declare(loopvarname, NumberValue(0), False)
 
     # do the loop
     for i in range(min, max):
+        scope.assign(loopvarname, NumberValue(i))
         ret, last = interpret_block_expression(stmt.body, scope)
         if ret == 2: # break
             break

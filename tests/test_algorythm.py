@@ -170,3 +170,24 @@ s
 
 """) == 3.1315929035585537
 
+def test_calc_pi_variant_4():
+    assert eval("""
+
+# Initialize denominator
+let int k = 1
+
+# Initialize sum
+let int s = 0
+
+for int i in 100:
+    if i % 2 == 0: # even index elements are positive
+        s += 4/k
+    else:
+        s -= 4/k # odd index elements are negative
+    k += 2 # denominator is odd
+    i += 1
+
+s
+
+""") == 3.1315929035585537
+
