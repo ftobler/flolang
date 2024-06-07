@@ -12,7 +12,9 @@ if __name__ == "__main__":
 
 
 from flolang import tokenize, default_environment, parse, interpret
+from colorama import Fore, Back, Style
 
+pretty_print = True
 
 def main():
     print("flolang v0.1 by ftobler")
@@ -28,11 +30,14 @@ def main():
             ast = parse(tok)
             value = interpret(ast, env)
         except Exception as e:
+            if pretty_print: print(Fore.LIGHTBLACK_EX, end="")
             if tok_copy: print(tok_copy)
             if ast: print(ast.json())
             if value: print(value)
             typename = type(e).__name__
+            if pretty_print: print(Fore.RED, end="")
             print(typename, ":", e)
+            if pretty_print: print(Style.RESET_ALL, end="")
 
 
 
