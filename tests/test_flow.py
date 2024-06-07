@@ -555,3 +555,26 @@ for int i in 14:
     n++
 n
 """) == 14
+
+def test_assignment_multiple_1():
+    assert eval("""
+let int i = 0
+let int j = 1
+i = j = 5
+""") == 5 # value of i
+
+def test_assignment_multiple_2():
+    assert eval("""
+let int i = 0
+let int j = 1
+i = j = 5
+i
+""") == 5 # value of i
+
+def test_assignment_multiple_3():
+    assert eval("""
+let int i = 0
+let int j = 1
+i = j = 5
+j
+""") == 5 # value of j
