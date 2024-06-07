@@ -317,6 +317,57 @@ fn bar(int add):
 foo()(20)
 """) == 120
 
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_function_with_comments_and_spaces():
+    assert eval("""
+fn foo():
+    return 52
+foo()
+""") == 52
+
+    assert eval("""
+fn foo():
+
+    return 53
+foo()
+""") == 53
+
+    assert eval("""
+fn foo():
+    # return a value
+    return 54
+foo()
+""") == 54
+
+    assert eval("""
+fn foo():
+
+    # return a value
+    return 55
+foo()
+""") == 55
+
+    assert eval("""
+fn foo():
+    let int i = 5
+
+    # return a value
+
+    return 56
+foo()
+""") == 56
+
+    assert eval("""
+fn foo():
+    let int i = 5
+    # comment 1
+    # comment 2
+    return 57
+foo()
+""") == 57
+
+
+
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_return_break_statements():
     # check a simple while loop with break
