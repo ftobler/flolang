@@ -488,7 +488,7 @@ class Parser:
     def parse_object_expression(self):
         # check if it is an object. if not just continue down the tree
         if self.at().type is not lexer.WIGGLE_L:
-            return self.parse_logic_or_expr()
+            return self.parse_array_expression()
 
         self.eat() # eat wiggle "{"
         properties = []
@@ -515,9 +515,26 @@ class Parser:
                 # expect a ","
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following property" % (lexer.COMMA, lexer.WIGGLE_R))
 
-
         self.eat_expect(lexer.WIGGLE_R, "Expect closing '%s' after '%s' object" % (lexer.WIGGLE_R, lexer.WIGGLE_L))
         return ObjectLiteral(properties)
+
+    def parse_array_expression(self):
+        # check if it is an array. If not just continue down the tree
+        if self.at().type is not lexer.SQUARE_L:
+            return self.parse_logic_or_expr()
+
+        self.eat() # eat square "["
+        list = []
+        while self.not_eof() and self.at().type is not lexer.SQUARE_R:
+            list.append(self.parse_expression())
+
+            # expect close "}" or if not expect a ","
+            if self.at().type is not lexer.SQUARE_R:
+                # expect a ","
+                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following expression" % (lexer.COMMA, lexer.SQUARE_R))
+
+        self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after '%s' list" % (lexer.SQUARE_R, lexer.SQUARE_L))
+        return ListLiteral(list)
 
     # (...) or (...)
     def parse_logic_or_expr(self):
