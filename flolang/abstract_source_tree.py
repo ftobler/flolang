@@ -1,8 +1,7 @@
 
 import flolang.lexer as lexer
 from .lexer import Token
-from .error import error
-from .error import warning
+from .error import error_token, parser_error
 
 class Location:
     def __init__(self, start: Token, end: Token):
@@ -269,23 +268,22 @@ class Parser:
     def eat(self) -> Token:
         return self.tokens.pop(0)
 
-    def eat_expect(self, token_type: str, error_comment: any) -> Token:
+    def eat_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
         prev = self.eat()
         if prev.type is not token_type:
-            error(error_comment, prev.symbols)
+            parser_error(error_comment, loc_start, prev)
         return prev
 
-    def at_expect(self, token_type: str, error_comment: any) -> Token:
+    def at_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
         prev = self.at()
         if prev.type is not token_type:
-            error(error_comment, prev.symbols)
+            parser_error(error_comment, loc_start, prev)
         return prev
 
     def unimplemented(self):
         if self.not_eof():
-            warning("warning  unimplemented token", self.eat().symbols)
-            return self.parse_expression()
-        error("Unimplemented token encountered and End of File reached.", self.at().symbols)
+            error_token("Unimplemented token encuntered in Source Code.", self.at())
+        error_token("Unimplemented token encountered and End of File reached.", self.at())
 
     # make the AST (Abstract Syntax Tree)
     def parse(self, tokens: list[Token]) -> Program:
@@ -331,13 +329,13 @@ class Parser:
         elif self.at().type is lexer.BUILTINTYPE:
             type = Type(self.eat().value, True).location(type_start, self.at())
         else:
-            error("Expect identifier or builtin type for variable declaration", self.at().symbols)
+            parser_error("Expect identifier or builtin type for variable declaration", loc_start, self.at())
 
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect type and indentifier after '%s' | '%s' keywords" % (lexer.LET, lexer.CONST)).value
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect type and indentifier after '%s' | '%s' keywords" % (lexer.LET, lexer.CONST), loc_start).value
 
         if is_const:
             # handle const a = (...)
-            self.eat_expect(lexer.ASSIGN, "Expect '%s' following type and identifier for '%s' declaration" % (lexer.ASSIGN, lexer.CONST))
+            self.eat_expect(lexer.ASSIGN, "Expect '%s' following type and identifier for '%s' declaration" % (lexer.ASSIGN, lexer.CONST), loc_start)
             value = self.parse_expression()
             return VarDeclaration(True, type, identifier, value).location(loc_start, self.at())
         else:
@@ -355,20 +353,20 @@ class Parser:
     # fn foo(a, b, c) d:
     def parse_function_declaration(self):
         loc_start = self.eat() # eat 'fn' keyword
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword." % lexer.FUNCTION).value
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword." % lexer.FUNCTION, loc_start).value
 
         args = self.parse_function_arguments()
         result = self.parse_next_type()
 
-        self.eat_expect(lexer.COLON, "Expect '%s' following function declaration." % lexer.COLON)
-        self.eat_expect(lexer.BLOCKSTART, "Expect indented function body after function declaration.")
+        self.eat_expect(lexer.COLON, "Expect '%s' following function declaration." % lexer.COLON, loc_start)
+        self.eat_expect(lexer.BLOCKSTART, "Expect indented function body after function declaration.", loc_start)
 
         body = []
         while self.not_eof() and self.at().type is not lexer.BLOCKEND:
             body.append(self.parse_statement())
 
         #lexer should create the blockend(s) already, so this message will probably never be seen
-        self.eat_expect(lexer.BLOCKEND, "Expect indented function body to end before End of File.")
+        self.eat_expect(lexer.BLOCKEND, "Expect indented function body to end before End of File.", loc_start)
 
         return FunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
 
@@ -376,15 +374,16 @@ class Parser:
     # (int a, int b)
     # (int a, int b = 5)
     def parse_function_arguments(self) -> list[Parameter]:
+        loc_start = self.at()
         args: list[Type] = []
-        self.eat_expect(lexer.COURVE_L, "Expect function argument list beginning with '%s'." % lexer.COURVE_L)
+        self.eat_expect(lexer.COURVE_L, "Expect function argument list beginning with '%s'." % lexer.COURVE_L, loc_start)
 
         while self.not_eof() and self.at().type is not lexer.COURVE_R:
-            loc_start = self.at()
+            loop_loc_start = self.at()
             type = self.parse_next_type()
             if not type:
-                error("Unable to determine argument type", self.at().symbols)
-            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.")
+                parser_error("Unable to determine argument type", loop_loc_start, self.at())
+            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.", loop_loc_start)
 
             default = None #assume no default available
             if self.at().type is lexer.ASSIGN:
@@ -395,11 +394,11 @@ class Parser:
             # expect close ")" or if not expect a ","
             if self.at().type is not lexer.COURVE_R:
                 # expect a ","
-                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument." % (lexer.COMMA, lexer.COURVE_R))
+                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument." % (lexer.COMMA, lexer.COURVE_R), loop_loc_start)
 
-            args.append(Parameter(type, identifier, default).location(loc_start, self.at()))
+            args.append(Parameter(type, identifier, default).location(loop_loc_start, self.at()))
 
-        self.eat_expect(lexer.COURVE_R, "Expect function argument list ending with '%s'." % lexer.COURVE_R)
+        self.eat_expect(lexer.COURVE_R, "Expect function argument list ending with '%s'." % lexer.COURVE_R, loc_start)
         return args
 
     def parse_next_type(self) -> Type:
@@ -418,13 +417,13 @@ class Parser:
         # if ...... :
         #    ^^^^^^
         expr = self.parse_expression()
-        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF))
+        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF), loc_start)
         positive_case = self.parse_block_declaration()
 
         at_type = self.at().type
         if at_type is lexer.ELSE:
             self.eat() # eat 'ELSE'
-            self.eat_expect(lexer.COLON, "Expect '%s' after '%s' | '%s' keywords in '%s' condition." % (lexer.COLON, lexer.ELSE, lexer.ELIF, lexer.IF))
+            self.eat_expect(lexer.COLON, "Expect '%s' after '%s' | '%s' keywords in '%s' condition." % (lexer.COLON, lexer.ELSE, lexer.ELIF, lexer.IF), loc_start)
             return IfExpression(expr, positive_case, self.parse_block_declaration()).location(loc_start, self.at())
         elif at_type is lexer.ELIF:
             return IfExpression(expr, positive_case, self.parse_if_declaration()).location(loc_start, self.at())
@@ -432,7 +431,7 @@ class Parser:
 
     def parse_block_declaration(self):
         loc_start = self.at()
-        self.eat_expect(lexer.BLOCKSTART, "Expect indented block body after function declaration.")
+        self.eat_expect(lexer.BLOCKSTART, "Expect indented block body after function declaration.", loc_start)
 
         body = []
         pass_encountered = False
@@ -444,10 +443,10 @@ class Parser:
             body.append(self.parse_statement())
 
         if len(body) == 0 and not pass_encountered:
-            error(lexer.PASS, "Expect '%s' when block is empty." % lexer.PASS, self.at().symbols)
+            parser_error(lexer.PASS, "Expect '%s' when block is empty." % lexer.PASS, loc_start, self.at())
 
         # lexer should create the blockend(s) already, so this message will probably never be seen
-        self.eat_expect(lexer.BLOCKEND, "Expect indented block body to end before End of File.")
+        self.eat_expect(lexer.BLOCKEND, "Expect indented block body to end before End of File.", loc_start)
 
         return BlockExpression(body).location(loc_start, self.at())
 
@@ -463,15 +462,15 @@ class Parser:
         # parse the type
         type = self.parse_next_type()
         if not type:
-            error("Unable to determine argument type", self.at().symbols)
+            parser_error("Unable to determine argument type", loc_start, self.at())
 
         # parse the variable identifier
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.")
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.", loc_start)
 
         # eat in keyword^
         # for int n in 0..50:
         #           ^^
-        self.eat_expect(lexer.IN, "expect '%s' after identifier in '%s' declaration." % (lexer.IN, lexer.FOR))
+        self.eat_expect(lexer.IN, "expect '%s' after identifier in '%s' declaration." % (lexer.IN, lexer.FOR), loc_start)
 
         # parse the (first) quantifier
         quantity_max = self.parse_expression()
@@ -486,7 +485,7 @@ class Parser:
             quantity_max = self.parse_expression() #parse the second quantifier
 
         # consume colon ':'
-        self.eat_expect(lexer.COLON, "Expect '%s' after quantifier(s) in '%s' declaration." % (lexer.COLON, lexer.FOR))
+        self.eat_expect(lexer.COLON, "Expect '%s' after quantifier(s) in '%s' declaration." % (lexer.COLON, lexer.FOR), loc_start)
 
         # parse rest of body
         body = self.parse_block_declaration()
@@ -502,7 +501,7 @@ class Parser:
         # while ...... :
         #       ^^^^^^
         expr = self.parse_expression()
-        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF))
+        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.WHILE), loc_start)
         body = self.parse_block_declaration()
         return WhileExpression(expr, body).location(loc_start, self.at())
 
@@ -578,7 +577,7 @@ class Parser:
         properties = []
         while self.not_eof() and self.at().type is not lexer.WIGGLE_R:
             loc_start_loop = self.at()
-            key = self.eat_expect(lexer.IDENTIFIER, "identifier key expected").value
+            key = self.eat_expect(lexer.IDENTIFIER, "identifier key expected", loc_start_loop).value
 
             # handle shorthand key: pair -> { key, }
             if self.at().type is lexer.COMMA:
@@ -591,16 +590,16 @@ class Parser:
                 continue
 
             # handle {key: val}
-            self.eat_expect(lexer.COLON, "Missing '%s' following identifier in ObjectExpr" % lexer.COLON)
+            self.eat_expect(lexer.COLON, "Missing '%s' following identifier in ObjectExpr" % lexer.COLON, loc_start_loop)
             value = self.parse_expression()
             properties.append(ObjectProperty(key, value).location(loc_start_loop, self.at()))
 
             # expect close "}" or if not expect a ","
             if self.at().type is not lexer.WIGGLE_R:
                 # expect a ","
-                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following property" % (lexer.COMMA, lexer.WIGGLE_R))
+                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following property" % (lexer.COMMA, lexer.WIGGLE_R), loc_start_loop)
 
-        self.eat_expect(lexer.WIGGLE_R, "Expect closing '%s' after '%s' object" % (lexer.WIGGLE_R, lexer.WIGGLE_L))
+        self.eat_expect(lexer.WIGGLE_R, "Expect closing '%s' after '%s' object" % (lexer.WIGGLE_R, lexer.WIGGLE_L), loc_start)
         return ObjectLiteral(properties).location(loc_start, self.at())
 
     def parse_array_expression(self):
@@ -612,14 +611,15 @@ class Parser:
         self.eat() # eat square "["
         list = []
         while self.not_eof() and self.at().type is not lexer.SQUARE_R:
+            loop_loc_start = self.at()
             list.append(self.parse_expression())
 
             # expect close "}" or if not expect a ","
             if self.at().type is not lexer.SQUARE_R:
                 # expect a ","
-                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following expression" % (lexer.COMMA, lexer.SQUARE_R))
+                self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following expression" % (lexer.COMMA, lexer.SQUARE_R), loop_loc_start)
 
-        self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after '%s' list" % (lexer.SQUARE_R, lexer.SQUARE_L))
+        self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after '%s' list" % (lexer.SQUARE_R, lexer.SQUARE_L), loc_start)
         return ListLiteral(list).location(loc_start, self.at())
 
     # (...) or (...)
@@ -766,7 +766,7 @@ class Parser:
             operator = self.eat().type
             expr = self.parse_single_operator_after_expr()
             if not isinstance(expr, Identifier):
-                error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), self.at().symbols)
+                parser_error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), loc_start, self.at())
             return UnaryIdentifierBeforeExpression(expr.symbol, operator).location(loc_start, self.at())
         return self.parse_single_operator_after_expr()
 
@@ -778,7 +778,7 @@ class Parser:
         expressions = [lexer.INCREMENT, lexer.DECREMENT]
         if self.at().type in expressions:
             if not isinstance(expr, Identifier):
-                error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), self.at().symbols)
+                parser_error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), loc_start, self.at())
             operator = self.eat().type
             return UnaryIdentifierAfterExpression(expr.symbol, operator).location(loc_start, self.at())
         return expr
@@ -824,14 +824,15 @@ class Parser:
     # (...)
     # (1, 2, 3)
     def parse_call_arguments(self):
-        self.eat_expect(lexer.COURVE_L, "Call is denoted with its list and must begin with '%s' even when empty." % lexer.COURVE_L)
+        loc_start = self.at()
+        self.eat_expect(lexer.COURVE_L, "Call is denoted with its list and must begin with '%s' even when empty." % lexer.COURVE_L, loc_start)
         if self.at().type is lexer.COURVE_R:
             #call argument list is empy
             args = []
         else:
             #call argument list is not empty
             args = self.parse_call_argument_list()
-        self.eat_expect(lexer.COURVE_R, "Expect '%s' to close argument list." % lexer.COURVE_R)
+        self.eat_expect(lexer.COURVE_R, "Expect '%s' to close argument list." % lexer.COURVE_R, loc_start)
         return args
 
     # (...)
@@ -866,12 +867,12 @@ class Parser:
                 child = self.parse_primary_expr()
                 computed = False
                 if not isinstance(child, Identifier):
-                    error("Cannot use '%s' operator without right hand side being a identifier." % lexer.DOT, self.at().symbols)
+                    parser_error("Cannot use '%s' operator without right hand side being a identifier." % lexer.DOT, loc_start, self.at())
             else:
                 # operator is '['
                 # this value could be any other expression
                 child = self.parse_expression()
-                self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after a member call." % lexer.SQUARE_R)
+                self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after a member call." % lexer.SQUARE_R, loc_start)
                 computed = True
 
             obj = MemberExpression(obj, child, computed).location(loc_start, self.at())
@@ -896,10 +897,10 @@ class Parser:
         if type is lexer.COURVE_L:
             self.eat() # eat "("
             value = self.parse_expression() # evaluate (...)
-            self.eat_expect(lexer.COURVE_R, "Expected '%s' after '%s'." % (lexer.COURVE_R, lexer.COURVE_L)) # eat ")"
+            self.eat_expect(lexer.COURVE_R, "Expected '%s' after '%s'." % (lexer.COURVE_R, lexer.COURVE_L), loc_start) # eat ")"
             return value
         #invalid token reached
-        error("Unexpected or unimplemented token reached. Token is %s." % str(self.at()), self.at().symbols)
+        parser_error("Unexpected or unimplemented token reached. Token is %s." % str(self.at()), loc_start, self.at())
 
 
 if __name__ == "__main__":

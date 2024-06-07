@@ -347,15 +347,20 @@ def test_comments():
     assert eval("1     #           comment") == 1
 
 @pytest.mark.skip(reason="not yet implemented correctly")
-def test_object_literal_1():
+def test_dict_literal_1():
     eval("{a: 1, b: 2}")
     eval("{a: 1, b: 2,}")
 
 @pytest.mark.skip(reason="not yet implemented correctly")
-def test_object_literal_2():
-    eval("let int i = {a: 1, b: 2}")
-    eval("let object i = {a: 1, b: 2}")
-    eval("let int i = {pi, euler, tau}")
+def test_dict_literal_2():
+    eval("dyn dict i = {a: 1, b: 2}")
+    eval("dyn dict i = {a: 1, b: 2}")
+    eval("dyn dict i = {pi, euler, tau}")
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_set_literal():
+    eval("dyn set i = {pi, euler, tau}")
+    eval("dyn set i = {1, 2, 3}")
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_list_literal_1():
@@ -364,11 +369,12 @@ def test_list_literal_1():
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_list_literal_2():
-    eval("let int i = [1, 2, 3]")
-    eval("let object i = [1, 2, 3]")
-    eval("let int i = [pi, euler, tau]")
+    eval("let int[] i = [1, 2, 3]")
+    eval("const int[] i = [1, 2, 3]")
+    eval("dyn list i = [1, 2, 3]")
+    eval("dyn list i = [pi, euler, tau]")
 
-@pytest.mark.skip(reason="not yet implemented correctly")
+@pytest.mark.skip(reason="Test not yet implemented correctly")
 def test_member_expression():
     eval("foo.bar")
     eval("foo.bar[1]")

@@ -1,6 +1,7 @@
 from enum import auto
 import re
-from .error import error
+from .error import error_token
+from .error import error_symbol
 
 ignores = [" ", "\t", "\n", "\r"]
 
@@ -140,7 +141,7 @@ def count_idents(string: str, symbols: tuple) -> int:
     spaces = count_leading_spaces(string)
     if spaces % 4 == 0:
         return spaces // 4
-    error("indentation is not a multiple of 4 (its %d)." % spaces, symbols)
+    error_symbol("indentation is not a multiple of 4 (its %d)." % spaces, symbols)
 
 def consume_idents(line: str, ident: int) -> str:
     return line[(ident*4):]
@@ -326,7 +327,7 @@ def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
 
             # assert any remaining problems
             if not found:
-                error("Encountered unknown token in sourcecode.", symbols)
+                error_symbol("Encountered unknown token in sourcecode.", symbols)
 
         if len(tokens):
             last_token = tokens[-1]
