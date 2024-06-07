@@ -6,29 +6,93 @@ from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
 import pytest
 
-@pytest.mark.skip(reason="not yet implementable")
-def test_crc_calculation():
 
-    def crc8(data: bytes, polynomial=0x07, init_value=0x00):
-        # Compute CRC-8 checksum.
-        # :param data: Input data as bytes
-        # :param polynomial: Polynomial to use for calculation (default is 0x07)
-        # :param init_value: Initial value for CRC (default is 0x00)
-        # :return: Computed CRC-8 value
-        crc = init_value
-        for byte in data:
-            crc ^= byte
-            for _ in range(8):
-                if crc & 0x80:
-                    crc = (crc << 1) ^ polynomial
-                else:
-                    crc <<= 1
-                crc &= 0xFF  # Ensure CRC remains 8-bit
-        return crc
+def crc8(data: bytes, polynomial=0x07, init_value=0x00):
+    # Compute CRC-8 checksum.
+    # :param data: Input data as bytes
+    # :param polynomial: Polynomial to use for calculation (default is 0x07)
+    # :param init_value: Initial value for CRC (default is 0x00)
+    # :return: Computed CRC-8 value
+    crc = init_value
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            if crc & 0x80:
+                crc = (crc << 1) ^ polynomial
+            else:
+                crc <<= 1
+            crc &= 0xFF  # Ensure CRC remains 8-bit
+    return crc
+
+@pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
+def test_crc_calculation_1():
 
     assert eval("""
 
-""") == 120
+fn crc8(int[] data, int polynomial=0x07, int init_value=0x00) int:
+
+    let int crc = init_value
+    for byte in data:
+        crc ^=byte
+        for _ in 0..8:
+            if crc & 0x80:
+                crc = (crc << 1) ^ polynomial
+            else:
+                crc <<= 1
+            crc &= 0xFF  # Ensure CRC remains 8-bit
+    return crc
+
+crc8([1,2,3,4])
+
+""") == crc8([1,2,3,4])
+
+def test_crc_calculation_2():
+
+    assert eval("""
+
+fn crc8_update(int data, int polynomial=0x07) int:
+    crc ^= data
+    for int _ in 0..8:
+        if crc & 0x80:
+            crc = (crc << 1) ^ polynomial
+        else:
+            crc = crc << 1
+        crc &= 0xFF  # Ensure CRC remains 8-bit
+    return crc
+
+const int init_value = 0x00
+let int crc = init_value
+crc = crc8_update(1)
+crc = crc8_update(2)
+crc = crc8_update(3)
+crc = crc8_update(4)
+
+""") == crc8([1,2,3,4])
+
+def test_crc_calculation_3():
+
+    #this time overload the polynominal default value
+    assert eval("""
+
+fn crc8_update(int data, int polynomial=0x07) int:
+    crc ^= data
+    for int _ in 0..8:
+        if crc & 0x80:
+            crc = (crc << 1) ^ polynomial
+        else:
+            crc = crc << 1
+        crc &= 0xFF  # Ensure CRC remains 8-bit
+    return crc
+
+const int init_value = 0x00
+const int polynomial = 0x10
+let int crc = init_value
+crc = crc8_update(1, polynomial)
+crc = crc8_update(2, polynomial)
+crc = crc8_update(3, polynomial)
+crc = crc8_update(4, polynomial)
+
+""") == crc8([1,2,3,4], 0x10)
 
 
 def test_factorial_variant_1():
@@ -65,7 +129,7 @@ def test_factorial_variant_2():
 
 # Factorial of a number using recursion
 
-fn recur_factorial(int n):
+fn recur_factorial(int n) int:
     if n == 1:
         return n
     else:
@@ -76,7 +140,8 @@ let int fac
 
 # check if the number is negative
 if num < 0:
-    fac = "Sorry, factorial does not exist for negative numbers"
+    print("Sorry, factorial does not exist for negative numbers")
+    fac = -1
 elif num == 0:
     fac = 1
 else:
@@ -92,7 +157,7 @@ def test_factorial_variant_3():
 
 # Factorial of a number using recursion
 
-fn recur_factorial(int n):
+fn recur_factorial(int n) int:
     let int result
     if n == 1:
         result = n
@@ -105,7 +170,8 @@ let int fac
 
 # check if the number is negative
 if num < 0:
-    fac = "Sorry, factorial does not exist for negative numbers"
+    print("Sorry, factorial does not exist for negative numbers")
+    fac = -1
 elif num == 0:
     fac = 1
 else:
@@ -134,7 +200,7 @@ def test_calc_pi_variant_2():
 # Function that prints the
 # value of pi upto N
 # decimal places
-fn printValueOfPi():
+fn printValueOfPi() int:
     # Find value of pi upto 3 places
     # using acos() function
     let int newpi = round(2 * acos(0.0) * 1000) / 1000
