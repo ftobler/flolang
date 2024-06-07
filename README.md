@@ -27,6 +27,52 @@ concepts:
 * C backend is in planning
 * Pool allocation concepts, garbage disposal (not collector).
 
+
+## syntax
+
+With return and break not yet working, use is inconvenient. But below samples work.
+```
+fn crc8_update(int data, int polynomial=0x07) int:
+    crc ^= data
+    for int _ in 0..8:
+        if crc & 0x80:
+            crc = (crc << 1) ^ polynomial
+        else:
+            crc = crc << 1
+        crc &= 0xFF  # Ensure CRC remains 8-bit
+    return crc
+
+const int init_value = 0x00
+let int crc = init_value
+for int i in 1..4:
+    crc = crc8_update(i)
+
+# print result
+print(crc)
+```
+
+```
+fn recur_factorial(int n) int:
+    let int result
+    if n == 1:
+        result = n
+    else:
+        result = n*recur_factorial(n-1)
+    return result
+
+let int num = 7
+let int fac
+
+# check if the number is negative
+if num < 0:
+    print("Sorry, factorial does not exist for negative numbers")
+    fac = -1
+elif num == 0:
+    fac = 1
+else:
+    fac = recur_factorial(num)
+```
+
 ## install
 
 1. clone repository
