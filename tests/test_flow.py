@@ -6,17 +6,19 @@ from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
 import pytest
 
-def test_function():
+def test_function_0():
 
     with pytest.raises(Exception):
         x = 1 / 0
 
+def test_function_1():
     # declare a function
     assert eval("""
 fn foo():
     return 1234
 """) == "<RuntimeFunction>" #not liking the result, but its for now what is coming out here
 
+def test_function_2():
     # funtion with returntype
     assert eval("""
 fn foo() int:
@@ -24,6 +26,7 @@ fn foo() int:
 foo()
 """) == 1234
 
+def test_function_3():
     # function with no return type
     assert eval("""
 fn foo():
@@ -31,6 +34,7 @@ fn foo():
 foo()
 """) == None
 
+def test_function_4():
     # simple additive function
     assert eval("""
 fn add(int a, int b):
@@ -38,6 +42,7 @@ fn add(int a, int b):
 add(5, 3)
 """) == 8
 
+def test_function_5():
     # check that A argument is really A
     assert eval("""
 fn returnA(int a, int b):
@@ -45,6 +50,7 @@ fn returnA(int a, int b):
 returnA(5, 3)
 """) == 5
 
+def test_function_6():
     # check that B argument is really B
     assert eval("""
 fn returnB(int a, int b):
@@ -52,6 +58,7 @@ fn returnB(int a, int b):
 returnB(5, 3)
 """) == 3
 
+def test_function_7():
     # check nesting function calls
     assert eval("""
 fn bar():
@@ -61,7 +68,7 @@ fn foo():
 bar()
 """) == 456
 
-def test_function_variable_scope():
+def test_function_variable_scope_1():
     # check that the order of declaration does not matter
     assert eval("""
 foo()
@@ -70,6 +77,7 @@ fn foo():
 const int global_var = 789
 """) == 789
 
+def test_function_variable_scope_2():
     # put a function on a variable
     assert eval("""
 fn foo():
@@ -78,7 +86,7 @@ const int bar = foo
 bar()
 """) == 963
 
-def test_condition_if():
+def test_condition_if_1():
     # check an if which is branching
     assert eval("""
 let int i = 0
@@ -87,6 +95,7 @@ if True:
 i
 """) == 1
 
+def test_condition_if_2():
     # check an if which is skipping
     assert eval("""
 let int i = 0
@@ -95,7 +104,7 @@ if False:
 i
 """) == 0
 
-def test_condition_if_else():
+def test_condition_if_else_1():
     # check an if-else which is iffing
     assert eval("""
 let int i = 0
@@ -106,6 +115,7 @@ else:
 i
 """) == 1
 
+def test_condition_if_else_2():
     # check an if-else which is elseing
     assert eval("""
 let int i = 0
@@ -117,7 +127,7 @@ i
 """) == 2
 
 
-def test_condition_if_elif_else():
+def test_condition_if_elif_else_1():
     # check an if-elif-else which is ifing
     assert eval("""
 let int i = 0
@@ -130,6 +140,7 @@ else:
 i
 """) == 1
 
+def test_condition_if_elif_else_2():
     # check an if-elif-else which is elifing
     assert eval("""
 let int i = 0
@@ -142,6 +153,7 @@ else:
 i
 """) == 2
 
+def test_condition_if_elif_else_3():
     # check an if-elif-else which is elseing
     assert eval("""
 let int i = 0
@@ -154,7 +166,7 @@ else:
 i
 """) == 3
 
-def test_condition_if_elif():
+def test_condition_if_elif_1():
     # check an if-elif which is ifing
     assert eval("""
 let int i = 0
@@ -165,6 +177,7 @@ elif True:
 i
 """) == 1
 
+def test_condition_if_elif_2():
     # check an if-elif-else which is elifing
     assert eval("""
 let int i = 0
@@ -175,6 +188,7 @@ elif True:
 i
 """) == 2
 
+def test_condition_if_elif_3():
     # check an if-elif-else which is skipping
     assert eval("""
 let int i = 0
@@ -185,8 +199,7 @@ elif False:
 i
 """) == 0
 
-def test_while():
-
+def test_while_1():
     # check a simple while loop with pass
     # expect count to 0
     assert eval("""
@@ -196,6 +209,7 @@ while --i:
 i
 """) == 0
 
+def test_while_2():
     # check a simple while loop
     # expect 9 loops
     assert eval("""
@@ -206,7 +220,7 @@ while --i:
 n
 """) == 9
 
-
+def test_while_3():
     # check a simple while loop with pass
     # pass is not allowed after a statement
     with pytest.raises(Exception):
@@ -219,6 +233,7 @@ while --i:
 n # this 'n' is an extra statement after the block
     """) == 10
 
+def test_while_4():
     # check a simple while loop with pass
     # pass is not allowed after a statement
     with pytest.raises(Exception):
@@ -230,17 +245,20 @@ while --i:
     pass
     """) == 10
 
-#     # check a simple while loop with break
-#     # expect 5 loops
-#     assert eval("""
-# let int i = 10
-# let int n = 0
-# while --i:
-#     if i < 5:
-#         break
-# n
-# """) == 5
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_while_5():
+    # check a simple while loop with break
+    # expect 5 loops
+    assert eval("""
+let int i = 10
+let int n = 0
+while --i:
+    if i < 5:
+        break
+n
+""") == 5
 
+def test_while_6():
     # check a simple while loop with break
     # the check decrement has been executed once
     assert eval("""
@@ -250,6 +268,7 @@ while i--:
 i
 """) == 9
 
+def test_while_7():
     # check a simple while loop with break
     assert eval("""
 let int i = 10
@@ -258,13 +277,14 @@ while i:
 i
 """) == 0
 
-def test_unreachable_code():
+def test_unreachable_code_1():
     #unreachable keyword is never reached
     assert eval("""
 if False:
     unreachable
 """) == None
 
+def test_unreachable_code_2():
     # unreachable is used to assert that control flow will never reach a
     # particular location (1:1 what they state in zig)
     assert eval("""
@@ -274,13 +294,14 @@ if x + y != 3:
     unreachable
 """) == None
 
+def test_unreachable_code_3():
     # unreachable at runtime creates an exception
     with pytest.raises(Exception):
         assert eval("""
 unreachable
 """) == None
 
-def test_scopes():
+def test_scopes_1():
     # if block has its own scope and does not change base variable
     assert eval("""
 let int a = 123
@@ -289,6 +310,7 @@ if True:
 a
 """) == 123
 
+def test_scopes_2():
     # if block has its own scope and in itself the new variable is used
     # on assignment
     assert eval("""
@@ -300,7 +322,7 @@ if True:
 b
 """) == 456
 
-def test_function_nesting():
+def test_function_nesting_1():
     assert eval("""
 fn foo(int a):
     return a * 10
@@ -309,6 +331,7 @@ fn bar(int a):
 foo(bar(100))
 """) == 2000
 
+def test_function_nesting_2():
     assert eval("""
 fn foo():
     return bar
@@ -318,13 +341,15 @@ foo()(20)
 """) == 120
 
 @pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
-def test_function_with_comments_and_spaces():
+def test_function_with_comments_and_spaces_1():
     assert eval("""
 fn foo():
     return 52
 foo()
 """) == 52
 
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_function_with_comments_and_spaces_2():
     assert eval("""
 fn foo():
 
@@ -332,6 +357,8 @@ fn foo():
 foo()
 """) == 53
 
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_function_with_comments_and_spaces_3():
     assert eval("""
 fn foo():
     # return a value
@@ -339,6 +366,8 @@ fn foo():
 foo()
 """) == 54
 
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_function_with_comments_and_spaces_4():
     assert eval("""
 fn foo():
 
@@ -347,6 +376,8 @@ fn foo():
 foo()
 """) == 55
 
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_function_with_comments_and_spaces_5():
     assert eval("""
 fn foo():
     let int i = 5
@@ -357,6 +388,8 @@ fn foo():
 foo()
 """) == 56
 
+@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+def test_function_with_comments_and_spaces_6():
     assert eval("""
 fn foo():
     let int i = 5
@@ -369,7 +402,7 @@ foo()
 
 
 @pytest.mark.skip(reason="not yet implemented correctly")
-def test_return_break_statements():
+def test_return_break_statements_1():
     # check a simple while loop with break
     # expect 5 loops
     assert eval("""
@@ -379,7 +412,9 @@ while --i:
         break
 i
 """) == 5
-
+    
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_return_break_statements_2():
     # check a simple while loop with return
     # expect 5 loops
     assert eval("""
@@ -402,8 +437,7 @@ fn foo():
 foo()
 """) == "success"
 
-# @pytest.mark.skip(reason="not yet implemented correctly")
-def test_for_loop():
+def test_for_loop_1():
     assert eval("""
 let int n = 0
 for int i in 10..20:
@@ -411,6 +445,7 @@ for int i in 10..20:
 n
 """) == 10
 
+def test_for_loop_2():
     assert eval("""
 let int n = 0
 for int i in 20 ..31:
@@ -418,6 +453,8 @@ for int i in 20 ..31:
 n
 """) == 11
 
+
+def test_for_loop_3():
     assert eval("""
 let int n = 0
 for int i in 30.. 42:
@@ -425,6 +462,8 @@ for int i in 30.. 42:
 n
 """) == 12
 
+
+def test_for_loop_4():
     assert eval("""
 let int n = 0
 for int i in 40 .. 53:
@@ -432,6 +471,8 @@ for int i in 40 .. 53:
 n
 """) == 13
 
+
+def test_for_loop_5():
     assert eval("""
 let int n = 0
 for int i in 14:

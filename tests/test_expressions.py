@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
-import pytest
+import pytest, math, time
 
 def test_literal_number_epressions():
     assert eval("0") == 0
@@ -28,11 +28,13 @@ def test_literal_number_epressions():
     assert eval("10.22") == 10.22
     assert eval("10") == 10
     assert eval("11") == 11
-    assert eval("0.5") == .5     # this here is an interesting one
-    # assert eval(".5") == .5    # this here is an interesting one
     assert eval("0.E5") == 0.E5
     assert eval("20.2") == 20.2
     assert eval("+1") == +1
+
+def test_literal_number_epressions_special():
+    assert eval("0.5") == .5     # this here is an interesting one
+    # assert eval(".5") == .5    # this here is an interesting one
 
 def test_literal_string_expressions():
     assert eval('""') == ""
@@ -48,7 +50,7 @@ def test_nesting():
     assert eval("( ((1) ))") == 1
     assert eval("( ((1)     ))") == 1
 
-def test_math_expression():
+def test_math_expression_basic():
     assert eval("1+1") == 2
     assert eval("1 + 1") == 2
     assert eval("1+ 1") == 2
@@ -56,6 +58,7 @@ def test_math_expression():
     assert eval("2*(0+3)") == 6
     assert eval("(2*0)+3") == 3
 
+def test_math_expression():
     # asked chatgpt for some random math expressions
     assert eval("3 + 4 * 2") == 11
     assert eval("(5 - 3) ** 2") == 4
@@ -159,16 +162,19 @@ def test_logic_math_expressions():
     assert eval("(8 >> 1) << 2 == 16 and 4 > 2") == True
     assert eval("not (True and 10 / 2 != 5)") == True
 
+def test_logic_math_expressions_precidence_problems_1():
     # differs from python because == has more precidence
     # assert eval("8 | (1 ^ 2) == 11") == True
     assert eval("(8 | (1 ^ 2)) == 11") == True
     assert eval("8 | (1 ^ 2) == 11") == 8
 
+def test_logic_math_expressions_precidence_problems_2():
     # differs from python because == has more precidence
     # assert eval("7 & (3 << 2) == 4") == True
     assert eval("(7 & (3 << 2)) == 4") == True
     assert eval("7 & (3 << 2) == 4") == 0
 
+def test_logic_math_expressions_precidence_problems_3():
     # this one is interesing because it differs from python.
     # 2>4 is evaluated first, then bitwise OR yields 6.
     # assert eval("6 | 2 > 4") == True
@@ -182,6 +188,7 @@ def test_variables():
     assert eval("let int i = 0") == 0
     assert eval("let int i = 1") == 1
 
+def test_variables_starting_with_keywords():
     #these are critical because they start with keywords
     assert eval("let int function = 1") == 1
     assert eval("let int returnee = 1") == 1
@@ -194,6 +201,7 @@ def test_variables():
     assert eval("let int constant = 1") == 1
     assert eval("let int integer = 1") == 1
 
+def test_variables_exotic_names():
     # some a bit more exotic names we allow
     eval("let int __name  ")
     eval("let int __0name ")
@@ -222,6 +230,7 @@ def test_illegal_variable():
 
     eval('"🥰"') # that just belongs here now
 
+def test_illegal_variable_cases():
     with pytest.raises(Exception):
         eval("let int kebap-case")
 
@@ -247,12 +256,11 @@ def test_illegal_variable():
         eval("let int illegalname()")
 
 def test_builtin_native_functions():
-    import time, math
-
     #these are pure native functions
     assert eval("print(1)") == None
     assert abs(eval("time()") - time.time()) < 0.01 #might break if interpreter is suuuper slow
 
+def test_builtin_native_functions_trigonometry():
     assert eval("sin(1)") == math.sin(1)
     assert eval("cos(1)") == math.cos(1)
     assert eval("tan(1)") == math.tan(1)
@@ -264,30 +272,36 @@ def test_builtin_native_functions():
     assert eval("atan2(1, 1)") == math.pi / 4
     assert eval("atan2(1, 2)") == math.atan2(1, 2)
 
+def test_builtin_native_functions_round():
     assert eval("round(0.49)") == 0
     assert eval("round(0.51)") == 1
 
+def test_builtin_native_functions_nan():
     assert eval("isnan(nan)") == True
     assert eval("isnan(pi)") == False
     assert eval("isnan(inf)") == False
+
+def test_builtin_native_functions_inf():
     assert eval("isinf(inf)") == True
     assert eval("isinf(-inf)") == True
     assert eval("isinf(pi)") == False
     assert eval("isinf(nan)") == False
 
-def test_builtin_functions():
-    import math
-
+def test_builtin_functions_const():
     # these are normal functions
     assert eval("pi") == math.pi
     assert eval("euler") == math.e
     assert eval("tau") == math.tau
+
+def test_builtin_functions_nan_inf():
     assert math.isnan(eval("nan")) == True
     assert math.isinf(eval("inf")) == True
 
+def test_builtin_functions_floor():
     assert eval("floor(0.49)") == 0
     assert eval("floor(0.51)") == 0
 
+def test_builtin_functions_conversion():
     assert eval("degrees(1.3)") == math.degrees(1.3)
     assert eval("radians(123)") == math.radians(123)
 
