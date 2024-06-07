@@ -300,6 +300,23 @@ if True:
 b
 """) == 456
 
+def test_function_nesting():
+    assert eval("""
+fn foo(int a):
+    return a * 10
+fn bar(int a):
+    return a * 2
+foo(bar(100))
+""") == 2000
+
+    assert eval("""
+fn foo():
+    return bar
+fn bar(int add):
+    return 100 + add
+foo()(20)
+""") == 120
+
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_return_break_statements():
     # check a simple while loop with break
