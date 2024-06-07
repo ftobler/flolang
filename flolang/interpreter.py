@@ -122,6 +122,8 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_if_expression(stmt, env)
     if isinstance(stmt, ast.WhileExpression):
         return interpret_while_expression(stmt, env)
+    if isinstance(stmt, ast.ForExpression):
+        return interpret_for_expression(stmt, env)
     if isinstance(stmt, ast.BlockExpression):
         return interpret_block_expression(stmt, env)
     if isinstance(stmt, ast.ReturnExpression):
@@ -340,6 +342,24 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
     # must do this every time
     while interpret(stmt.condition, env).value:
         ret, last = interpret_block_expression(stmt.body, env)
+        if ret == 2: # break
+            break
+        elif ret == 1: # return
+            return last
+    return NoneValue()
+
+def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> RuntimeValue:
+
+    min = interpret(stmt.quantity_min, env).value
+    max = interpret(stmt.quantity_max, env).value
+
+    # for loop has the limited scope iteration variable. Make a new Environment for it.
+    scope = Environment(env)
+    scope.declare(stmt.type.type, stmt.identifier, True)
+
+    # do the loop
+    for i in range(min, max):
+        ret, last = interpret_block_expression(stmt.body, scope)
         if ret == 2: # break
             break
         elif ret == 1: # return

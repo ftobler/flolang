@@ -402,18 +402,18 @@ fn foo():
 foo()
 """) == "success"
 
-@pytest.mark.skip(reason="not yet implemented correctly")
+# @pytest.mark.skip(reason="not yet implemented correctly")
 def test_for_loop():
     assert eval("""
 let int n = 0
-for int i in 0..50:
+for int i in 10..50:
     n++
 n
-""") == 49
+""") == 40
 
     assert eval("""
 let int n = 0
 for int i in 50:
     n++
 n
-""") == 49
+""") == 50

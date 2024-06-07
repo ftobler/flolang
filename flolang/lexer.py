@@ -48,6 +48,7 @@ string_tokens = [
 # Must match them after long string tokens as wrong matching
 # could occur
 DOT = "."
+DOTDOT = ".."
 COLON = ":"
 COMMA = ","
 COURVE_L = "("
@@ -72,7 +73,7 @@ BITNOT = "~"
 XOR = "^"
 ELVIS = "?"
 small_tokens = [
-    DOT, COLON, COMMA, COURVE_L, COURVE_R, SQUARE_L, SQUARE_R, WIGGLE_L,
+    DOT, DOTDOT, COLON, COMMA, COURVE_L, COURVE_R, SQUARE_L, SQUARE_R, WIGGLE_L,
     WIGGLE_R, PLUS, MINUS, MUL, DIV, MOD, POW, ASSIGN, BIGGER, SMALLER,
     SHIFTRIGHT, SHIFTLEFT, BITOR, BITAND, BITNOT, XOR, ELVIS
 ]
@@ -190,6 +191,20 @@ def starts_with_alphanumeric(string, prefix):
         return True # end of input, keyword still matches
     return False
 
+def check_numeric_expression_for_dotdot(string):
+    index = string.find("..")
+    if index >= 1:
+        # 0..100
+        # ^
+        # there is minimum a 1 digit number here
+        # and string has now minimum length of 3 for
+        # this to be true
+        candidate = string[:index]
+        if candidate.isnumeric():
+            return candidate
+    return string
+
+
 def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
     tokens = []
     tokenlist_symbolic = string_tokens + small_tokens
@@ -281,6 +296,7 @@ def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
                 match = re.search("^[0-9\.]+(E[0-9]+|)", source)
                 if match:
                     number = match[0]
+                    number = check_numeric_expression_for_dotdot(number)
                     match2 = re.search("E|\.", number)
                     if (match2):
                         # found a float

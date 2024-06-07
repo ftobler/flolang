@@ -82,6 +82,19 @@ class IfExpression(Statement):
         self.positive_case = positive_case
         self.negative_case = negative_case
 
+class ForExpression(Statement):
+    type: Type
+    identifier: str
+    body: BlockExpression
+    quantity_min: Expression
+    quantity_max: Expression
+    def __init__(self, type: Type, identifier: str, body: BlockExpression, quantity_min: Expression, quantity_max: Expression):
+        super().__init__()
+        self.type = type
+        self.identifier = identifier
+        self.body = body
+        self.quantity_min = quantity_min
+        self.quantity_max = quantity_max
 
 class WhileExpression(Statement):
     condition: Expression
@@ -411,11 +424,48 @@ class Parser:
 
         return BlockExpression(body)
 
+    # for int n in 50:
+    # for int n in {...}:
+    # for int n in 0..50:
+    # for int n in {...}..{...}:
     def parse_for_declaration(self):
         # eat the 'for' keyword
         self.eat()
-        self.unimplemented()
 
+        # parse the type
+        type = self.parse_next_type()
+        if not type:
+            error("Unable to determine argument type", self.at().symbols)
+        
+        # parse the variable identifier
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.")
+
+        # eat in keyword^
+        # for int n in 0..50:
+        #           ^^
+        self.eat_expect(lexer.IN, "expect '%s' after identifier in '%s' declaration." % (lexer.IN, lexer.FOR))
+
+        # parse the (first) quantifier
+        quantity_max = self.parse_expression()
+        quantity_min = NumericLiteral("0")
+
+        # check if a double dot is present
+        # for int n in 0..50:
+        #               ^^
+        if self.at().type is lexer.DOTDOT:
+            self.eat() # consume '..'
+            quantity_min = quantity_max
+            quantity_max = self.parse_expression() #parse the second quantifier
+
+        # consume colon ':'
+        self.eat_expect(lexer.COLON, "Expect '%s' after quantifier(s) in '%s' declaration." % (lexer.COLON, lexer.FOR))
+
+        # parse rest of body
+        body = self.parse_block_declaration()
+
+        return ForExpression(type, identifier, body, quantity_min, quantity_max)
+
+    # while (...):
     def parse_while_declatation(self):
         # eat the 'while' keyword
         self.eat()
