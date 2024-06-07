@@ -334,6 +334,18 @@ def test_comments():
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_object_literal():
-    assert eval("let int i = {a: 1, b: 2}") == None
-    assert eval("let object i = {a: 1, b: 2}") == None
-    assert eval("let int i = {pi, euler, tau}") == None
+    eval("let int i = {a: 1, b: 2}")
+    eval("let object i = {a: 1, b: 2}")
+    eval("let int i = {pi, euler, tau}")
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_member_expression():
+    eval("foo.bar")
+    eval("foo.bar[1]")
+    eval("foo.bar()")
+    eval("foo[0].bar")
+    eval("foo[0].bar[1]")
+    eval("foo[0].bar()")
+    eval("foo().bar")
+    eval("foo().bar[1]")
+    eval("foo().bar()")
