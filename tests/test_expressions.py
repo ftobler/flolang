@@ -332,3 +332,8 @@ def test_comments():
     assert eval("1 # comment") == 1
     assert eval("1     #           comment") == 1
 
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_object_literal():
+    assert eval("let int i = {a: 1, b: 2}") == None
+    assert eval("let object i = {a: 1, b: 2}") == None
+    assert eval("let int i = {pi, euler, tau}") == None
