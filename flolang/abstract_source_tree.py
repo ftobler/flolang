@@ -567,7 +567,8 @@ class Parser:
         # ^^^
         assignee = self.parse_object_expression()
         expressions = [lexer.ASSIGN, lexer.ASSIGNADD, lexer.ASSIGNSUB, lexer.ASSIGNMUL, lexer.ASSIGNDIV,
-                       lexer.ASSIGNREM, lexer.ASSIGNBITAND, lexer.ASSIGNBITXOR, lexer.ASSIGNBITOR]
+                       lexer.ASSIGNREM, lexer.ASSIGNBITAND, lexer.ASSIGNBITXOR, lexer.ASSIGNBITOR,
+                       lexer.ASSIGNBITSHIFTL, lexer.ASSIGNBITSHIFTR]
         if self.at().type in expressions:
             operator = self.eat().type
             value = self.parse_assignment_expression()

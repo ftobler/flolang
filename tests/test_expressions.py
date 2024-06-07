@@ -181,6 +181,32 @@ def test_logic_math_expressions_precidence_problems_3():
     assert eval("6 | 2 > 4") == 6
     # assert eval("4 ^ 1 < 6") == True
 
+def test_inline_statements_2():
+    # you can actually execute multiple statements in 1 line
+    # they count as 2 separate statements. No block.
+    assert eval("let int i = 10          pi") == math.pi
+    assert eval("True 1") == 1
+
+    # is the evaluation of if because that is the last statement that is executed
+    assert eval("if True: 1") == None
+    assert eval("if False: 1") == None
+    # is the evaluation of the number at the end because that is executed either case
+    assert eval("if True: 1 123") == 123
+    assert eval("if False: 1 1123") == 1123
+
+def test_assignment():
+    assert eval("let int i = 10          i = 20") == 20
+    assert eval("let int i = 10          i += 20") == 30
+    assert eval("let int i = 10          i -= 20") == -10
+    assert eval("let int i = 10          i *= 20") == 200
+    assert eval("let int i = 10          i /= 20") == 0.5
+    assert eval("let int i = 10          i %= 7") == 3
+    assert eval("let int i = 0x09        i &= 0x81") == 0x01
+    assert eval("let int i = 0x09        i ^= 0x11") == 0x18
+    assert eval("let int i = 0x09        i |= 0x18") == 0x19
+    assert eval("let int i = 0x09        i <<= 1") == 0x12
+    assert eval("let int i = 0x09        i >>= 1") == 0x04
+
 def test_variables():
     assert eval("const int i = 0") == 0
     assert eval("const int i = 1") == 1

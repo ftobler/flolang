@@ -255,6 +255,10 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         return env.assign(identifier, NumberValue(left.value ^ right.value), stmt)
     if stmt.operator is lexer.ASSIGNBITOR:
         return env.assign(identifier, NumberValue(left.value | right.value), stmt)
+    if stmt.operator is lexer.ASSIGNBITSHIFTR:
+        return env.assign(identifier, NumberValue(left.value >> right.value), stmt)
+    if stmt.operator is lexer.ASSIGNBITSHIFTL:
+        return env.assign(identifier, NumberValue(left.value << right.value), stmt)
     raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
 
 
