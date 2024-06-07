@@ -11,7 +11,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 
-from flolang import tokenize, default_environment, parse, interpret
+from flolang import tokenize, default_environment, parse, interpret, to_native
 from colorama import Fore, Back, Style
 
 pretty_print = True
@@ -19,6 +19,7 @@ pretty_print = True
 def main():
     print("flolang v0.1 by ftobler")
     env = default_environment()
+    env.declare("_", interpret(parse(tokenize("0")), env), False, None)
     while True:
         tok_copy = None
         ast = None
@@ -29,6 +30,8 @@ def main():
             tok_copy = tok.copy()
             ast = parse(tok)
             value = interpret(ast, env)
+            env.assign("_", value, None)
+            print(to_native(value))
         except Exception as e:
             if pretty_print: print(Fore.LIGHTBLACK_EX, end="")
             if tok_copy: print(tok_copy)
