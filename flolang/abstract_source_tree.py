@@ -14,14 +14,14 @@ class Location:
         end = self.end.symbols[2]
         if start < end:
             snippet = line[start:end+1]
-            return "'" + snippet + "'"
+            return '"' + snippet + '"'
         return str(self.start) + ".." + str(self.end)
 
 class NoLocation(Location):
     def __init__(self):
         super().__init__(None, None)
     def __repr__(self):
-        return "{}"
+        return "?"
 
 class Statement:
     kind: str
