@@ -18,15 +18,18 @@ def main():
     print("flolang v0.1 by ftobler")
     env = default_environment()
     while True:
+        t = None
+        ast = None
+        value = None
         try:
             print("# ", end="")
             t = tokenize(input())
-            print(t)
             ast = parse(t)
-            print(ast.json())
             value = interpret(ast, env)
-            print(value)
         except Exception as e:
+            if t: print(t)
+            if ast: print(ast.json())
+            if value: print(value)
             print(e)
 
 

@@ -1,6 +1,7 @@
 import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
 import itertools
+from flolang.error import runtime_error
 
 class RuntimeValue:
     variant: str
@@ -52,34 +53,38 @@ class RuntimeFunction(RuntimeValue):
         self.function = function
 
 
+def statement_error(message, stmt: ast.Statement):
+    runtime_error(message, stmt.loc)
+
+
 class Environment:
     def __init__(self, parent=None):
         self.scope = {}
         self.constants = []
         self.parent = parent
 
-    def declare(self, name: str, value: RuntimeValue, is_constant: bool) -> RuntimeValue:
+    def declare(self, name: str, value: RuntimeValue, is_constant: bool, stmt: ast.Statement) -> RuntimeValue:
         if self.scope.get(name):
-            raise Exception("variable '%s' already defined" % name)
+            raise statement_error("variable '%s' already defined" % name, stmt)
         self.scope[name] = value
         if is_constant:
             self.constants.append(name)
         return value
 
-    def assign(self, name: str, value: RuntimeValue) -> RuntimeValue:
+    def assign(self, name: str, value: RuntimeValue, stmt: ast.Statement) -> RuntimeValue:
         env = self._resolve(name)
         if env:
             if name in env.constants:
-                raise Exception("variable '%s' is constant" % name)
+                raise statement_error("variable '%s' is constant" % name, stmt)
             env.scope[name] = value
             return value
-        raise Exception("variable '%s' undefined" % name)
+        raise statement_error("variable '%s' undefined" % name, stmt)
 
-    def lookup(self, name: str):
+    def lookup(self, name: str, stmt: ast.Statement):
         env = self._resolve(name)
         if env:
             return env.scope[name]
-        raise Exception("variable '%s' undefined" % name)
+        raise statement_error("variable '%s' undefined" % name, stmt)
 
     def _resolve(self, name: str):
         if name in self.scope:
@@ -110,7 +115,7 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.StringLiteral):
         return StringValue(stmt.value)
     if isinstance(stmt, ast.Identifier):
-        return env.lookup(stmt.symbol)
+        return env.lookup(stmt.symbol, stmt)
 
     if isinstance(stmt, ast.Program):
         return interpret_program(stmt, env)
@@ -131,9 +136,9 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.BreakExpression):
         return interpret_break_expression(stmt, env)
     if isinstance(stmt, ast.UnreachableExpression):
-        raise Exception("Reached unreachable expression.")
+        raise statement_error("Reached unreachable expression.", stmt)
 
-    raise Exception("unable to interpret '%s'" % stmt.kind)
+    raise statement_error("unable to interpret '%s'" % stmt.kind, stmt)
 
 def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
@@ -141,8 +146,8 @@ def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> Run
             value = interpret(stmt.value, env)
         else:
             value = NumberValue(0)
-        return env.declare(stmt.identifier, value, stmt.constant)
-    raise Exception("variable type to declare not implemented '%s'" % stmt.type)
+        return env.declare(stmt.identifier, value, stmt.constant, stmt)
+    raise statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
     left = interpret(stmt.left, env)
@@ -187,7 +192,7 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
         return NumberValue(int(left.value // right.value))
     if stmt.operator is lexer.POW:
         return NumberValue(left.value ** right.value)
-    raise Exception("statement operator invalid '%s'" % stmt.operator)
+    raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
 
 
 def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Environment) -> RuntimeValue:
@@ -200,57 +205,57 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
         return expression #does nothing
     if stmt.operator is lexer.MINUS:
         return NumberValue(-expression.value)
-    raise Exception("statement operator invalid '%s'" % stmt.operator)
+    raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
 
 
 def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBeforeExpression, env: Environment) -> RuntimeValue:
-    variable = env.lookup(stmt.identifier)
+    variable = env.lookup(stmt.identifier, stmt)
     if stmt.operator is lexer.INCREMENT:
         variable = NumberValue(variable.value + 1)
-        env.assign(stmt.identifier, variable)
+        env.assign(stmt.identifier, variable, stmt)
         return variable
     if stmt.operator is lexer.DECREMENT:
         variable = NumberValue(variable.value - 1)
-        env.assign(stmt.identifier, variable)
+        env.assign(stmt.identifier, variable, stmt)
         return variable
 
 def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterExpression, env: Environment) -> RuntimeValue:
-    variable_original = env.lookup(stmt.identifier)
+    variable_original = env.lookup(stmt.identifier, stmt)
     if stmt.operator is lexer.INCREMENT:
         variable = NumberValue(variable_original.value + 1)
-        env.assign(stmt.identifier, variable)
+        env.assign(stmt.identifier, variable, stmt)
         return variable_original
     if stmt.operator is lexer.DECREMENT:
         variable = NumberValue(variable_original.value - 1)
-        env.assign(stmt.identifier, variable)
+        env.assign(stmt.identifier, variable, stmt)
         return variable_original
-    raise Exception("interpret_unary_after_expression unimplemented")
+    raise statement_error("interpret_unary_after_expression unimplemented", stmt)
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
     if not isinstance(stmt.assignee, ast.Identifier):
-        raise Exception("can only assign to indentifier" + str(stmt.kind))
+        raise statement_error("can only assign to indentifier" + str(stmt.kind), stmt)
     identifier = stmt.assignee.symbol
     right = interpret(stmt.value, env)
     if stmt.operator is lexer.ASSIGN:
-        return env.assign(identifier, right)
-    left = env.lookup(identifier)
+        return env.assign(identifier, right, stmt)
+    left = env.lookup(identifier, stmt)
     if stmt.operator is lexer.ASSIGNADD:
-        return env.assign(identifier, NumberValue(left.value + right.value))
+        return env.assign(identifier, NumberValue(left.value + right.value), stmt)
     if stmt.operator is lexer.ASSIGNSUB:
-        return env.assign(identifier, NumberValue(left.value - right.value))
+        return env.assign(identifier, NumberValue(left.value - right.value), stmt)
     if stmt.operator is lexer.ASSIGNMUL:
-        return env.assign(identifier, NumberValue(left.value * right.value))
+        return env.assign(identifier, NumberValue(left.value * right.value), stmt)
     if stmt.operator is lexer.ASSIGNDIV:
-        return env.assign(identifier, NumberValue(left.value / right.value))
+        return env.assign(identifier, NumberValue(left.value / right.value), stmt)
     if stmt.operator is lexer.ASSIGNREM:
-        return env.assign(identifier, NumberValue(left.value % right.value))
+        return env.assign(identifier, NumberValue(left.value % right.value), stmt)
     if stmt.operator is lexer.ASSIGNBITAND:
-        return env.assign(identifier, NumberValue(left.value & right.value))
+        return env.assign(identifier, NumberValue(left.value & right.value), stmt)
     if stmt.operator is lexer.ASSIGNBITXOR:
-        return env.assign(identifier, NumberValue(left.value ^ right.value))
+        return env.assign(identifier, NumberValue(left.value ^ right.value), stmt)
     if stmt.operator is lexer.ASSIGNBITOR:
-        return env.assign(identifier, NumberValue(left.value | right.value))
-    raise Exception("statement operator invalid '%s'" % stmt.operator)
+        return env.assign(identifier, NumberValue(left.value | right.value), stmt)
+    raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
 
 
 
@@ -264,17 +269,17 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
         else:
             last = interpret(statement, env)
             if last == None:
-                raise Exception("must return a runtime value") # this is a development check mainly
+                raise statement_error("must return a runtime value", stmt) # this is a development check mainly
 
     # then interpret everything else
     for statement in defer:
         last = interpret(statement, env)
         if last == None:
-            raise Exception("must return a runtime value") # this is a development check mainly
+            raise statement_error("must return a runtime value", stmt) # this is a development check mainly
     return last
 
 def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
-    return env.declare(stmt.identifier, RuntimeFunction(stmt), True) # function declarations are always constant
+    return env.declare(stmt.identifier, RuntimeFunction(stmt), True, stmt) # function declarations are always constant
 
 def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> RuntimeValue:
     # need the function identifier name. interpret the caller expression
@@ -286,7 +291,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         if result == None: # native function might not return anything, fix this here.
             result = NoneValue()
         if not isinstance(result, RuntimeValue):
-            raise Exception("result of native function call is not of a runtime type")
+            raise statement_error("result of native function call is not of a runtime type", stmt)
         return result
 
     if isinstance(function, RuntimeFunction):
@@ -297,7 +302,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         for param, argument in itertools.zip_longest(function.function.parameters, stmt.arguments):
             # make sure the function has enough parameters if not, that is fatal
             if param == None:
-                raise Exception("function does not have enough parameters.")
+                raise statement_error("function does not have enough parameters.", stmt)
 
             if param.type.type is lexer.INT:
 
@@ -308,22 +313,22 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 elif param.default != None:
                     value = interpret(param.default, env)
                 else:
-                    raise Exception("Either argument default or a value for argument must be provided")
+                    raise statement_error("Either argument default or a value for argument must be provided", stmt)
 
-                scope.declare(param.identifier.value, value, False)
+                scope.declare(param.identifier.value, value, False, stmt)
             else:
-                raise Exception("(function) variable type to declare not implemented '%s'" % param.type.type)
+                raise statement_error("(function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
         # go through all statements and execute
         for statement in function.function.body:
             if isinstance(statement, ast.ReturnExpression):
                 return interpret_return_expression(statement, scope)
             if isinstance(statement, ast.BreakExpression):
-                raise Exception("Break not allowed in fuction.")
+                raise statement_error("Break not allowed in fuction.", stmt)
             interpret(statement, scope)
         return NoneValue()
 
-    raise Exception("function type not implemented")
+    raise statement_error("function type not implemented", stmt)
 
 def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
     condition = interpret(stmt.condition, env)
@@ -356,11 +361,11 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     # for loop has the limited scope iteration variable. Make a new Environment for it.
     scope = Environment(env)
     loopvarname = stmt.identifier.value
-    scope.declare(loopvarname, NumberValue(0), False)
+    scope.declare(loopvarname, NumberValue(0), False, stmt)
 
     # do the loop
     for i in range(min, max):
-        scope.assign(loopvarname, NumberValue(i))
+        scope.assign(loopvarname, NumberValue(i), stmt)
         ret, last = interpret_block_expression(stmt.body, scope)
         if ret == 2: # break
             break

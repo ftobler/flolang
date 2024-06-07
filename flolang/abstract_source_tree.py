@@ -816,7 +816,7 @@ class Parser:
         call_expr = CallExpression(caller, args).location(loc_start, self.at())
 
         if self.at().type == lexer.COURVE_L:
-            call_expr = self.parse_call_expr(call_expr)
+            call_expr = self.parse_call_expr(call_expr, loc_start)
 
         return call_expr
 
