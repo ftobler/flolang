@@ -220,6 +220,11 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     current_ident = 0 # everything starts out as not idented
     for line_nr, full_line in enumerate(lines):
         source = remove_comments(full_line)
+
+        # if only whitespace remains after the comment do not interpret the line, as it might mess up glock tokenizing
+        if source.strip() == "":
+            continue
+
         source_len = len(source)
         symbols = (filename, line_nr, 0, full_line)
 

@@ -226,7 +226,6 @@ printValueOfPi()
 
 """) == 3.142
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_calc_pi_variant_2():
     assert eval("""
 

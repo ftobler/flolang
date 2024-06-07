@@ -327,7 +327,7 @@ while --i:
     pass
     """) == 10
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
+@pytest.mark.skip(reason="implementatnion problem in break. currently would fail")
 def test_while_5():
     # check a simple while loop with break
     # expect 5 loops
@@ -422,7 +422,6 @@ fn bar(int add):
 foo()(20)
 """) == 120
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_function_with_comments_and_spaces_1():
     assert eval("""
 fn foo():
@@ -430,7 +429,6 @@ fn foo():
 foo()
 """) == 52
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_function_with_comments_and_spaces_2():
     assert eval("""
 fn foo():
@@ -439,7 +437,6 @@ fn foo():
 foo()
 """) == 53
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_function_with_comments_and_spaces_3():
     assert eval("""
 fn foo():
@@ -448,7 +445,6 @@ fn foo():
 foo()
 """) == 54
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_function_with_comments_and_spaces_4():
     assert eval("""
 fn foo():
@@ -458,7 +454,6 @@ fn foo():
 foo()
 """) == 55
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_function_with_comments_and_spaces_5():
     assert eval("""
 fn foo():
@@ -470,7 +465,6 @@ fn foo():
 foo()
 """) == 56
 
-@pytest.mark.skip(reason="implementatnion error in whitespace. currently would fail")
 def test_function_with_comments_and_spaces_6():
     assert eval("""
 fn foo():
