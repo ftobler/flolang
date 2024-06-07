@@ -347,10 +347,26 @@ def test_comments():
     assert eval("1     #           comment") == 1
 
 @pytest.mark.skip(reason="not yet implemented correctly")
-def test_object_literal():
+def test_object_literal_1():
+    eval("{a: 1, b: 2}")
+    eval("{a: 1, b: 2,}")
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_object_literal_2():
     eval("let int i = {a: 1, b: 2}")
     eval("let object i = {a: 1, b: 2}")
     eval("let int i = {pi, euler, tau}")
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_list_literal_1():
+    eval("[1, 2, 3]")
+    eval("[1, 2, 3,]")
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_list_literal_2():
+    eval("let int i = [1, 2, 3]")
+    eval("let object i = [1, 2, 3]")
+    eval("let int i = [pi, euler, tau]")
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_member_expression():
