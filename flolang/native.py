@@ -8,6 +8,8 @@ from flolang.abstract_source_tree import Parser
 from flolang.interpreter import interpret
 
 def to_native(val : inter.RuntimeValue):
+    if isinstance(val, inter.NoneValue):
+        return None
     if hasattr(val, "value"):
         return val.value
     return "<" + val.variant + ">"

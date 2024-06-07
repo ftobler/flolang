@@ -96,7 +96,7 @@ WHILE = "while"
 FOR = "for"
 RETURN = "return"
 BREAK = "break"
-NONE = "None"    # keep this in here?
+# NONE = "None"    # keep this in here?
 LET = "let"
 CONST = "const"
 PASS = "pass"
@@ -105,7 +105,7 @@ IS = "is"
 UNREACHABLE = "unreachable"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
-    FOR, RETURN, BREAK, NONE, LET, CONST, PASS, IN, IS, UNREACHABLE
+    FOR, RETURN, BREAK, LET, CONST, PASS, IN, IS, UNREACHABLE
 ]
 
 # keywords for types
