@@ -61,6 +61,7 @@ fn foo():
 bar()
 """) == 456
 
+def test_function_variable_scope():
     # check that the order of declaration does not matter
     assert eval("""
 foo()
@@ -77,7 +78,7 @@ const int bar = foo
 bar()
 """) == 963
 
-def test_condition():
+def test_condition_if():
     # check an if which is branching
     assert eval("""
 let int i = 0
@@ -94,6 +95,7 @@ if False:
 i
 """) == 0
 
+def test_condition_if_else():
     # check an if-else which is iffing
     assert eval("""
 let int i = 0
@@ -114,6 +116,8 @@ else:
 i
 """) == 2
 
+
+def test_condition_if_elif_else():
     # check an if-elif-else which is ifing
     assert eval("""
 let int i = 0
@@ -150,6 +154,7 @@ else:
 i
 """) == 3
 
+def test_condition_if_elif():
     # check an if-elif which is ifing
     assert eval("""
 let int i = 0
@@ -294,3 +299,37 @@ if True:
     b = a
 b
 """) == 456
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_return_break_statements():
+    # check a simple while loop with break
+    # expect 5 loops
+    assert eval("""
+let int i = 10
+while --i:
+    if i <= 5:
+        break
+i
+""") == 5
+
+    # check a simple while loop with return
+    # expect 5 loops
+    assert eval("""
+let int i = 10
+while --i:
+    if i <= 5:
+        return
+i
+""") == 5
+
+@pytest.mark.skip(reason="not yet implemented correctly")
+def test_return_break_statements2():
+    # check a simple while loop with return
+    # expect 5 loops
+    assert eval("""
+fn foo():
+    if True:
+        return "success"
+    return "failed"
+foo()
+""") == "success"
