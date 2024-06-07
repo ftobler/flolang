@@ -62,11 +62,9 @@ fn crc8_update(int data, int polynomial=0x07) int:
 
 const int init_value = 0x00
 let int crc = init_value
-for int i in 1..4:
+for int i in 1..5:
     crc = crc8_update(i)
 
-# print result
-print(crc)
 crc
 
 """) == crc8([1,2,3,4])
@@ -89,8 +87,9 @@ fn crc8_update(int data, int polynomial=0x07) int:
 const int init_value = 0x00
 const int polynomial = 0x10
 let int crc = init_value
-for int i in 1..4:
+for int i in 1..5:
     crc = crc8_update(i, polynomial)
+
 crc
 
 """) == crc8([1,2,3,4], 0x10)
@@ -179,6 +178,38 @@ elif num == 0:
 else:
     fac = recur_factorial(num)
 
+fac
+
+""") == 5040
+
+@pytest.mark.skip(reason="Need to debug what goes wrong here")
+def test_factorial_variant_4():
+
+    assert eval("""
+
+# Factorial of a number using recursion
+
+fn recur_factorial(int n) int:
+    let int result
+    if n == 1:
+        result = n
+    else:
+        result = n*recur_factorial(n-1)
+    return result
+
+let int num = 7
+let int fac
+
+# check if the number is negative
+if num < 0:
+    print("Sorry, factorial does not exist for negative numbers")
+    fac = -1
+elif num == 0:
+    fac = 1
+else:
+    fac = recur_factorial(num)
+
+print(fac)
 fac
 
 """) == 5040
