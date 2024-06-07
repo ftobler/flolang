@@ -95,14 +95,14 @@ class BlockExpression(Statement):
         self.body = body
 
 class IfExpression(Statement):
-    condition: Expression
-    positive_case: BlockExpression
-    negative_case: BlockExpression
-    def __init__(self, condition: Expression, positive_case: BlockExpression, negative_case: BlockExpression = None):
+    test: Expression # is a testing expression, not a evaluated condition
+    consequent: BlockExpression # if it is True
+    alternate: BlockExpression # if it is False
+    def __init__(self, condition: Expression, consequent: BlockExpression, alternate: BlockExpression = None):
         super().__init__()
-        self.condition = condition
-        self.positive_case = positive_case
-        self.negative_case = negative_case
+        self.test = condition
+        self.consequent = consequent
+        self.alternate = alternate
 
 class ForExpression(Statement):
     type: Type
@@ -416,37 +416,51 @@ class Parser:
         # parse the expressional condition
         # if ...... :
         #    ^^^^^^
-        expr = self.parse_expression()
+        test = self.parse_expression()
         self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF), loc_start)
-        positive_case = self.parse_block_declaration()
+        consequent_case = self.parse_block_declaration()
 
         at_type = self.at().type
         if at_type is lexer.ELSE:
             self.eat() # eat 'ELSE'
             self.eat_expect(lexer.COLON, "Expect '%s' after '%s' | '%s' keywords in '%s' condition." % (lexer.COLON, lexer.ELSE, lexer.ELIF, lexer.IF), loc_start)
-            return IfExpression(expr, positive_case, self.parse_block_declaration()).location(loc_start, self.at())
+            return IfExpression(test, consequent_case, self.parse_block_declaration()).location(loc_start, self.at())
         elif at_type is lexer.ELIF:
-            return IfExpression(expr, positive_case, self.parse_if_declaration()).location(loc_start, self.at())
-        return IfExpression(expr, positive_case, None).location(loc_start, self.at())
+            return IfExpression(test, consequent_case, self.parse_if_declaration()).location(loc_start, self.at())
+
+        # just a plain if without else
+        return IfExpression(test, consequent_case, None).location(loc_start, self.at())
 
     def parse_block_declaration(self):
+        # consutme ':'
         loc_start = self.at()
-        self.eat_expect(lexer.BLOCKSTART, "Expect indented block body after function declaration.", loc_start)
 
-        body = []
-        pass_encountered = False
-        while self.not_eof() and self.at().type is not lexer.BLOCKEND:
-            if self.at().type is lexer.PASS:
-                self.eat()
-                pass_encountered = True
-                break
-            body.append(self.parse_statement())
+        # check if there is a ident change. This will create a BLOCKSTART token
+        if self.at().type is lexer.BLOCKSTART:
+            self.eat() # eat BLOCKSTART
+            # self.eat_expect(lexer.BLOCKSTART, "Expect indented block body after function declaration.", loc_start)
 
-        if len(body) == 0 and not pass_encountered:
-            parser_error(lexer.PASS, "Expect '%s' when block is empty." % lexer.PASS, loc_start, self.at())
+            body = []
+            pass_encountered = False
+            while self.not_eof() and self.at().type is not lexer.BLOCKEND:
+                if self.at().type is lexer.PASS:
+                    self.eat()
+                    pass_encountered = True
+                    break
+                body.append(self.parse_statement())
 
-        # lexer should create the blockend(s) already, so this message will probably never be seen
-        self.eat_expect(lexer.BLOCKEND, "Expect indented block body to end before End of File.", loc_start)
+            if len(body) == 0 and not pass_encountered:
+                parser_error(lexer.PASS, "Expect '%s' when block is empty." % lexer.PASS, loc_start, self.at())
+
+            # lexer should create the blockend(s) already, so this message will probably never be seen
+            self.eat_expect(lexer.BLOCKEND, "Expect indented block body to end before End of File.", loc_start)
+
+        else:
+            # if no separate indentation block is encountered, then that should be valid to make
+            # inline if cases.
+            # but only one item in body is allowed.
+            body = [self.parse_statement()]
+
 
         return BlockExpression(body).location(loc_start, self.at())
 
