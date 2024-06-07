@@ -199,6 +199,88 @@ elif False:
 i
 """) == 0
 
+def test_condition_if_inline_statement_1():
+    assert eval("""
+let int i = 123
+if True: i = 456
+i
+""") == 456
+
+def test_condition_if_inline_statement_2():
+    assert eval("""
+let int i = 123
+if False: i = 456
+i
+""") == 123
+
+def test_condition_if_inline_statement_3():
+    assert eval("""
+let int i = 123
+if True: i = 456 else: i = 789
+i
+""") == 456
+
+def test_condition_if_inline_statement_4():
+    assert eval("""
+let int i = 123
+if False: i = 456 else: i = 789
+i
+""") == 789
+
+def test_condition_if_inline_statement_5():
+    assert eval("""
+let int i = 123
+if True: i = 456 else:
+    i = 789
+i
+""") == 456
+
+def test_condition_if_inline_statement_6():
+    assert eval("""
+let int i = 123
+if False: i = 456 else:
+    i = 789
+i
+""") == 789
+
+def test_condition_if_inline_statement_7():
+    assert eval("""
+let int i = 123
+if True:
+    i = 456
+else: i = 789
+i
+""") == 456
+
+def test_condition_if_inline_statement_8():
+    assert eval("""
+let int i = 123
+if False:
+    i = 456
+else: i = 789
+i
+""") == 789
+
+def test_condition_if_inline_statement_9():
+    with pytest.raises(Exception):
+        assert eval("""
+let int i = 123
+if True:
+    i = 456 else:
+    i = 789
+i
+""") == 789
+
+def test_condition_if_inline_statement_10():
+    with pytest.raises(Exception):
+        assert eval("""
+let int i = 123
+if False:
+    i = 456 else:
+    i = 789
+i
+""") == 456
+
 def test_while_1():
     # check a simple while loop with pass
     # expect count to 0
@@ -412,7 +494,7 @@ while --i:
         break
 i
 """) == 5
-    
+
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_return_break_statements_2():
     # check a simple while loop with return
