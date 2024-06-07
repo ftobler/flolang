@@ -97,6 +97,16 @@ def create_default_environment():
         return inter.NumberValue(output)
     env.declare("isinf", inter.NativeFunction(native_isinf), True)
 
+    def native_sleep(arguments: list[inter.RuntimeValue]):
+        milliseconds = arguments[0].value
+        time.sleep(milliseconds / 1000)
+        return inter.NoneValue()
+    env.declare("sleep", inter.NativeFunction(native_sleep), True)
+
+    def native_input(_arguments: list[inter.RuntimeValue]):
+        return inter.StringValue(input())
+    env.declare("input", inter.NativeFunction(native_input), True)
+
     env.declare("None", inter.NoneValue(), True)
     env.declare("inf", inter.NumberValue(float("inf")), True)
     env.declare("nan", inter.NumberValue(float("nan")), True)

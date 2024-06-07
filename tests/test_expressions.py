@@ -276,7 +276,7 @@ def test_builtin_native_functions():
     assert eval("isinf(nan)") == False
 
 def test_builtin_functions():
-    import math, statistics
+    import math
 
     # these are normal functions
     assert eval("pi") == math.pi
@@ -290,6 +290,9 @@ def test_builtin_functions():
 
     assert eval("degrees(1.3)") == math.degrees(1.3)
     assert eval("radians(123)") == math.radians(123)
+
+def test_builtin_functions_random():
+    import statistics
 
     randmax = 2**32 - 1
     assert eval("RAND_MAX") == randmax
@@ -311,6 +314,12 @@ def test_builtin_functions():
     #mean must be about
     assert mean_value > randmax * 0.4 and mean_value < randmax * 0.6
     assert variance_value > randmax
+
+def test_builtin_functions_sleep():
+    import time
+    t = time.time()
+    assert eval("sleep(0.1)") == None
+    assert time.time() - t < 0.05
 
 def test_comments():
     assert eval("") == None
