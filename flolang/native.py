@@ -124,18 +124,18 @@ def _run_builtin_code(env: inter.Environment):
 
 builtin = """
 
-const int True = 1
-const int False = 0
+static int True = 1
+static int False = 0
 
-const int pi = 3.141592653589793238462643
-const int euler = 2.718281828459045
-const int tau = 6.283185307179586
+static int pi = 3.141592653589793238462643
+static int euler = 2.718281828459045
+static int tau = 6.283185307179586
 
 fn floor(int x) int:
     return x // 1
 
 # random (RNG) stuff
-const int RAND_MAX = 2**32 - 1 # 0xFFFFFFFF
+static int RAND_MAX = 2**32 - 1 # 0xFFFFFFFF
 
 fn rand() int:
     return (RAND_MAX * __rand_value__()) // 1

@@ -74,7 +74,7 @@ def test_function_variable_scope_1():
 foo()
 fn foo():
     return global_var
-const int global_var = 789
+let int global_var = 789
 """) == 789
 
 def test_function_variable_scope_2():
@@ -82,14 +82,14 @@ def test_function_variable_scope_2():
     assert eval("""
 fn foo():
     return 963
-const int bar = foo
+let int bar = foo
 bar()
 """) == 963
 
 def test_condition_if_1():
     # check an if which is branching
     assert eval("""
-let int i = 0
+let mut int i = 0
 if True:
     i = 1
 i
@@ -107,7 +107,7 @@ i
 def test_condition_if_else_1():
     # check an if-else which is iffing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if True:
     i = 1
 else:
@@ -118,7 +118,7 @@ i
 def test_condition_if_else_2():
     # check an if-else which is elseing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if False:
     i = 1
 else:
@@ -130,7 +130,7 @@ i
 def test_condition_if_elif_else_1():
     # check an if-elif-else which is ifing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if True:
     i = 1
 elif False:
@@ -143,7 +143,7 @@ i
 def test_condition_if_elif_else_2():
     # check an if-elif-else which is elifing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if False:
     i = 1
 elif True:
@@ -156,7 +156,7 @@ i
 def test_condition_if_elif_else_3():
     # check an if-elif-else which is elseing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if False:
     i = 1
 elif False:
@@ -169,7 +169,7 @@ i
 def test_condition_if_elif_1():
     # check an if-elif which is ifing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if True:
     i = 1
 elif True:
@@ -180,7 +180,7 @@ i
 def test_condition_if_elif_2():
     # check an if-elif-else which is elifing
     assert eval("""
-let int i = 0
+let mut int i = 0
 if False:
     i = 1
 elif True:
@@ -201,35 +201,35 @@ i
 
 def test_condition_if_inline_statement_1():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if True: i = 456
 i
 """) == 456
 
 def test_condition_if_inline_statement_2():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if False: i = 456
 i
 """) == 123
 
 def test_condition_if_inline_statement_3():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if True: i = 456 else: i = 789
 i
 """) == 456
 
 def test_condition_if_inline_statement_4():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if False: i = 456 else: i = 789
 i
 """) == 789
 
 def test_condition_if_inline_statement_5():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if True: i = 456 else:
     i = 789
 i
@@ -237,7 +237,7 @@ i
 
 def test_condition_if_inline_statement_6():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if False: i = 456 else:
     i = 789
 i
@@ -245,7 +245,7 @@ i
 
 def test_condition_if_inline_statement_7():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if True:
     i = 456
 else: i = 789
@@ -254,7 +254,7 @@ i
 
 def test_condition_if_inline_statement_8():
     assert eval("""
-let int i = 123
+let mut int i = 123
 if False:
     i = 456
 else: i = 789
@@ -285,7 +285,7 @@ def test_while_1():
     # check a simple while loop with pass
     # expect count to 0
     assert eval("""
-let int i = 10
+let mut int i = 10
 while --i:
     pass
 i
@@ -295,8 +295,8 @@ def test_while_2():
     # check a simple while loop
     # expect 9 loops
     assert eval("""
-let int i = 10
-let int n = 0
+let mut int i = 10
+let mut int n = 0
 while --i:
     n++
 n
@@ -344,7 +344,7 @@ def test_while_6():
     # check a simple while loop with break
     # the check decrement has been executed once
     assert eval("""
-let int i = 10
+let mut int i = 10
 while i--:
     break
 i
@@ -353,7 +353,7 @@ i
 def test_while_7():
     # check a simple while loop with break
     assert eval("""
-let int i = 10
+let mut int i = 10
 while i:
     i--
 i
@@ -370,8 +370,8 @@ def test_unreachable_code_2():
     # unreachable is used to assert that control flow will never reach a
     # particular location (1:1 what they state in zig)
     assert eval("""
-const int x = 1
-const int y = 2
+let int x = 1
+let int y = 2
 if x + y != 3:
     unreachable
 """) == None
@@ -397,7 +397,7 @@ def test_scopes_2():
     # on assignment
     assert eval("""
 let int a = 123
-let int b = 0
+let mut int b = 0
 if True:
     let int a = 456
     b = a
@@ -515,7 +515,7 @@ foo()
 
 def test_for_loop_1():
     assert eval("""
-let int n = 0
+let mut int n = 0
 for int i in 10..20:
     n++
 n
@@ -523,7 +523,7 @@ n
 
 def test_for_loop_2():
     assert eval("""
-let int n = 0
+let mut int n = 0
 for int i in 20 ..31:
     n++
 n
@@ -532,7 +532,7 @@ n
 
 def test_for_loop_3():
     assert eval("""
-let int n = 0
+let mut int n = 0
 for int i in 30.. 42:
     n++
 n
@@ -541,7 +541,7 @@ n
 
 def test_for_loop_4():
     assert eval("""
-let int n = 0
+let mut int n = 0
 for int i in 40 .. 53:
     n++
 n
@@ -550,7 +550,7 @@ n
 
 def test_for_loop_5():
     assert eval("""
-let int n = 0
+let mut int n = 0
 for int i in 14:
     n++
 n
@@ -558,23 +558,62 @@ n
 
 def test_assignment_multiple_1():
     assert eval("""
-let int i = 0
-let int j = 1
+let mut int i = 0
+let mut int j = 1
 i = j = 5
 """) == 5 # value of i
 
 def test_assignment_multiple_2():
     assert eval("""
-let int i = 0
-let int j = 1
+let mut int i = 0
+let mut int j = 1
 i = j = 5
 i
 """) == 5 # value of i
 
 def test_assignment_multiple_3():
     assert eval("""
-let int i = 0
-let int j = 1
+let mut int i = 0
+let mut int j = 1
 i = j = 5
 j
 """) == 5 # value of j
+
+def test_function_declaration_order():
+    assert eval("""
+
+let mut int u = 0x50
+foo(4)
+
+fn foo(int i) int:
+    return bar(u - 5 / i, i) # i += i + 3
+
+fn bar(int baaar, int q) int:
+    return baaar * 5.56 + q
+
+""") - 441.8499999 < 0.0001
+
+def test_function_lcoal_variable_mutability_1():
+    with pytest.raises(Exception):
+        assert eval("""
+
+fn foo(int i) int:
+    i *= i #        <== not allowed because i is immutable
+    return i
+
+foo(4)
+
+""") == 4
+
+def test_function_lcoal_variable_mutability_2():
+    assert eval("""
+
+fn foo(mut int i) int:
+    i *= i #        <== allowed because i is mutable
+    return i
+
+foo(4)
+
+""") == 4
+
+

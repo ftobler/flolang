@@ -60,31 +60,31 @@ def statement_error(message, stmt: ast.Statement):
 class Environment:
     def __init__(self, parent=None):
         self.scope = {}
-        self.constants = []
+        self.mutables = []
         self.parent = parent
 
-    def declare(self, name: str, value: RuntimeValue, is_constant: bool, stmt: ast.Statement) -> RuntimeValue:
+    def declare(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement) -> RuntimeValue:
         if self.scope.get(name):
-            raise statement_error("variable '%s' already defined" % name, stmt)
+            raise statement_error("Variable '%s' is already defined." % name, stmt)
         self.scope[name] = value
-        if is_constant:
-            self.constants.append(name)
+        if is_mutable:
+            self.mutables.append(name)
         return value
 
     def assign(self, name: str, value: RuntimeValue, stmt: ast.Statement) -> RuntimeValue:
         env = self._resolve(name)
         if env:
-            if name in env.constants:
-                raise statement_error("variable '%s' is constant" % name, stmt)
+            if not name in env.mutables:
+                raise statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
             env.scope[name] = value
             return value
-        raise statement_error("variable '%s' undefined" % name, stmt)
+        raise statement_error("Variable '%s' is undefined." % name, stmt)
 
     def lookup(self, name: str, stmt: ast.Statement):
         env = self._resolve(name)
         if env:
             return env.scope[name]
-        raise statement_error("variable '%s' undefined" % name, stmt)
+        raise statement_error("Variable '%s' is undefined." % name, stmt)
 
     def _resolve(self, name: str):
         if name in self.scope:
@@ -95,8 +95,10 @@ class Environment:
 
 
 def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
-    if isinstance(stmt, ast.VarDeclaration):
-        return interpret_var_declaration(stmt, env)
+    if isinstance(stmt, ast.GlobalVariableDeclaration):
+        return interpret_global_variable_declaration(stmt, env)
+    if isinstance(stmt, ast.LocalVariableDeclaration):
+        return interpret_local_variable_declaration(stmt, env)
     if isinstance(stmt, ast.BinaryExpression):
         return interpret_binary_expression(stmt, env)
     if isinstance(stmt, ast.UnaryBeforeExpression):
@@ -140,13 +142,22 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
 
     raise statement_error("unable to interpret '%s'" % stmt.kind, stmt)
 
-def interpret_var_declaration(stmt: ast.VarDeclaration, env: Environment) -> RuntimeValue:
+def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
         if stmt.value:
             value = interpret(stmt.value, env)
         else:
             value = NumberValue(0)
-        return env.declare(stmt.identifier, value, stmt.constant, stmt)
+        return env.declare(stmt.identifier, value, stmt.mutable, stmt)
+    raise statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
+
+def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
+    if stmt.type.type is lexer.INT:
+        if stmt.value:
+            value = interpret(stmt.value, env)
+        else:
+            value = NumberValue(0)
+        return env.declare(stmt.identifier, value, stmt.mutable, stmt)
     raise statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
@@ -365,7 +376,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     # for loop has the limited scope iteration variable. Make a new Environment for it.
     scope = Environment(env)
     loopvarname = stmt.identifier.value
-    scope.declare(loopvarname, NumberValue(0), False, stmt)
+    scope.declare(loopvarname, NumberValue(0), True, stmt)
 
     # do the loop
     for i in range(min, max):

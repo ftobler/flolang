@@ -195,24 +195,27 @@ def test_inline_statements_2():
     assert eval("if False: 1 1123") == 1123
 
 def test_assignment():
-    assert eval("let int i = 10          i = 20") == 20
-    assert eval("let int i = 10          i += 20") == 30
-    assert eval("let int i = 10          i -= 20") == -10
-    assert eval("let int i = 10          i *= 20") == 200
-    assert eval("let int i = 10          i /= 20") == 0.5
-    assert eval("let int i = 10          i %= 7") == 3
-    assert eval("let int i = 0x09        i &= 0x81") == 0x01
-    assert eval("let int i = 0x09        i ^= 0x11") == 0x18
-    assert eval("let int i = 0x09        i |= 0x18") == 0x19
-    assert eval("let int i = 0x09        i <<= 1") == 0x12
-    assert eval("let int i = 0x09        i >>= 1") == 0x04
+    assert eval("let mut int i = 10          i = 20") == 20
+    assert eval("let mut int i = 10          i += 20") == 30
+    assert eval("let mut int i = 10          i -= 20") == -10
+    assert eval("let mut int i = 10          i *= 20") == 200
+    assert eval("let mut int i = 10          i /= 20") == 0.5
+    assert eval("let mut int i = 10          i %= 7") == 3
+    assert eval("let mut int i = 0x09        i &= 0x81") == 0x01
+    assert eval("let mut int i = 0x09        i ^= 0x11") == 0x18
+    assert eval("let mut int i = 0x09        i |= 0x18") == 0x19
+    assert eval("let mut int i = 0x09        i <<= 1") == 0x12
+    assert eval("let mut int i = 0x09        i >>= 1") == 0x04
 
 def test_variables():
-    assert eval("const int i = 0") == 0
-    assert eval("const int i = 1") == 1
-    assert eval("let int i") == 0 #it is an integer and therefore a number
+    assert eval("static int i = 0") == 0
+    assert eval("static int i = 1") == 1
     assert eval("let int i = 0") == 0
     assert eval("let int i = 1") == 1
+    assert eval("static mut int i = 0") == 0
+    assert eval("static mut int i = 1") == 1
+    assert eval("let mut int i = 0") == 0
+    assert eval("let mut int i = 1") == 1
 
 def test_variables_starting_with_keywords():
     #these are critical because they start with keywords
@@ -229,11 +232,11 @@ def test_variables_starting_with_keywords():
 
 def test_variables_exotic_names():
     # some a bit more exotic names we allow
-    eval("let int __name  ")
-    eval("let int __0name ")
-    eval("let int _0_name ")
-    eval("let int   _name0")
-    eval("let int __name__")
+    eval("let int __name   = 0")
+    eval("let int __0name  = 0")
+    eval("let int _0_name  = 0")
+    eval("let int   _name0 = 0")
+    eval("let int __name__ = 0")
 
 def test_illegal_variable():
     with pytest.raises(Exception):

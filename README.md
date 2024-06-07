@@ -101,23 +101,22 @@ flolang.eval('print("Hello Wörld!")')
 
 ## variables
 
-### fixed size "variables" `let`
+### fixed size variables
 `class` `array` `int` `float` `number` `bool` `enum` `char` & C equivalent primitive types `u8`..`i64`..`f32`..
 
-They are allocated on the current call stack. They are copied when re-assigned or returned. They have a fixed size.
+`let` to declare them local in a function.
 
-### fixed size "statics" `const`
-`class` `array` `int` `float` `number` `bool` `enum` `char` & C equivalent primitive types `u8`..`i64`..`f32`..
+`static` to declare them as global. Can be used in a function to make a global variable with local scope.
 
-They are allocated globally. They are always passed by reference when re-assigned or returned. They have a fixed size.
+`mut` after `let` or `static  to mark the variable as mutable. All variables without the mut keyword cannot be changed once assigned.
 
-### dynamic sized allocated "objects" `dyn`
+### dynamic sized and allocated "objects" `dyn`
 `string` `dict` `list` `set`
 
 They are allocated on a dynamic allocation pool. This could be `malloc` (from C) or a builtin pool:
  * pool of fixed size as `let` to live on the stack
- * pool of fixed size as `const` to live in global scope
+ * pool of fixed size as `static` to live in global scope
  * pool of fixed size as `dyn` (allocated through another pool)
  * pool of dynamic size falling back to heap (`malloc`)
 
- A pool of fixed size can be purged of all data at runtime. This is something the user needs to do manually, or let the pool go out of scope. A fixed sized pool is a write only allocator. As such, a fixed size pool is very fast at allocating memory.
+A pool of fixed size can be purged of all data at runtime. This is something the user needs to do manually, or let the pool go out of scope. A fixed sized pool is a write only allocator. As such, a fixed size pool is very fast at allocating memory.

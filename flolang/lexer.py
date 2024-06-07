@@ -100,14 +100,16 @@ RETURN = "return"
 BREAK = "break"
 # NONE = "None"    # keep this in here?
 LET = "let"
-CONST = "const"
+STATIC = "static"
+MUT = "mut"
+DYN = "dyn"
 PASS = "pass"
 IN = "in"
 IS = "is"
 UNREACHABLE = "unreachable"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
-    FOR, RETURN, BREAK, LET, CONST, PASS, IN, IS, UNREACHABLE
+    FOR, RETURN, BREAK, LET, STATIC, MUT, DYN, PASS, IN, IS, UNREACHABLE
 ]
 
 # keywords for types

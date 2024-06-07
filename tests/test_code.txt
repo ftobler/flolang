@@ -1,7 +1,7 @@
 print("this is a string literal!")
 
-const int hello = "hello, "
-const int world = "world!"
+let int hello = "hello, "
+let int world = "world!"
 print("'" + hello + world + "'")
 
 print(sqrt(125))
@@ -11,12 +11,12 @@ print(rand())
 print(rand())
 
 
-let int a = 4 / 8 + (1 * 6)
+let mut int a = 4 / 8 + (1 * 6)
 a
 a += 2
 
 print(a)
-const int b = time()
+static int b = time()
 print(b + 10E15)
 
 
@@ -28,7 +28,7 @@ print(b + 10E15)
 
 foo(4)
 
-const int u = 0x50
+let mut int u = 0x50
 
 fn foo(int i) int:
     i += i + 3
@@ -37,7 +37,7 @@ fn foo(int i) int:
 fn bar(int baaar, int q) int:
     return baaar * 5.56 + q
 
-let int pre_post_test = 0
+let mut int pre_post_test = 0
 pre_post_test++
 pre_post_test--
 ++pre_post_test

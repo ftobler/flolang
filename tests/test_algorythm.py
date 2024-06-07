@@ -60,8 +60,8 @@ fn crc8_update(int data, int polynomial=0x07) int:
         crc &= 0xFF  # Ensure CRC remains 8-bit
     return crc
 
-const int init_value = 0x00
-let int crc = init_value
+let int init_value = 0x00
+let mut int crc = init_value
 for int i in 1..5:
     crc = crc8_update(i)
 
@@ -84,9 +84,9 @@ fn crc8_update(int data, int polynomial=0x07) int:
         crc &= 0xFF  # Ensure CRC remains 8-bit
     return crc
 
-const int init_value = 0x00
-const int polynomial = 0x10
-let int crc = init_value
+let int init_value = 0x00
+let int polynomial = 0x10
+let mut int crc = init_value
 for int i in 1..5:
     crc = crc8_update(i, polynomial)
 
@@ -102,13 +102,13 @@ def test_factorial_variant_1():
 # Factorial of a number using recursion
 
 fn recur_factorial(int n) int:
-    let int result = n
+    let mut int result = n
     if n != 1:
         result = n*recur_factorial(n-1)
     return result
 
 let int num = 7
-let int fac
+let mut int fac = 0
 
 # check if the number is negative
 if num < 0:
@@ -159,15 +159,13 @@ def test_factorial_variant_3():
 # Factorial of a number using recursion
 
 fn recur_factorial(int n) int:
-    let int result
-    if n == 1:
-        result = n
-    else:
+    let mut int result = n
+    if n != 1:
         result = n*recur_factorial(n-1)
     return result
 
 let int num = 7
-let int fac
+let mut int fac = 0
 
 # check if the number is negative
 if num < 0:
@@ -249,13 +247,13 @@ def test_calc_pi_variant_3():
     assert eval("""
 
 # Initialize denominator
-let int k = 1
+let mut int k = 1
 
 # Initialize sum
-let int s = 0
+let mut int s = 0
 
-const int n = 100
-let int i = 0
+let int n = 100
+let mut int i = 0
 while i < n:
     if i % 2 == 0: # even index elements are positive
         s += 4/k
@@ -272,10 +270,10 @@ def test_calc_pi_variant_4():
     assert eval("""
 
 # Initialize denominator
-let int k = 1
+let mut int k = 1
 
 # Initialize sum
-let int s = 0
+let mut int s = 0
 
 for int i in 100:
     if i % 2 == 0: # even index elements are positive

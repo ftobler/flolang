@@ -53,15 +53,28 @@ class Type(Statement):
         self.type = type
         self.builtin = is_builtin
 
-class VarDeclaration(Statement):
-    constant: bool
+class LocalVariableDeclaration(Statement):
+    mutable: bool
     type: Type
     is_builtin: bool
     identifier: str
     value: Expression
-    def __init__(self, constant: bool, type: Type, identifier: str, value: Expression = None):
+    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression = None):
         super().__init__()
-        self.constant = constant
+        self.mutable = mutable
+        self.type = type
+        self.identifier = identifier
+        self.value = value
+
+class GlobalVariableDeclaration(Statement):
+    mutable: bool
+    type: Type
+    is_builtin: bool
+    identifier: str
+    value: Expression
+    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression = None):
+        super().__init__()
+        self.mutable = mutable
         self.type = type
         self.identifier = identifier
         self.value = value
@@ -297,7 +310,7 @@ class Parser:
 
     def parse_statement(self) -> Statement:
         type = self.at().type
-        if type is lexer.LET or type is lexer.CONST:
+        if type is lexer.LET or type is lexer.STATIC:
             return self.parse_var_declaration()
         if type is lexer.FUNCTION:
             return self.parse_function_declaration()
@@ -315,39 +328,55 @@ class Parser:
             return self.parse_unreachable_declaration()
         return self.parse_expression()
 
-    # let a
     # let a = (...)
-    # const a
-    # const a = (...)
+    # static a = (...)
+    # let mut a
+    # let mut a = (...)
+    # static mut a
+    # static mut a = (...)
     def parse_var_declaration(self):
         loc_start = self.at()
-        is_const = self.eat().type is lexer.CONST
 
+        # let mut int a = (...)
+        # ^^^
+        # static mut int a = (...)
+        # ^^^^^^
+        # eat declaration keyword this is 'let' or 'static' for local and global scope$
+        is_static = self.eat().type is lexer.STATIC
+
+        # let mut int a = (...)
+        #     ^^^
+        # next up 'mut' might follow to declare it mutable
+        is_mutable = False
+        if self.at().type is lexer.MUT:
+            is_mutable = True
+            self.eat() # eat 'mut'
+
+        # let mut int a = (...)
+        #         ^^^
         type_start = self.at()
         if self.at().type is lexer.IDENTIFIER:
             type = Type(self.eat().value, False).location(type_start, self.at())
         elif self.at().type is lexer.BUILTINTYPE:
             type = Type(self.eat().value, True).location(type_start, self.at())
         else:
-            parser_error("Expect identifier or builtin type for variable declaration", loc_start, self.at())
+            parser_error("Expect identifier or builtin type for variable type declaration", loc_start, self.at())
 
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect type and indentifier after '%s' | '%s' keywords" % (lexer.LET, lexer.CONST), loc_start).value
+        # let mut int indentifier = (...)
+        #             ^^^^^^^^^^^
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect indentifier after type for variable declaration.", loc_start).value
 
-        if is_const:
-            # handle const a = (...)
-            self.eat_expect(lexer.ASSIGN, "Expect '%s' following type and identifier for '%s' declaration" % (lexer.ASSIGN, lexer.CONST), loc_start)
-            value = self.parse_expression()
-            return VarDeclaration(True, type, identifier, value).location(loc_start, self.at())
+        # let mut int a = (...)
+        #               ^
+        self.eat_expect(lexer.ASSIGN, "Expect '%s' following type and identifier for '%s' declaration." % (lexer.ASSIGN, loc_start.type), loc_start)
+
+        # let mut int a = (...)
+        #                 ^^^^^
+        value = self.parse_expression()
+        if is_static:
+            return GlobalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at())
         else:
-            # handle let a
-            #        let a = (...)
-            if self.at().type is lexer.ASSIGN:
-                self.eat() # consume the assignment operator
-                value = self.parse_expression() # eval (...)
-                return VarDeclaration(is_const, type, identifier, value).location(loc_start, self.at())
-            else:
-                # handle let a
-                return VarDeclaration(is_const, type, identifier, None).location(loc_start, self.at())
+            return LocalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at())
 
     # fn foo():
     # fn foo(a, b, c) d:
