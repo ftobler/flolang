@@ -330,7 +330,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 else:
                     raise statement_error("Either argument default or a value for argument must be provided", stmt)
 
-                scope.declare(param.identifier.value, value, False, stmt)
+                scope.declare(param.identifier.value, value, param.mutable, stmt)
             else:
                 raise statement_error("(function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 

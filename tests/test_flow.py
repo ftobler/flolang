@@ -603,7 +603,7 @@ fn foo(int i) int:
 
 foo(4)
 
-""") == 4
+""") == 16
 
 def test_function_lcoal_variable_mutability_2():
     assert eval("""
@@ -614,6 +614,6 @@ fn foo(mut int i) int:
 
 foo(4)
 
-""") == 4
+""") == 16
 
 

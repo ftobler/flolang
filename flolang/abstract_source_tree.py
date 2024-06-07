@@ -80,11 +80,13 @@ class GlobalVariableDeclaration(Statement):
         self.value = value
 
 class Parameter(Statement):
+    mutable: bool
     type: Type
     identifier: str
     default: Expression
-    def __init__(self, type: Type, identifier: str, default: Expression = None):
+    def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression = None):
         super().__init__()
+        self.mutable = mutable
         self.type = type
         self.identifier = identifier
         self.default = default
@@ -405,28 +407,52 @@ class Parser:
     def parse_function_arguments(self) -> list[Parameter]:
         loc_start = self.at()
         args: list[Type] = []
+
+        # (int a, int b)
+        # ^
         self.eat_expect(lexer.COURVE_L, "Expect function argument list beginning with '%s'." % lexer.COURVE_L, loc_start)
 
         while self.not_eof() and self.at().type is not lexer.COURVE_R:
             loop_loc_start = self.at()
+
+            # (mut int a, int b)
+            #  ^^^
+            mutable = False
+            if self.at().type is lexer.MUT:
+                mutable = True
+                self.eat()
+
+            # (int a, int b)
+            #  ^^^
             type = self.parse_next_type()
             if not type:
                 parser_error("Unable to determine argument type", loop_loc_start, self.at())
+
+            # (int name, int b)
+            #      ^^^^
             identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.", loop_loc_start)
 
+            # (int a = 5, int b)
+            #        ^
             default = None #assume no default available
             if self.at().type is lexer.ASSIGN:
                 #have a '=' sign here 'int b = 5'
                 self.eat()
                 default = self.parse_expression()
 
+            # (int a, int b)
+            #       ^
+            # (int a, int b)
+            #              ^
             # expect close ")" or if not expect a ","
             if self.at().type is not lexer.COURVE_R:
                 # expect a ","
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument." % (lexer.COMMA, lexer.COURVE_R), loop_loc_start)
 
-            args.append(Parameter(type, identifier, default).location(loop_loc_start, self.at()))
+            args.append(Parameter(mutable, type, identifier, default).location(loop_loc_start, self.at()))
 
+        # (int a, int b)
+        #              ^
         self.eat_expect(lexer.COURVE_R, "Expect function argument list ending with '%s'." % lexer.COURVE_R, loc_start)
         return args
 

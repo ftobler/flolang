@@ -30,7 +30,7 @@ foo(4)
 
 let mut int u = 0x50
 
-fn foo(int i) int:
+fn foo(mut int i) int:
     i += i + 3
     return bar(u - 5 / i, i)
 
