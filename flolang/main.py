@@ -30,7 +30,8 @@ def main():
             if t: print(t)
             if ast: print(ast.json())
             if value: print(value)
-            print(e)
+            typename = type(e).__name__
+            print(typename, ":", e)
 
 
 
