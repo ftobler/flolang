@@ -18,16 +18,17 @@ def main():
     print("flolang v0.1 by ftobler")
     env = default_environment()
     while True:
-        t = None
+        tok_copy = None
         ast = None
         value = None
         try:
             print("# ", end="")
-            t = tokenize(input())
-            ast = parse(t)
+            tok = tokenize(input(), filename="__interpreter__")
+            tok_copy = tok.copy()
+            ast = parse(tok)
             value = interpret(ast, env)
         except Exception as e:
-            if t: print(t)
+            if tok_copy: print(tok_copy)
             if ast: print(ast.json())
             if value: print(value)
             typename = type(e).__name__

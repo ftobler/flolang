@@ -206,7 +206,7 @@ def check_numeric_expression_for_dotdot(string):
     return string
 
 
-def tokenize(sourcecode: str, filename: str=None) -> list[Token]:
+def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     tokens = []
     tokenlist_symbolic = string_tokens + small_tokens
     tokenlist_symbolic.sort()
