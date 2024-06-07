@@ -13,14 +13,14 @@ Code should be simple and easy to write in a high level syntax. Useful when spee
 *very much a work in progress*
 
 works:
-* there is a interpreter which works.
-* mathematical and logical evaluations work.
-* core building blocks work. (functions, loops, if).
+* There is a interpreter which works. It is written in python.
+* Mathematical and logical evaluations work.
+* Core building blocks work. (functions, loops, if).
 
 progress:
-* variables and types are still in concept. (int works, but accepts everything)
-* return and break statements do not work correctly.
-* error handling. Too many run time errors that should be checked at compile time.
+* Variables and types are still in concept. (int works, but accepts everything)
+* Return and break statements do not work correctly.
+* Error handling. Too many run time errors that should be checked at compile time.
 
 concepts:
 * Class and structure type system still in concept.
@@ -30,8 +30,8 @@ concepts:
 
 ## syntax
 
-With return and break not yet working, use is inconvenient. But below samples work.
-```
+With return and break not yet working, use is inconvenient. But below samples execute with the interpreter.
+```python
 fn crc8_update(int data, int polynomial=0x07) int:
     crc ^= data
     for int _ in 0..8:
@@ -51,7 +51,7 @@ for int i in 1..4:
 print(crc)
 ```
 
-```
+```python
 fn recur_factorial(int n) int:
     let int result
     if n == 1:
@@ -72,6 +72,7 @@ elif num == 0:
 else:
     fac = recur_factorial(num)
 ```
+*(syntax highlighting similar to python works)*
 
 ## install
 
@@ -80,7 +81,20 @@ else:
 3. You now can import flolang in python or you can execute it directly in console using `flolang`. This requires the `python3##/scripts/` directory to be in path.
 4. `pip uninstall flolang` to uninstall
 
+*but i don't want to install it..*
 
+1. clone repository
+2. run or import it using any of the below methods
+    1. go into folder `./flolang/` and run `python main.py`
+    2. run from repository root directly `python ./flolang/main.py`
+    3. import form repository root `import flolang`
+
+# usage
+
+```python
+import flolang
+flolang.eval('print("Hello Wörld!")')
+```
 
 ## variables
 
