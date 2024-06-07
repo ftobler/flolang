@@ -176,8 +176,8 @@ class Token:
         else:
             raise Exception("self.type is something unknown %s. Type not added to Token representation." % str(self.type))
         if self.value:
-            return "{%s, '%s'}" % (type_str, self.value)
-        return "{%s}" % (type_str)
+            return "%s:'%s'" % (type_str, self.value)
+        return "%s" % (type_str)
 
 def remove_comments(line):
     # removes the comments from the source line.
