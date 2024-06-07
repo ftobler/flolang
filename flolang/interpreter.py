@@ -233,7 +233,7 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
     if not isinstance(stmt.assignee, ast.Identifier):
-        raise statement_error("can only assign to indentifier" + str(stmt.kind), stmt)
+        raise statement_error("Can only assign to indentifier. Got '%s' instead. Maybe you meant '%s' instead of '%s'?" % (stmt.assignee.kind, lexer.COMPARE, lexer.ASSIGN), stmt.assignee)
     identifier = stmt.assignee.symbol
     right = interpret(stmt.value, env)
     if stmt.operator is lexer.ASSIGN:
@@ -331,15 +331,15 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
     raise statement_error("function type not implemented", stmt)
 
 def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
-    condition = interpret(stmt.condition, env)
+    condition = interpret(stmt.test, env)
     # make the conditional check
     if condition.value:
-        ret, last = interpret_block_expression(stmt.positive_case, env)
+        ret, last = interpret_block_expression(stmt.consequent, env)
         if ret == 1: #return
             return last
     else:
-        if stmt.negative_case:
-            interpret(stmt.negative_case, env)
+        if stmt.alternate:
+            interpret(stmt.alternate, env)
     return NoneValue()
 
 def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> RuntimeValue:
