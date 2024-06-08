@@ -457,7 +457,7 @@ def test_return_expression():
 
 def test_break_not_allowed_in_function_1():
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 fn foo(int n) int:
     break # not allowed in function
 foo(7)
@@ -465,7 +465,7 @@ foo(7)
 
 def test_break_not_allowed_in_function_2():
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 fn foo(int n) int:
     if True:
         break # not allowed in function or if

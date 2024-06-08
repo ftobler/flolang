@@ -263,7 +263,7 @@ i
 
 def test_condition_if_inline_statement_9():
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 let int i = 123
 if True:
     i = 456 else:
@@ -273,7 +273,7 @@ i
 
 def test_condition_if_inline_statement_10():
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 let int i = 123
 if False:
     i = 456 else:
@@ -306,7 +306,7 @@ def test_while_3():
     # check a simple while loop with pass
     # pass is not allowed after a statement
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 let int i = 10
 let int n = 0
 while --i:
@@ -319,7 +319,7 @@ def test_while_4():
     # check a simple while loop with pass
     # pass is not allowed after a statement
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 let int i = 10
 let int n = 0
 while --i:
@@ -379,7 +379,7 @@ if x + y != 3:
 def test_unreachable_code_3():
     # unreachable at runtime creates an exception
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 unreachable
 """) == None
 
@@ -504,7 +504,7 @@ function_for_return_test()
 def test_return_break_statements_2b():
     # return is not allowed because it is not a function
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
     let mut int i = 10
     while --i:
         if i <= 5:
@@ -881,7 +881,7 @@ foo()
 
 def test_function_lcoal_variable_mutability_1():
     with pytest.raises(Exception):
-        assert eval("""
+        eval("""
 
 fn foo(int i) int:
     i *= i #        <== not allowed because i is immutable
