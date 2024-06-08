@@ -437,6 +437,41 @@ foo(7)
 def test_function_default_values():
     raise Exception("unimplemented")
 
+def test_continue_expression():
+    with pytest.raises(Exception):
+        eval("continue #not allowed because this is not a loop")
+    with pytest.raises(Exception):
+        eval("continue")
+
+def test_break_expression():
+    with pytest.raises(Exception):
+        eval("break #not allowed because this is not a loop")
+    with pytest.raises(Exception):
+        eval("break")
+
+def test_return_expression():
+    with pytest.raises(Exception):
+        eval("return #not allowed because this is not a function")
+    with pytest.raises(Exception):
+        eval("return")
+
+def test_break_not_allowed_in_function_1():
+    with pytest.raises(Exception):
+        assert eval("""
+fn foo(int n) int:
+    break # not allowed in function
+foo(7)
+""") == 7
+
+def test_break_not_allowed_in_function_2():
+    with pytest.raises(Exception):
+        assert eval("""
+fn foo(int n) int:
+    if True:
+        break # not allowed in function or if
+foo(7)
+""") == 7
+
 def test_function_is_executed_after_program_variable_declarations_normal():
     assert eval("""
 fn ret(int x) int:

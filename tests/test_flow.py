@@ -327,16 +327,16 @@ while --i:
     pass
     """) == 10
 
-@pytest.mark.skip(reason="implementatnion problem in break. currently would fail")
 def test_while_5():
     # check a simple while loop with break
     # expect 5 loops
     assert eval("""
-let int i = 10
-let int n = 0
+let mut int i = 10
+let mut int n = 0
 while --i:
     if i < 5:
         break
+    n++
 n
 """) == 5
 
@@ -499,7 +499,7 @@ while --i:
 i
 """) == 5
 
-def test_return_break_statements2():
+def test_return_break_statements_3():
     # check a simple while loop with return
     # expect 5 loops
     assert eval("""
@@ -509,6 +509,264 @@ fn foo():
     return "failed"
 foo()
 """) == "success"
+
+def test_return_break_statements_4():
+    # simple test case, but can go wrong when 'break' state does propagation handling
+    # is bugged.
+    # got exception here at one point:
+    # "Expression 'break' is not allowed outside loop.", loc = "foo()"
+    assert eval("""
+fn foo():
+    while True:
+        break
+foo()
+""") == None
+
+def test_return_break_statements_4b():
+    # simple test case, but can go wrong when 'break' state does propagation handling
+    # is bugged.
+    # got exception here at one point:
+    # "Expression 'break' is not allowed outside loop.", loc = "foo()"
+    assert eval("""
+fn foo():
+    while True:
+        break
+    return "this"
+foo()
+""") == "this"
+
+def test_return_break_statements_5():
+    # simple test cases , but can go wrong when 'break' state does propagation handling
+    # is bugged
+    assert eval("""
+fn foo():
+    while True:
+        return
+foo()
+""") == None
+
+def test_return_break_statements_6():
+    assert eval("""
+fn foo():
+    while True:
+        break
+    while True:
+        return "success"
+    return "failure"
+foo()
+""") == "success"
+
+def test_return_break_statements_7():
+    assert eval("""
+fn foo():
+    while True:
+        return "first"
+    while True:
+        return "success"
+    return "failure"
+foo()
+""") == "first"
+
+def test_return_break_statements_8():
+    assert eval("""
+fn foo():
+    while True:
+        while True:
+            return "first"
+        return "not this"
+foo()
+""") == "first"
+
+def test_return_break_statements_9():
+    assert eval("""
+fn foo():
+    while True:
+        while True:
+            return "first"
+        return "not this"
+foo()
+""") == "first"
+
+def test_return_break_statements_10():
+    assert eval("""
+fn foo():
+    while True:
+        while True:
+            break
+        return "here"
+foo()
+""") == "here"
+
+def test_return_break_statements_11():
+    assert eval("""
+fn foo():
+    while True:
+        if True:
+            break
+        return "not reached"
+    return "at last"
+foo()
+""") == "at last"
+
+def test_return_break_statements_12():
+    assert eval("""
+fn foo():
+    while True:
+        if True:
+            break
+        return "not reached"
+    return "broken outward here"
+foo()
+""") == "broken outward here"
+
+def test_return_break_statements_13():
+    assert eval("""
+fn foo():
+    while True:
+        while True:
+            if True:
+                break
+            return "not reached"
+        return "broken outward here"
+    return "not this"
+foo()
+""") == "broken outward here"
+
+def test_return_break_statements_14():
+    assert eval("""
+fn foo():
+    while True:
+        if True:
+            return "this one"
+        return "not this"
+    return "not this either"
+foo()
+""") == "this one"
+
+
+
+
+
+
+def test_return_in_while_loop():
+    # Test Case 1: Testing return in a while loop
+    assert eval("""
+fn foo():
+    while True:
+        return "returned"
+foo()
+""") == "returned"
+
+def test_break_in_while_loop():
+    # Test Case 2: Testing break in a while loop
+    assert eval("""
+fn foo():
+    while True:
+        break
+    return "loop exited"
+foo()
+""") == "loop exited"
+
+def test_continue_in_while_loop():
+    # Test Case 3: Testing continue in a while loop
+    assert eval("""
+fn foo():
+    let mut int i = 0
+    while i < 5:
+        i += 1
+        if i < 3:
+            continue
+        return i
+foo()
+""") == 3
+
+
+def test_break_and_continue_in_while_loop():
+    # Test Case 4: Combining break and continue in a while loop
+    assert eval("""
+fn foo():
+    let mut int i = 0
+    while i < 5:
+        i += 1
+        if i == 2:
+            continue
+        if i == 4:
+            break
+    return i
+foo()
+""") == 4
+
+def test_nested_while_loops():
+    # Test Case 5: Nested while loops with return, break, and continue
+    assert eval("""
+fn foo():
+    let mut int outer = 0
+    while outer < 3:
+        let mut int inner = 0
+        while inner < 3:
+            inner += 1
+            if inner == 2:
+                continue
+            if inner == 3:
+                break
+        outer += 1
+        if outer == 2:
+            return outer
+foo()
+""") == 2
+
+def test_multiple_loops():
+    # Comprehensive Test Case: Multiple Loops with return, break, and continue
+    assert eval("""
+fn foo():
+    let mut int outer_count = 0
+    while outer_count < 3:
+        let mut int middle_count = 0
+        let mut int inner_count = 0
+        while middle_count < 3:
+            inner_count = 0
+            while inner_count < 3:
+                inner_count += 1
+                if inner_count == 2:
+                    continue  # Skip the rest of the loop for this iteration
+                if inner_count == 3:
+                    break  # Exit the inner loop
+            middle_count += 1
+            if middle_count == 2:
+                break  # Exit the middle loop
+        outer_count += 1
+        if outer_count == 2:
+            return outer_count == 2 and middle_count == 2 and inner_count == 3
+foo()
+""") == True
+
+def test_multiple_loops_with_recursion():
+    # Comprehensive Test Case: Multiple Loops with Recursion
+    assert eval("""
+fn recursive_function(int level):
+    if level == 0:
+        return "base case reached"
+    else:
+        let mut int outer_count = 0
+        while outer_count < 3:
+            let mut int middle_count = 0
+            while middle_count < 3:
+                let mut int inner_count = 0
+                while inner_count < 3:
+                    inner_count += 1
+                    if inner_count == 2:
+                        continue  # Skip the rest of the loop for this iteration
+                    if inner_count == 3:
+                        break  # Exit the inner loop
+                middle_count += 1
+                if middle_count == 2:
+                    break  # Exit the middle loop
+            outer_count += 1
+            if outer_count == 2:
+                return recursive_function(level - 1)
+
+recursive_function(3)
+""") == "base case reached"
 
 def test_for_loop_1():
     assert eval("""

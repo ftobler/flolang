@@ -330,6 +330,8 @@ class Parser:
             return self.parse_return_declaration()
         if type is lexer.BREAK:
             return self.parse_break_declaration()
+        if type is lexer.CONTINUE:
+            return self.parse_continue_declaration()
         if type is lexer.UNREACHABLE:
             return self.parse_unreachable_declaration()
         return self.parse_expression()
@@ -592,6 +594,13 @@ class Parser:
         self.eat()
         self.skip_until_end_of_code_block()
         return BreakExpression().location(loc_start, self.at())
+
+    def parse_continue_declaration(self):
+        loc_start = self.at()
+        # eat the 'continue' keyword
+        self.eat()
+        self.skip_until_end_of_code_block()
+        return ContinueExpression().location(loc_start, self.at())
 
     def parse_unreachable_declaration(self):
         loc_start = self.at()

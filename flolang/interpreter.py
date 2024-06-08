@@ -294,6 +294,12 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             defer.append(statement)
         else:
             last = interpret(statement, env)
+            if env.state is envstate.BREAK:
+                statement_error("Expression '%s' is not allowed outside loop." % lexer.BREAK, stmt)
+            if env.state is envstate.CONTINUE:
+                statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
+            if env.state is envstate.RETURN:
+                statement_error("Expression '%s' is not allowed outside function." % lexer.CONTINUE, stmt)
             if last == None:
                 statement_error("must return a runtime value", stmt) # this is a development check mainly
 
@@ -387,8 +393,12 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
     while interpret(stmt.condition, env).value:
         last = interpret_block_expression(stmt.body, env)
         if env.state is envstate.BREAK:
+            # must reset the state because we catched the case and it does not propagate outward
+            env.state = envstate.RUN
             break
         if env.state is envstate.CONTINUE:
+            # must reset the state because we catched the case and it does not propagate outward
+            env.state = envstate.RUN
             continue
         if env.state is envstate.RETURN:
             return last
@@ -410,8 +420,12 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
         env.state = scope.state # propagate state outwards
         # check for any flow interrupt conditions condition on environment
         if env.state is envstate.BREAK:
+            # must reset the state because we catched the case and it does not propagate outward
+            env.state = envstate.RUN
             break
         if env.state is envstate.CONTINUE:
+            # must reset the state because we catched the case and it does not propagate outward
+            env.state = envstate.RUN
             continue
         if env.state is envstate.RETURN:
             return last
