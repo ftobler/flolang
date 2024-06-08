@@ -46,7 +46,6 @@ crc8([1,2,3,4])
 
 """) == crc8([1,2,3,4])
 
-@pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
 def test_crc_calculation_2():
 
     assert eval("""
@@ -70,7 +69,6 @@ crc
 
 """) == crc8([1,2,3,4])
 
-@pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
 def test_crc_calculation_3():
 
     #this time overload the polynominal default value
