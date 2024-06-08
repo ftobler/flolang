@@ -488,16 +488,29 @@ while --i:
 i
 """) == 5
 
-def test_return_break_statements_2():
+def test_return_break_statements_2a():
     # check a simple while loop with return
     # expect 5 loops
     assert eval("""
-let mut int i = 10
-while --i:
-    if i <= 5:
-        return
-i
+fn function_for_return_test():
+    let mut int i = 10
+    while --i:
+        if i <= 5:
+            return i
+    i
+function_for_return_test()
 """) == 5
+
+def test_return_break_statements_2b():
+    # return is not allowed because it is not a function
+    with pytest.raises(Exception):
+        assert eval("""
+    let mut int i = 10
+    while --i:
+        if i <= 5:
+            return # not allowed outside function
+    i
+    """) == 5
 
 def test_return_break_statements_3():
     # check a simple while loop with return
@@ -847,6 +860,24 @@ fn bar(int baaar, int q) int:
     return baaar * 5.56 + q
 
 """) - 441.8499999 < 0.0001
+
+def test_function_nested_return_1():
+    assert eval("""
+foo()
+fn foo() int:
+    return bar()
+fn bar() int:
+    return "bar"
+""") == "bar"
+
+def test_function_nested_return_3():
+    assert eval("""
+fn foo() int:
+    return bar()
+fn bar() int:
+    return "bar"
+foo()
+""") == "bar"
 
 def test_function_lcoal_variable_mutability_1():
     with pytest.raises(Exception):

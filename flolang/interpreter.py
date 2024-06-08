@@ -281,7 +281,7 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         return env.assign(identifier, NumberValue(left.value >> right.value), stmt)
     if stmt.operator is lexer.ASSIGNBITSHIFTL:
         return env.assign(identifier, NumberValue(left.value << right.value), stmt)
-    statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
+    statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
 
 
 
@@ -299,15 +299,21 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             if env.state is envstate.CONTINUE:
                 statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
             if env.state is envstate.RETURN:
-                statement_error("Expression '%s' is not allowed outside function." % lexer.CONTINUE, stmt)
+                statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
             if last == None:
-                statement_error("must return a runtime value", stmt) # this is a development check mainly
+                statement_error("Must return a runtime value.", stmt) # this is a development check mainly
 
     # then interpret everything else
     for statement in defer:
         last = interpret(statement, env)
+        if env.state is envstate.BREAK:
+            statement_error("Expression '%s' is not allowed outside loop." % lexer.BREAK, stmt)
+        if env.state is envstate.CONTINUE:
+            statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
+        if env.state is envstate.RETURN:
+            statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
         if last == None:
-            statement_error("must return a runtime value", stmt) # this is a development check mainly
+            statement_error("Must return a runtime value.", stmt) # this is a development check mainly
     return last
 
 def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
@@ -323,7 +329,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         if result == None: # native function might not return anything, fix this here.
             result = NoneValue()
         if not isinstance(result, RuntimeValue):
-            statement_error("result of native function call is not of a runtime type", stmt)
+            statement_error("Result of native function call is not of a runtime type.", stmt)
         return result
 
     if isinstance(function, RuntimeFunction):
@@ -360,8 +366,10 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         if env.state is envstate.CONTINUE:
             statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
         if env.state is envstate.RETURN:
+            # must reset the state because we catched the case and it does not propagate outward
+            env.state = envstate.RUN
             return last
-        return last # block has ran to end
+        return NoneValue() # block has ran to end
 
     statement_error("Dunction type not implemented.", stmt)
 
@@ -449,9 +457,14 @@ def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> Ru
     return NoneValue()
 
 def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
-    env.state = envstate.RETURN
     if stmt.value:
-        return interpret(stmt.value, env)
+        # interpret it
+        last = interpret(stmt.value, env)
+        # set state to return AFTER interpretation, because interpretation might overwrite state.
+        env.state = envstate.RETURN
+        return last
+    # set state to return
+    env.state = envstate.RETURN
     return NoneValue()
 
 def interpret_break_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
