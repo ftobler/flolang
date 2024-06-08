@@ -64,10 +64,10 @@ class envstate:
     CONTINUE = "env_continue"
 
 class Environment:
-    def __init__(self, parent : typing.Self = None):
+    def __init__(self, parent_environment_self = None):
         self.scope = {}
         self.mutables = []
-        self.parent = parent
+        self.parent = parent_environment_self # cannot use typing.Self on older python versions
         self.state = envstate.RUN
 
     def declare(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement) -> RuntimeValue:
