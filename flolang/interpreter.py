@@ -2,6 +2,7 @@ import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
 import itertools
 from flolang.error import runtime_error
+import typing #Callable, Self
 
 class RuntimeValue:
     def __init__(self):
@@ -42,7 +43,7 @@ class ArrayValue(RuntimeValue):
         self.value = value
 
 class NativeFunction(RuntimeValue):
-    def __init__(self, callback):
+    def __init__(self, callback: typing.Callable):
         super().__init__()
         self.callback = callback
 
@@ -63,7 +64,7 @@ class envstate:
     CONTINUE = "env_continue"
 
 class Environment:
-    def __init__(self, parent=None):
+    def __init__(self, parent : typing.Self = None):
         self.scope = {}
         self.mutables = []
         self.parent = parent
