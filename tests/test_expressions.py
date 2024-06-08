@@ -577,6 +577,45 @@ fn foo(int a=1 ) int:
 foo(1)
 """) == 1
 
+def test_function_default_value_with_expression_1():
+    assert eval("""
+fn foo(int a = 2**8) int:
+    return a
+foo()
+""") == 256
+
+def test_function_default_value_with_expression_2():
+    # ok, cool, but ... is this a good idea? Python allows this
+    # but may be problematic to translate into C later.
+    # keep the test in for now. when it never breaks good, else
+    # it has to be explicitly forbiddden in the interpreter.
+    assert eval("""
+fn bar() int:
+    return 42
+fn foo(int a = bar()) int:
+    return a
+foo()
+""") == 42
+
+def test_function_default_value_with_expression_3():
+    # ok, cool, but ... is this a good idea? Python allows this
+    # but may be problematic to translate into C later.
+    # keep the test in for now. when it never breaks good, else
+    # it has to be explicitly forbiddden in the interpreter.
+
+    # if this is to keep, bar must run before foo is ever called
+    # because that might create issues when foo() evaluates its stuff
+    # every time it has ran
+    assert eval("""
+let mut int bar_ran = 0
+fn bar() int:
+    bar_ran = 1
+    return 42
+fn foo(int a = bar()) int:
+    return a
+bar_ran
+""") == 1
+
 def test_continue_expression():
     with pytest.raises(Exception):
         eval("continue #not allowed because this is not a loop")

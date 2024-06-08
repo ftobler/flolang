@@ -65,7 +65,7 @@ class GlobalVariableDeclaration(Statement):
         self.identifier = identifier
         self.value = value
 
-class Parameter(Statement):
+class ParameterStatement(Statement):
     def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression = None):
         super().__init__()
         self.mutable = mutable
@@ -79,7 +79,7 @@ class BlockStatement(Statement):
         self.body = body
 
 class FunctionDeclaration(Statement):
-    def __init__(self, parameters: list[Parameter], result: Type, identifier: str, body: BlockStatement):
+    def __init__(self, parameters: list[ParameterStatement], result: Type, identifier: str, body: BlockStatement):
         super().__init__()
         self.parameters = parameters
         self.result = result
@@ -171,12 +171,18 @@ class MemberExpression(Expression):
         self.property = property
         self.computed = computed #TODO unused?
 
-class Identifier(Expression):
+class Literal(Expression):
+    pass
+
+class SimpleLiteral(Literal):
+    pass
+
+class Identifier(SimpleLiteral):
     def __init__(self, symbol: str):
         super().__init__()
         self.symbol = symbol
 
-class NumericLiteral(Expression):
+class NumericLiteral(SimpleLiteral):
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
@@ -185,29 +191,31 @@ class NumericLiteral(Expression):
         else:
             self.value = int(value_raw)
 
-class FloatLiteral(Expression):
+class FloatLiteral(SimpleLiteral):
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
         self.value = float(value_raw)
 
-class StringLiteral(Expression):
+class StringLiteral(SimpleLiteral):
     def __init__(self, value: str):
         super().__init__()
         self.value = value
 
-class ObjectProperty(Expression):
+#dont count them to simple literals, because They are dynamic
+
+class ObjectProperty(Literal):
     def __init__(self, key: str, value: Expression=None):
         super().__init__()
         self.key = key
         self.value = value
 
-class ObjectLiteral(Expression):
+class ObjectLiteral(Literal):
     def __init__(self, properties: list[ObjectProperty]):
         super().__init__()
         self.properties = properties
 
-class ListLiteral(Expression):
+class ListLiteral(Literal):
     def __init__(self, arguments: list[Expression]):
         super().__init__()
         self.arguments = arguments
@@ -344,7 +352,7 @@ class Parser:
     # (int a)
     # (int a, int b)
     # (int a, int b = 5)
-    def parse_function_arguments(self) -> list[Parameter]:
+    def parse_function_arguments(self) -> list[ParameterStatement]:
         loc_start = self.at()
         args: list[Type] = []
 
@@ -389,7 +397,7 @@ class Parser:
                 # expect a ","
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument." % (lexer.COMMA, lexer.COURVE_R), loop_loc_start)
 
-            args.append(Parameter(mutable, type, identifier, default).location(loop_loc_start, self.at()))
+            args.append(ParameterStatement(mutable, type, identifier, default).location(loop_loc_start, self.at()))
 
         # (int a, int b)
         #              ^

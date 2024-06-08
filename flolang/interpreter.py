@@ -47,10 +47,20 @@ class NativeFunction(RuntimeValue):
         super().__init__()
         self.callback = callback
 
+class RuntimeFunctionParameter:
+    def __init__(self, mutable: bool, type: ast.Type, identifier: str, default: RuntimeValue = None):
+        self.mutable = mutable
+        self.type = type
+        self.identifier = identifier
+        self.default = default
+
 class RuntimeFunction(RuntimeValue):
-    def __init__(self, function: ast.FunctionDeclaration):
+    def __init__(self, parameters: list[RuntimeFunctionParameter], result: ast.Type, identifier: str, body: ast.BlockStatement):
         super().__init__()
-        self.function = function
+        self.parameters = parameters
+        self.result = result
+        self.identifier = identifier
+        self.body = body
 
 
 def statement_error(message, stmt: ast.Statement):
@@ -318,7 +328,20 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
     return last
 
 def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
-    return env.declare(stmt.identifier, RuntimeFunction(stmt), True, stmt) # function declarations are always constant
+    # must interpret the evaluation of the runtime parameters at compile time and not just
+    # when the function is called. Or else the function parameter becomes a function call.
+    runtime_parameters = []
+    for param in stmt.parameters:
+
+        #check if there is a default. If not None is the default.
+        evaluated_default = None
+        if param.default:
+            evaluated_default = interpret(param.default, env)
+
+        #build the function declaration and add to list
+        runtime_parameters.append(RuntimeFunctionParameter(param.mutable, param.type, param.identifier, evaluated_default))
+
+    return env.declare(stmt.identifier, RuntimeFunction(runtime_parameters, stmt.result, stmt.identifier, stmt.body), True, stmt) # function declarations are always constant
 
 def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> RuntimeValue:
     # need the function identifier name. interpret the caller expression
@@ -338,7 +361,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         # optionally this scope could be passed from function runtime variable, but that is a script
         # thing to do and not how C works. To keep compatibility with C, need to do it the boring way.
         scope = Environment(env)
-        for param, argument in itertools.zip_longest(function.function.parameters, stmt.arguments):
+        for param, argument in itertools.zip_longest(function.parameters, stmt.arguments):
             # make sure the function has enough parameters if not, that is fatal
             if param == None:
                 statement_error("function does not have enough parameters.", stmt)
@@ -350,7 +373,8 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 if argument != None:
                     value = interpret(argument, env)
                 elif param.default != None:
-                    value = interpret(param.default, env)
+                    # is pre interpreted at declaration time. so this is already a runtime variable
+                    value = param.default
                 else:
                     statement_error("Either argument default or a value for argument must be provided", stmt)
 
@@ -359,7 +383,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 statement_error("(Function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
         # go through all statements and execute
-        last = interpret_block_expression(function.function.body, scope)
+        last = interpret_block_expression(function.body, scope)
         env.state = scope.state # propagate state outwards
         # check for any flow interrupt conditions condition on environment
         if env.state is envstate.BREAK:
