@@ -523,7 +523,7 @@ fn foo():
 foo()
 """) == "success"
 
-def test_return_break_statements_4():
+def test_return_break_statements_4a():
     # simple test case, but can go wrong when 'break' state does propagation handling
     # is bugged.
     # got exception here at one point:
@@ -656,11 +656,6 @@ fn foo():
 foo()
 """) == "this one"
 
-
-
-
-
-
 def test_return_in_while_loop():
     # Test Case 1: Testing return in a while loop
     assert eval("""
@@ -692,7 +687,6 @@ fn foo():
         return i
 foo()
 """) == 3
-
 
 def test_break_and_continue_in_while_loop():
     # Test Case 4: Combining break and continue in a while loop
@@ -806,7 +800,6 @@ for int i in 30.. 42:
 n
 """) == 12
 
-
 def test_for_loop_4():
     assert eval("""
 let mut int n = 0
@@ -814,7 +807,6 @@ for int i in 40 .. 53:
     n++
 n
 """) == 13
-
 
 def test_for_loop_5():
     assert eval("""

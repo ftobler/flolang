@@ -433,9 +433,149 @@ foo(7)
 
 """) == 7
 
-@pytest.mark.skip(reason="Test not yet implemented correctly")
-def test_function_default_values():
-    raise Exception("unimplemented")
+def test_function_default_values_1():
+    assert eval("""
+fn foo(int n = 123) int:
+    return n
+foo()
+""") == 123
+
+def test_function_default_values_2():
+    #this is not allowed
+    with pytest.raises(Exception):
+        eval("""
+fn foo(int n) int:
+    return n
+foo() # this is not allowed
+""")
+
+def test_function_default_values_3():
+    assert eval("""
+fn foo(int a, int b = 2) int:
+    return a + b
+foo(10)
+""") == 12
+
+def test_function_default_values_4():
+    assert eval("""
+fn foo(int a, int b = 2) int:
+    return a + b
+foo(10, 20)
+""") == 30
+
+def test_function_default_values_5():
+    assert eval("""
+fn foo(int a = 1, int b = 2) int:
+    return a + b
+foo(10, 20)
+""") == 30
+
+def test_function_default_values_6():
+    assert eval("""
+fn foo(int a = 1, int b) int:
+    return a + b
+foo(10, 20)
+""") == 30
+
+def test_function_default_values_7():
+    assert eval("""
+fn foo(int a, int b = 2) int:
+    return a + b
+foo(10)
+""") == 12
+
+def test_function_default_values_8():
+    assert eval("""
+fn foo(int a = 1, int b = 2) int:
+    return a + b
+foo(10)
+""") == 12
+
+def test_function_default_values_9():
+    with pytest.raises(Exception):
+        eval("""
+fn foo(int a = 1, int b) int:
+    return a + b
+foo(10)
+""")
+
+def test_function_default_values_10():
+    with pytest.raises(Exception):
+        eval("""
+fn foo(int a, int b = 2) int:
+    return a + b
+foo()
+""")
+
+def test_function_default_values_11():
+    assert eval("""
+fn foo(int a = 1, int b = 2) int:
+    return a + b
+foo()
+""") == 3
+
+def test_function_default_values_12():
+    with pytest.raises(Exception):
+        eval("""
+fn foo(int a = 1, int b) int:
+    return a + b
+foo()
+""")
+
+def test_function_default_value_syntax_1():
+    assert eval("""
+fn foo(int a= 1, int b) int:
+    return a + b
+foo(1, 3)
+""") == 4
+
+def test_function_default_value_syntax_2():
+    assert eval("""
+fn foo(int a =1, int b) int:
+    return a + b
+foo(1, 3)
+""") == 4
+
+def test_function_default_value_syntax_3():
+    assert eval("""
+fn foo(int a=1, int b) int:
+    return a + b
+foo(1, 3)
+""") == 4
+
+def test_function_default_value_syntax_4():
+    assert eval("""
+fn foo(int a=1 , int b) int:
+    return a + b
+foo(1, 3)
+""") == 4
+def test_function_default_value_syntax_5():
+    assert eval("""
+fn foo(int a= 1) int:
+    return a
+foo(1)
+""") == 1
+
+def test_function_default_value_syntax_6():
+    assert eval("""
+fn foo(int a =1) int:
+    return a
+foo(1)
+""") == 1
+
+def test_function_default_value_syntax_7():
+    assert eval("""
+fn foo(int a=1) int:
+    return a
+foo(1)
+""") == 1
+
+def test_function_default_value_syntax_8():
+    assert eval("""
+fn foo(int a=1 ) int:
+    return a
+foo(1)
+""") == 1
 
 def test_continue_expression():
     with pytest.raises(Exception):
