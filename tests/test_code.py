@@ -18,8 +18,8 @@ def run_file(file_path):
 
 # get a list of all script files to test
 def get_test_files():
-    directory = resolve_path(".")
-    return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".txt")]
+    directory = resolve_path("./code")
+    return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".txt")]
 
 # TEST
 # Generate test cases dynamically based on files found
