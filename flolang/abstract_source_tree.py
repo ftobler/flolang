@@ -24,7 +24,6 @@ class NoLocation(Location):
         return "?"
 
 class Statement:
-    kind: str
     def __init__(self):
         self.kind = type(self).__name__
         self.loc = NoLocation()
@@ -40,25 +39,17 @@ class Expression(Statement):
     pass
 
 class Program(Statement):
-    body: list[Statement]
     def __init__(self):
         super().__init__()
         self.body = []
 
 class Type(Statement):
-    type: str
-    is_builtin: bool
     def __init__(self, type: str, is_builtin: bool):
         super().__init__()
         self.type = type
         self.builtin = is_builtin
 
 class LocalVariableDeclaration(Statement):
-    mutable: bool
-    type: Type
-    is_builtin: bool
-    identifier: str
-    value: Expression
     def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression = None):
         super().__init__()
         self.mutable = mutable
@@ -67,11 +58,6 @@ class LocalVariableDeclaration(Statement):
         self.value = value
 
 class GlobalVariableDeclaration(Statement):
-    mutable: bool
-    type: Type
-    is_builtin: bool
-    identifier: str
-    value: Expression
     def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression = None):
         super().__init__()
         self.mutable = mutable
@@ -80,10 +66,6 @@ class GlobalVariableDeclaration(Statement):
         self.value = value
 
 class Parameter(Statement):
-    mutable: bool
-    type: Type
-    identifier: str
-    default: Expression
     def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression = None):
         super().__init__()
         self.mutable = mutable
@@ -92,16 +74,11 @@ class Parameter(Statement):
         self.default = default
 
 class BlockStatement(Statement):
-    body: list[Statement]
     def __init__(self, body: list[Statement]):
         super().__init__()
         self.body = body
 
 class FunctionDeclaration(Statement):
-    parameters: list[Parameter]
-    result: Type
-    identifier: str
-    body: BlockStatement
     def __init__(self, parameters: list[Parameter], result: Type, identifier: str, body: BlockStatement):
         super().__init__()
         self.parameters = parameters
@@ -110,9 +87,6 @@ class FunctionDeclaration(Statement):
         self.body = body
 
 class IfExpression(Statement):
-    test: Expression # is a testing expression, not a evaluated condition
-    consequent: BlockStatement # if it is True
-    alternate: BlockStatement # if it is False
     def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement = None):
         super().__init__()
         self.test = condition
@@ -120,11 +94,6 @@ class IfExpression(Statement):
         self.alternate = alternate
 
 class ForExpression(Statement):
-    type: Type
-    identifier: str
-    body: BlockStatement
-    quantity_min: Expression
-    quantity_max: Expression
     def __init__(self, type: Type, identifier: str, body: BlockStatement, quantity_min: Expression, quantity_max: Expression):
         super().__init__()
         self.type = type
@@ -134,8 +103,6 @@ class ForExpression(Statement):
         self.quantity_max = quantity_max
 
 class WhileExpression(Statement):
-    condition: Expression
-    body: BlockStatement
     def __init__(self, condition: Expression, body: BlockStatement):
         super().__init__()
         self.condition = condition
@@ -160,9 +127,6 @@ class UnreachableExpression(Statement):
         super().__init__()
 
 class AssignmentExpression(Expression):
-    assignee: Expression
-    value: Expression
-    operator: str
     def __init__(self, assignee: Expression, value: Expression, operator: str):
         super().__init__()
         self.assignee = assignee
@@ -170,9 +134,6 @@ class AssignmentExpression(Expression):
         self.operator = operator
 
 class BinaryExpression(Expression):
-    left: Expression
-    right: Expression
-    operator: str
     def __init__(self, left: Expression, right: Expression, operator: str):
         super().__init__()
         self.left = left
@@ -180,56 +141,42 @@ class BinaryExpression(Expression):
         self.operator = operator
 
 class UnaryBeforeExpression(Expression):
-    expr: Expression
-    operator: str
     def __init__(self, expr: Expression, operator: str):
         super().__init__()
         self.expr = expr
         self.operator = operator
 
 class UnaryIdentifierBeforeExpression(Expression):
-    identifier: str
-    operator: str
     def __init__(self, identifier: str, operator: str):
         super().__init__()
         self.identifier = identifier
         self.operator = operator
 
 class UnaryIdentifierAfterExpression(Expression):
-    identifier: str
-    operator: str
     def __init__(self, identifier: str, operator: str):
         super().__init__()
         self.identifier = identifier
         self.operator = operator
 
 class CallExpression(Expression):
-    caller: Expression
-    arguments: list[Expression]
     def __init__(self, caller: Expression, arguments: list[Expression]):
         super().__init__()
         self.caller = caller
         self.arguments = arguments
 
 class MemberExpression(Expression):
-    object: Expression
-    property: Expression
-    computed: bool #TODO unused?
     def __init__(self, object: Expression, property: Expression, computed: bool):
         super().__init__()
         self.object = object
         self.property = property
-        self.computed = computed
+        self.computed = computed #TODO unused?
 
 class Identifier(Expression):
-    symbol: str
     def __init__(self, symbol: str):
         super().__init__()
         self.symbol = symbol
 
 class NumericLiteral(Expression):
-    value: int
-    value_raw: str
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
@@ -239,35 +186,28 @@ class NumericLiteral(Expression):
             self.value = int(value_raw)
 
 class FloatLiteral(Expression):
-    value: float
-    value_raw: str
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
         self.value = float(value_raw)
 
 class StringLiteral(Expression):
-    value: str
     def __init__(self, value: str):
         super().__init__()
         self.value = value
 
 class ObjectProperty(Expression):
-    key: str
-    value: Expression
     def __init__(self, key: str, value: Expression=None):
         super().__init__()
         self.key = key
         self.value = value
 
 class ObjectLiteral(Expression):
-    properties: list[ObjectProperty]
     def __init__(self, properties: list[ObjectProperty]):
         super().__init__()
         self.properties = properties
 
 class ListLiteral(Expression):
-    elements: list[Expression]
     def __init__(self, arguments: list[Expression]):
         super().__init__()
         self.arguments = arguments
@@ -276,7 +216,8 @@ class ListLiteral(Expression):
 
 
 class Parser:
-    tokens: list[Token] # tokens from lexer
+    def __init__(self):
+        self.tokens: list[Token] # tokens from lexer
 
     def not_eof(self) -> bool:
         return self.tokens[0].type is not lexer.EOF
