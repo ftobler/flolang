@@ -477,31 +477,28 @@ foo()
 
 
 
-@pytest.mark.skip(reason="not yet implemented correctly")
 def test_return_break_statements_1():
     # check a simple while loop with break
     # expect 5 loops
     assert eval("""
-let int i = 10
+let mut int i = 10
 while --i:
     if i <= 5:
         break
 i
 """) == 5
 
-@pytest.mark.skip(reason="not yet implemented correctly")
 def test_return_break_statements_2():
     # check a simple while loop with return
     # expect 5 loops
     assert eval("""
-let int i = 10
+let mut int i = 10
 while --i:
     if i <= 5:
         return
 i
 """) == 5
 
-@pytest.mark.skip(reason="not yet implemented correctly")
 def test_return_break_statements2():
     # check a simple while loop with return
     # expect 5 loops

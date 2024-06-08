@@ -74,6 +74,7 @@ def create_default_environment():
     def native_rand_seed(arguments: list[inter.RuntimeValue]):
         seed = arguments[0].value
         env.rng = random.Random(seed)
+        return inter.NoneValue()
     env.declare("__rand_seed__", inter.NativeFunction(native_rand_seed), True, None)
 
     def native_rand_seed(arguments: list[inter.RuntimeValue]):

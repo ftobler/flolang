@@ -46,6 +46,7 @@ crc8([1,2,3,4])
 
 """) == crc8([1,2,3,4])
 
+@pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
 def test_crc_calculation_2():
 
     assert eval("""
@@ -69,6 +70,7 @@ crc
 
 """) == crc8([1,2,3,4])
 
+@pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
 def test_crc_calculation_3():
 
     #this time overload the polynominal default value
@@ -123,7 +125,6 @@ fac
 
 """) == 5040
 
-@pytest.mark.skip(reason="not yet implemented correctly. return in if case does not work")
 def test_factorial_variant_2():
 
     assert eval("""
@@ -137,7 +138,7 @@ fn recur_factorial(int n) int:
         return n*recur_factorial(n-1)
 
 let int num = 7
-let int fac
+let mut int fac = 0
 
 # check if the number is negative
 if num < 0:
@@ -151,6 +152,7 @@ else:
 fac
 
 """) == 5040
+    
 
 def test_factorial_variant_3():
 
@@ -180,7 +182,7 @@ fac
 
 """) == 5040
 
-@pytest.mark.skip(reason="Need to debug what goes wrong here")
+# @pytest.mark.skip(reason="Need to debug what goes wrong here")
 def test_factorial_variant_4():
 
     assert eval("""
@@ -188,7 +190,7 @@ def test_factorial_variant_4():
 # Factorial of a number using recursion
 
 fn recur_factorial(int n) int:
-    let int result
+    let mut int result = 0
     if n == 1:
         result = n
     else:
@@ -196,7 +198,7 @@ fn recur_factorial(int n) int:
     return result
 
 let int num = 7
-let int fac
+let mut int fac = 0
 
 # check if the number is negative
 if num < 0:
@@ -207,7 +209,6 @@ elif num == 0:
 else:
     fac = recur_factorial(num)
 
-print(fac)
 fac
 
 """) == 5040

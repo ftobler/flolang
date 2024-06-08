@@ -91,29 +91,29 @@ class Parameter(Statement):
         self.identifier = identifier
         self.default = default
 
+class BlockStatement(Statement):
+    body: list[Statement]
+    def __init__(self, body: list[Statement]):
+        super().__init__()
+        self.body = body
+
 class FunctionDeclaration(Statement):
     parameters: list[Parameter]
     result: Type
     identifier: str
-    body: list[Statement]
-    def __init__(self, parameters: list[Parameter], result: Type, identifier: str, body: list[Statement]):
+    body: BlockStatement
+    def __init__(self, parameters: list[Parameter], result: Type, identifier: str, body: BlockStatement):
         super().__init__()
         self.parameters = parameters
         self.result = result
         self.identifier = identifier
         self.body = body
 
-class BlockExpression(Statement):
-    body: list[Statement]
-    def __init__(self, body: list[Statement]):
-        super().__init__()
-        self.body = body
-
 class IfExpression(Statement):
     test: Expression # is a testing expression, not a evaluated condition
-    consequent: BlockExpression # if it is True
-    alternate: BlockExpression # if it is False
-    def __init__(self, condition: Expression, consequent: BlockExpression, alternate: BlockExpression = None):
+    consequent: BlockStatement # if it is True
+    alternate: BlockStatement # if it is False
+    def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement = None):
         super().__init__()
         self.test = condition
         self.consequent = consequent
@@ -122,10 +122,10 @@ class IfExpression(Statement):
 class ForExpression(Statement):
     type: Type
     identifier: str
-    body: BlockExpression
+    body: BlockStatement
     quantity_min: Expression
     quantity_max: Expression
-    def __init__(self, type: Type, identifier: str, body: BlockExpression, quantity_min: Expression, quantity_max: Expression):
+    def __init__(self, type: Type, identifier: str, body: BlockStatement, quantity_min: Expression, quantity_max: Expression):
         super().__init__()
         self.type = type
         self.identifier = identifier
@@ -135,8 +135,8 @@ class ForExpression(Statement):
 
 class WhileExpression(Statement):
     condition: Expression
-    body: BlockExpression
-    def __init__(self, condition: Expression, body: BlockExpression):
+    body: BlockStatement
+    def __init__(self, condition: Expression, body: BlockStatement):
         super().__init__()
         self.condition = condition
         self.body = body
@@ -148,6 +148,10 @@ class ReturnExpression(Statement):
         self.value = value
 
 class BreakExpression(Statement):
+    def __init__(self):
+        super().__init__()
+
+class ContinueExpression(Statement):
     def __init__(self):
         super().__init__()
 
@@ -390,14 +394,7 @@ class Parser:
         result = self.parse_next_type()
 
         self.eat_expect(lexer.COLON, "Expect '%s' following function declaration." % lexer.COLON, loc_start)
-        self.eat_expect(lexer.BLOCKSTART, "Expect indented function body after function declaration.", loc_start)
-
-        body = []
-        while self.not_eof() and self.at().type is not lexer.BLOCKEND:
-            body.append(self.parse_statement())
-
-        #lexer should create the blockend(s) already, so this message will probably never be seen
-        self.eat_expect(lexer.BLOCKEND, "Expect indented function body to end before End of File.", loc_start)
+        body = self.parse_block_declaration()
 
         return FunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
 
@@ -517,7 +514,7 @@ class Parser:
             body = [self.parse_statement()]
 
 
-        return BlockExpression(body).location(loc_start, self.at())
+        return BlockStatement(body).location(loc_start, self.at())
 
     # for int n in 50:
     # for int n in {...}:

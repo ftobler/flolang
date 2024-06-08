@@ -421,3 +421,32 @@ def test_member_expression():
     eval("foo().bar")
     eval("foo().bar[1]")
     eval("foo().bar()")
+
+def test_return_expression():
+    assert eval("""
+fn foo(int n) int:
+    if n == 1:
+        return n
+    else:
+        return n
+foo(7)
+
+""") == 7
+
+@pytest.mark.skip(reason="Test not yet implemented correctly")
+def test_function_default_values():
+    raise Exception("unimplemented")
+
+def test_function_is_executed_after_program_variable_declarations_normal():
+    assert eval("""
+fn ret(int x) int:
+    return x
+ret(714)
+6
+""") == 714
+
+def test_function_is_executed_after_program_variable_declarations_native():
+    assert eval("""
+sin(pi/2)
+8
+""") == 1.0

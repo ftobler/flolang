@@ -19,7 +19,7 @@ pretty_print = True
 def main():
     print("flolang v0.1 by ftobler")
     env = default_environment()
-    env.declare("_", interpret(parse(tokenize("None")), env), False, None)
+    env.declare("_", interpret(parse(tokenize("None")), env), True, None)
     while True:
         tok_copy = None
         ast = None

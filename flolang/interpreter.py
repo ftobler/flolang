@@ -4,7 +4,6 @@ import itertools
 from flolang.error import runtime_error
 
 class RuntimeValue:
-    variant: str
     def __init__(self):
         self.variant = type(self).__name__
     def __repr__(self):
@@ -56,16 +55,23 @@ class RuntimeFunction(RuntimeValue):
 def statement_error(message, stmt: ast.Statement):
     runtime_error(message, stmt.loc)
 
+# small name because its used as enumeration
+class envstate:
+    RUN = "env_run"
+    BREAK = "env_break"
+    RETURN = "env_return"
+    CONTINUE = "env_continue"
 
 class Environment:
     def __init__(self, parent=None):
         self.scope = {}
         self.mutables = []
         self.parent = parent
+        self.state = envstate.RUN
 
     def declare(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement) -> RuntimeValue:
         if self.scope.get(name):
-            raise statement_error("Variable '%s' is already defined." % name, stmt)
+            statement_error("Variable '%s' is already defined." % name, stmt)
         self.scope[name] = value
         if is_mutable:
             self.mutables.append(name)
@@ -75,16 +81,16 @@ class Environment:
         env = self._resolve(name)
         if env:
             if not name in env.mutables:
-                raise statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
+                statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
             env.scope[name] = value
             return value
-        raise statement_error("Variable '%s' is undefined." % name, stmt)
+        statement_error("Variable '%s' is undefined." % name, stmt)
 
     def lookup(self, name: str, stmt: ast.Statement):
         env = self._resolve(name)
         if env:
             return env.scope[name]
-        raise statement_error("Variable '%s' is undefined." % name, stmt)
+        statement_error("Variable '%s' is undefined." % name, stmt)
 
     def _resolve(self, name: str):
         if name in self.scope:
@@ -131,16 +137,18 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_while_expression(stmt, env)
     if isinstance(stmt, ast.ForExpression):
         return interpret_for_expression(stmt, env)
-    if isinstance(stmt, ast.BlockExpression):
+    if isinstance(stmt, ast.BlockStatement):
         return interpret_block_expression(stmt, env)
     if isinstance(stmt, ast.ReturnExpression):
         return interpret_return_expression(stmt, env)
     if isinstance(stmt, ast.BreakExpression):
         return interpret_break_expression(stmt, env)
+    if isinstance(stmt, ast.ContinueExpression):
+        return interpret_continue_expression(stmt, env)
     if isinstance(stmt, ast.UnreachableExpression):
-        raise statement_error("Reached unreachable expression.", stmt)
+        statement_error("Reached unreachable expression.", stmt)
 
-    raise statement_error("unable to interpret '%s'" % stmt.kind, stmt)
+    statement_error("unable to interpret '%s'" % stmt.kind, stmt)
 
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
@@ -149,7 +157,7 @@ def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env
         else:
             value = NumberValue(0)
         return env.declare(stmt.identifier, value, stmt.mutable, stmt)
-    raise statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
+    statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
@@ -158,52 +166,55 @@ def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, e
         else:
             value = NumberValue(0)
         return env.declare(stmt.identifier, value, stmt.mutable, stmt)
-    raise statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
+    statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
     left = interpret(stmt.left, env)
     right = interpret(stmt.right, env)
-    if stmt.operator is lexer.OR:
-        return BooleanValue(left.value or right.value)
-    if stmt.operator is lexer.AND:
-        return BooleanValue(left.value and right.value)
-    if stmt.operator is lexer.BITOR:
-        return NumberValue(left.value | right.value)
-    if stmt.operator is lexer.XOR:
-        return NumberValue(left.value ^ right.value)
-    if stmt.operator is lexer.BITAND:
-        return NumberValue(left.value & right.value)
-    if stmt.operator is lexer.COMPARE:
-        return BooleanValue(left.value == right.value)
-    if stmt.operator is lexer.NOTCOMPARE:
-        return BooleanValue(left.value != right.value)
-    if stmt.operator is lexer.BIGGEREQ:
-        return BooleanValue(left.value >= right.value)
-    if stmt.operator is lexer.SMALLEREQ:
-        return BooleanValue(left.value <= right.value)
-    if stmt.operator is lexer.BIGGER:
-        return BooleanValue(left.value > right.value)
-    if stmt.operator is lexer.SMALLER:
-        return BooleanValue(left.value < right.value)
-    if stmt.operator is lexer.SHIFTRIGHT:
-        return NumberValue(left.value >> right.value)
-    if stmt.operator is lexer.SHIFTLEFT:
-        return NumberValue(left.value << right.value)
-    if stmt.operator is lexer.PLUS:
-        return NumberValue(left.value + right.value)
-    if stmt.operator is lexer.MINUS:
-        return NumberValue(left.value - right.value)
-    if stmt.operator is lexer.MUL:
-        return NumberValue(left.value * right.value)
-    if stmt.operator is lexer.DIV:
-        return NumberValue(left.value / right.value)
-    if stmt.operator is lexer.MOD:
-        return NumberValue(left.value % right.value)
-    if stmt.operator is lexer.INTDIV:
-        return NumberValue(int(left.value // right.value))
-    if stmt.operator is lexer.POW:
-        return NumberValue(left.value ** right.value)
-    raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
+    try:
+        if stmt.operator is lexer.OR:
+            return BooleanValue(left.value or right.value)
+        if stmt.operator is lexer.AND:
+            return BooleanValue(left.value and right.value)
+        if stmt.operator is lexer.BITOR:
+            return NumberValue(left.value | right.value)
+        if stmt.operator is lexer.XOR:
+            return NumberValue(left.value ^ right.value)
+        if stmt.operator is lexer.BITAND:
+            return NumberValue(left.value & right.value)
+        if stmt.operator is lexer.COMPARE:
+            return BooleanValue(left.value == right.value)
+        if stmt.operator is lexer.NOTCOMPARE:
+            return BooleanValue(left.value != right.value)
+        if stmt.operator is lexer.BIGGEREQ:
+            return BooleanValue(left.value >= right.value)
+        if stmt.operator is lexer.SMALLEREQ:
+            return BooleanValue(left.value <= right.value)
+        if stmt.operator is lexer.BIGGER:
+            return BooleanValue(left.value > right.value)
+        if stmt.operator is lexer.SMALLER:
+            return BooleanValue(left.value < right.value)
+        if stmt.operator is lexer.SHIFTRIGHT:
+            return NumberValue(left.value >> right.value)
+        if stmt.operator is lexer.SHIFTLEFT:
+            return NumberValue(left.value << right.value)
+        if stmt.operator is lexer.PLUS:
+            return NumberValue(left.value + right.value)
+        if stmt.operator is lexer.MINUS:
+            return NumberValue(left.value - right.value)
+        if stmt.operator is lexer.MUL:
+            return NumberValue(left.value * right.value)
+        if stmt.operator is lexer.DIV:
+            return NumberValue(left.value / right.value)
+        if stmt.operator is lexer.MOD:
+            return NumberValue(left.value % right.value)
+        if stmt.operator is lexer.INTDIV:
+            return NumberValue(int(left.value // right.value))
+        if stmt.operator is lexer.POW:
+            return NumberValue(left.value ** right.value)
+    except TypeError as te:
+        statement_error("Interpreter type error '%s'" % str(te), stmt)
+    statement_error("Statement operator invalid '%s'" % stmt.operator, stmt)
 
 
 def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Environment) -> RuntimeValue:
@@ -216,7 +227,7 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
         return expression #does nothing
     if stmt.operator is lexer.MINUS:
         return NumberValue(-expression.value)
-    raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
+    statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
 
 
 def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBeforeExpression, env: Environment) -> RuntimeValue:
@@ -240,11 +251,11 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
         variable = NumberValue(variable_original.value - 1)
         env.assign(stmt.identifier, variable, stmt)
         return variable_original
-    raise statement_error("interpret_unary_after_expression unimplemented", stmt)
+    statement_error("interpret_unary_after_expression unimplemented", stmt)
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
     if not isinstance(stmt.assignee, ast.Identifier):
-        raise statement_error("Can only assign to indentifier. Got '%s' instead. Maybe you meant '%s' instead of '%s'?" % (stmt.assignee.kind, lexer.COMPARE, lexer.ASSIGN), stmt.assignee)
+        statement_error("Can only assign to indentifier. Got '%s' instead. Maybe you meant '%s' instead of '%s'?" % (stmt.assignee.kind, lexer.COMPARE, lexer.ASSIGN), stmt.assignee)
     identifier = stmt.assignee.symbol
     right = interpret(stmt.value, env)
     if stmt.operator is lexer.ASSIGN:
@@ -270,7 +281,7 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         return env.assign(identifier, NumberValue(left.value >> right.value), stmt)
     if stmt.operator is lexer.ASSIGNBITSHIFTL:
         return env.assign(identifier, NumberValue(left.value << right.value), stmt)
-    raise statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
+    statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
 
 
 
@@ -284,13 +295,13 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
         else:
             last = interpret(statement, env)
             if last == None:
-                raise statement_error("must return a runtime value", stmt) # this is a development check mainly
+                statement_error("must return a runtime value", stmt) # this is a development check mainly
 
     # then interpret everything else
     for statement in defer:
         last = interpret(statement, env)
         if last == None:
-            raise statement_error("must return a runtime value", stmt) # this is a development check mainly
+            statement_error("must return a runtime value", stmt) # this is a development check mainly
     return last
 
 def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
@@ -306,7 +317,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         if result == None: # native function might not return anything, fix this here.
             result = NoneValue()
         if not isinstance(result, RuntimeValue):
-            raise statement_error("result of native function call is not of a runtime type", stmt)
+            statement_error("result of native function call is not of a runtime type", stmt)
         return result
 
     if isinstance(function, RuntimeFunction):
@@ -317,7 +328,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         for param, argument in itertools.zip_longest(function.function.parameters, stmt.arguments):
             # make sure the function has enough parameters if not, that is fatal
             if param == None:
-                raise statement_error("function does not have enough parameters.", stmt)
+                statement_error("function does not have enough parameters.", stmt)
 
             if param.type.type is lexer.INT:
 
@@ -328,48 +339,62 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 elif param.default != None:
                     value = interpret(param.default, env)
                 else:
-                    raise statement_error("Either argument default or a value for argument must be provided", stmt)
+                    statement_error("Either argument default or a value for argument must be provided", stmt)
 
                 scope.declare(param.identifier.value, value, param.mutable, stmt)
             else:
-                raise statement_error("(function) variable type to declare not implemented '%s'" % param.type.type, stmt)
+                statement_error("(function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
         # go through all statements and execute
-        for statement in function.function.body:
-            if isinstance(statement, ast.ReturnExpression):
-                return interpret_return_expression(statement, scope)
-            if isinstance(statement, ast.BreakExpression):
-                raise statement_error("Break not allowed in fuction.", stmt)
-            interpret(statement, scope)
-        return NoneValue()
+        last = interpret_block_expression(function.function.body, scope)
+        env.state = scope.state # propagate state outwards
+        # check for any flow interrupt conditions condition on environment
+        if env.state is envstate.BREAK:
+            statement_error("Expression '%s' is not allowed outside loop." % lexer.BREAK, stmt)
+        if env.state is envstate.CONTINUE:
+            statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
+        if env.state is envstate.RETURN:
+            return last
+        return last # block has ran to end
 
-    raise statement_error("function type not implemented", stmt)
+    statement_error("Dunction type not implemented.", stmt)
 
 def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
     condition = interpret(stmt.test, env)
     # make the conditional check
     if condition.value:
-        ret, last = interpret_block_expression(stmt.consequent, env)
-        if ret == 1: #return
+        last = interpret_block_expression(stmt.consequent, env)
+        if env.state is envstate.BREAK:
+            return NoneValue() #not allowed here, but might be a loop somewhere on the callstack
+        if env.state is envstate.CONTINUE:
+            return NoneValue() #not allowed here, but might be a loop somewhere on the callstack
+        if env.state is envstate.RETURN:
             return last
     else:
         if stmt.alternate:
-            interpret(stmt.alternate, env)
+            last = interpret(stmt.alternate, env)
+            if env.state is envstate.BREAK:
+                return NoneValue() #not allowed here, but might be a loop somewhere on the callstack
+            if env.state is envstate.CONTINUE:
+                return NoneValue() #not allowed here, but might be a loop somewhere on the callstack
+            if env.state is envstate.RETURN:
+                return last
     return NoneValue()
 
 def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> RuntimeValue:
     # make the conditional check and loop.
     # must do this every time
     while interpret(stmt.condition, env).value:
-        ret, last = interpret_block_expression(stmt.body, env)
-        if ret == 2: # break
+        last = interpret_block_expression(stmt.body, env)
+        if env.state is envstate.BREAK:
             break
-        elif ret == 1: # return
+        if env.state is envstate.CONTINUE:
+            continue
+        if env.state is envstate.RETURN:
             return last
     return NoneValue()
 
 def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> RuntimeValue:
-
     min = interpret(stmt.quantity_min, env).value
     max = interpret(stmt.quantity_max, env).value
 
@@ -381,33 +406,46 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     # do the loop
     for i in range(min, max):
         scope.assign(loopvarname, NumberValue(i), stmt)
-        ret, last = interpret_block_expression(stmt.body, scope)
-        if ret == 2: # break
+        last = interpret_block_expression(stmt.body, scope)
+        env.state = scope.state # propagate state outwards
+        # check for any flow interrupt conditions condition on environment
+        if env.state is envstate.BREAK:
             break
-        elif ret == 1: # return
+        if env.state is envstate.CONTINUE:
+            continue
+        if env.state is envstate.RETURN:
             return last
     return NoneValue()
 
-def interpret_block_expression(stmt: ast.BlockExpression, env: Environment) -> RuntimeValue:
+def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> RuntimeValue:
     # create a new local environment. C has this, so we need too.
     scope = Environment(env)
     # go through all statements and execute
     last = NoneValue()
     for statement in stmt.body:
-        if isinstance(statement, ast.ReturnExpression):
-            last = interpret_return_expression(statement, scope)
-            return 1, last
-        if isinstance(statement, ast.BreakExpression):
-            return 2, None
         last = interpret(statement, scope)
-    return 0, None
+        env.state = scope.state # propagate state outwards
+        # check for any flow interrupt conditions condition on environment
+        if env.state is envstate.BREAK:
+            return NoneValue()
+        if env.state is envstate.CONTINUE:
+            return NoneValue()
+        if env.state is envstate.RETURN:
+            return last
+    return NoneValue()
 
 def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
+    env.state = envstate.RETURN
     if stmt.value:
         return interpret(stmt.value, env)
     return NoneValue()
 
 def interpret_break_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
+    env.state = envstate.BREAK
+    return NoneValue()
+
+def interpret_continue_expression(stmt: ast.ContinueExpression, env: Environment) -> RuntimeValue:
+    env.state = envstate.CONTINUE
     return NoneValue()
 
 
