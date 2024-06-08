@@ -108,6 +108,7 @@ PASS = "pass"
 IN = "in"
 IS = "is"
 UNREACHABLE = "unreachable"
+ALLOC = "@alloc"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
     FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, IS, UNREACHABLE

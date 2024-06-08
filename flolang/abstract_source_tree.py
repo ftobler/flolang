@@ -49,7 +49,7 @@ class Type(Statement):
         self.type = type
         self.builtin = is_builtin
 
-class LocalVariableDeclaration(Statement):
+class VariableDeclaration(Statement):
     def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
         super().__init__()
         self.mutable = mutable
@@ -57,21 +57,17 @@ class LocalVariableDeclaration(Statement):
         self.identifier = identifier
         self.value = value
 
-class GlobalVariableDeclaration(Statement):
-    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
-        super().__init__()
-        self.mutable = mutable
-        self.type = type
-        self.identifier = identifier
-        self.value = value
+class LocalVariableDeclaration(VariableDeclaration):
+    pass
 
-class DynamicVariableDeclaration(Statement):
-    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
-        super().__init__()
-        self.mutable = mutable
-        self.type = type
-        self.identifier = identifier
-        self.value = value
+class GlobalVariableDeclaration(VariableDeclaration):
+    pass
+
+class DynamicVariableDeclaration(VariableDeclaration):
+    pass
+
+class ClassMemberVariableDeclaration(VariableDeclaration):
+    pass
 
 class ParameterStatement(Statement):
     def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression = None):
@@ -93,6 +89,40 @@ class FunctionDeclaration(Statement):
         self.result = result
         self.identifier = identifier
         self.body = body
+
+class ClassMemberFunctionDeclaration(FunctionDeclaration):
+    pass
+
+class ClassDeclaration(Statement):
+    def __init__(self, classname: str,
+                functions: list[ClassMemberFunctionDeclaration],
+                dynamics: list[ClassMemberVariableDeclaration],
+                mutables: list[ClassMemberVariableDeclaration],
+                constants: list[ClassMemberVariableDeclaration]
+                ):
+        super().__init__()
+        self.classname = classname
+        self.functions = functions
+        self.dynamics = dynamics
+        self.mutables = mutables
+        self.constants = constants
+
+class EnumFieldDeclaration(Statement):
+    def __init__(self, identifier: str, value: Expression = None):
+        super().__init__()
+        self.identifier = identifier
+        self.value = value
+
+class EnumDeclaration(Statement):
+    def __init__(self, enumname: str, fields: list[EnumFieldDeclaration]):
+        super().__init__()
+        self.enumname = enumname
+        self.fields = fields
+
+class AllocatorSwitch(Statement):
+    def __init__(self, identifier: str):
+        super().__init__()
+        self.identifier = identifier
 
 class IfExpression(Statement):
     def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement = None):
@@ -308,6 +338,12 @@ class Parser:
             return self.parse_unreachable_declaration()
         if type is lexer.SHEBANG:
             return self.parse_shebang()
+        if type is lexer.CLASS:
+            return self.parse_class()
+        if type is lexer.ENUM:
+            return self.parse_enum()
+        if type is lexer.ALLOC:
+            return self.parse_alloc()
         return self.parse_expression()
 
     # let a = (...)
@@ -362,7 +398,7 @@ class Parser:
 
     # fn foo():
     # fn foo(a, b, c) d:
-    def parse_function_declaration(self):
+    def parse_function_declaration(self, class_member_function=False):
         # fn foo():
         # ^^
         loc_start = self.eat() # eat 'fn' keyword
@@ -387,6 +423,8 @@ class Parser:
 
         body = self.parse_block_declaration()
 
+        if class_member_function:
+            return ClassMemberFunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
         return FunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
 
     # (int a)
@@ -609,16 +647,147 @@ class Parser:
 
     # #:flolang
     def parse_shebang(self):
-        loc_start = self.at()
         # eat the shebang '#:' keyword
         # #:flolang
         # ^^^^^^^^^
-        shebang_value = self.eat().value
+        loc_start = self.eat()
 
         # this is the value at this point
         # #:flolang
         #   ^^^^^^^
+        shebang_value = loc_start.value
+
         return ShebangExpression(shebang_value).location(loc_start, loc_start)
+
+    def parse_class(self):
+        # eat then 'class' keyword
+        # class foo:
+        # ^^^^^
+        loc_start = self.eat()
+
+        # class foo:
+        #       ^^^
+        classname = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % lexer.CLASS, loc_start).value
+        self.eat_expect(lexer.COLON, "Expect '%s' after identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
+        self.eat_expect(lexer.BLOCKSTART, "Expect block statement after '%s' identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
+
+        # class body
+        functions = []
+        dynamics = []
+        mutables = []
+        constants = []
+        while self.not_eof() and self.at().type is lexer.BLOCKEND:
+            if self.at().type is lexer.FUNCTION:
+                # fn foo():
+                # ^^
+                functions.append(self.parse_function_declaration(class_member_function=True))
+            elif self.at().type is lexer.DYN:
+                # dyn list i = []
+                # ^^^
+                dynamics.append(self.parse_class_member_variable_declaration())
+            elif self.at().type is lexer.MUT:
+                # mut int i
+                # ^^^
+                mutables.append(self.parse_class_member_variable_declaration())
+            else:
+                # int i = 0
+                # ^^^
+                constants.append(self.parse_class_member_variable_declaration())
+
+        self.eat_expect(lexer.BLOCKEND, "Expect block statement to end for '%s'." % (lexer.CLASS), loc_start)
+
+        return ClassDeclaration(classname, functions, dynamics, mutables, constants).location(loc_start, self.at())
+
+    # a = (...)
+    # mut a
+    # mut a = (...)
+    # dyn a = (...)
+    def parse_class_member_variable_declaration(self):
+        loc_start = self.at()
+
+        # dyn int a = (...)
+        # mut int a = (...)
+        # ^^^
+        # next up 'mut'|dyn might follow to declare it mutable or dynamic
+        is_mutable = False
+        if self.at().type is lexer.MUT:
+            is_mutable = True
+            self.eat() # eat 'mut'
+        is_dynamic = False
+        if self.at().type is lexer.DYN:
+            is_dynamic = True
+            self.eat() # eat 'dyn'
+
+        # mut int a = (...)
+        #     ^^^
+        type_start = self.at()
+        if self.at().type is lexer.IDENTIFIER:
+            type = Type(self.eat().value, False).location(type_start, self.at())
+        elif self.at().type is lexer.BUILTINTYPE:
+            type = Type(self.eat().value, True).location(type_start, self.at())
+        else:
+            parser_error("Expect identifier or builtin type for variable type declaration", loc_start, self.at())
+
+        # mut int indentifier = (...)
+        #         ^^^^^^^^^^^
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect indentifier after type for variable declaration.", loc_start).value
+
+        # mut int a = (...)
+        #           ^
+        self.eat_expect(lexer.ASSIGN, "Expect '%s' following type and identifier for '%s' declaration." % (lexer.ASSIGN, loc_start.type), loc_start)
+
+        # mut int a = (...)
+        #             ^^^^^
+        value = self.parse_expression()
+        return ClassMemberVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at())
+
+    def parse_enum(self):
+        # eat then 'enum' keyword
+        # enum foo:
+        # ^^^^
+        loc_start = self.eat()
+
+        # enum foo:
+        #      ^^^
+        enumname = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % lexer.CLASS, loc_start).value
+        self.eat_expect(lexer.COLON, "Expect '%s' after identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
+        self.eat_expect(lexer.BLOCKSTART, "Expect block statement after '%s' identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
+
+        # enum body
+        fields = []
+        while self.not_eof() and self.at().type is lexer.BLOCKEND:
+            # i = 0
+            # ^^^^^
+            fields.append(self.parse_enum_field_declaration())
+
+        self.eat_expect(lexer.BLOCKEND, "Expect block statement to end for '%s'." % (lexer.ENUM), loc_start)
+
+        return EnumDeclaration(enumname, fields).location(loc_start, self.at())
+
+    def parse_enum_field_declaration(self):
+        # a = 0
+        # ^^^^^
+        loc_start = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' in '%s'." % (lexer.COLON, lexer.ENUM))
+        identifier = identifier.value
+
+        # a = 0
+        #   ^
+        self.eat_expect(lexer.ASSIGN, "Expect '%s' after identifier in '%s'." % (lexer.ASSIGN, lexer.ENUM))
+
+        # a = (...)
+        #     ^^^^^
+        value = self.parse_expression()
+
+        return EnumFieldDeclaration(identifier, value).location(loc_start, self.at())
+
+    def parse_alloc(self):
+        # @alloc allocator_name
+        # ^^^^^^
+        loc_start = self.eat() # eat keyword
+
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % (lexer.ALLOC), loc_start)
+
+        return AllocatorSwitch(identifier.value).location(loc_start, self.at())
 
     def skip_until_end_of_code_block(self, loc_start: Token):
         # straight up refuse dead code
