@@ -84,13 +84,13 @@ class Environment:
                 statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
             env.scope[name] = value
             return value
-        statement_error("Variable '%s' is undefined." % name, stmt)
+        statement_error("Variable '%s' is not defined." % name, stmt)
 
     def lookup(self, name: str, stmt: ast.Statement):
         env = self._resolve(name)
         if env:
             return env.scope[name]
-        statement_error("Variable '%s' is undefined." % name, stmt)
+        statement_error("Variable '%s' is not defined." % name, stmt)
 
     def _resolve(self, name: str):
         if name in self.scope:
@@ -148,7 +148,7 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.UnreachableExpression):
         statement_error("Reached unreachable expression.", stmt)
 
-    statement_error("unable to interpret '%s'" % stmt.kind, stmt)
+    statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
 
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
@@ -157,7 +157,7 @@ def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env
         else:
             value = NumberValue(0)
         return env.declare(stmt.identifier, value, stmt.mutable, stmt)
-    statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
+    statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
@@ -166,7 +166,7 @@ def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, e
         else:
             value = NumberValue(0)
         return env.declare(stmt.identifier, value, stmt.mutable, stmt)
-    statement_error("variable type to declare not implemented '%s'" % stmt.type, stmt)
+    statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
     left = interpret(stmt.left, env)
@@ -213,8 +213,8 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
         if stmt.operator is lexer.POW:
             return NumberValue(left.value ** right.value)
     except TypeError as te:
-        statement_error("Interpreter type error '%s'" % str(te), stmt)
-    statement_error("Statement operator invalid '%s'" % stmt.operator, stmt)
+        statement_error("Interpreter type error '%s'. Unable to resolve operation with given types." % str(te), stmt)
+    statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
 
 
 def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Environment) -> RuntimeValue:
@@ -227,7 +227,7 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
         return expression #does nothing
     if stmt.operator is lexer.MINUS:
         return NumberValue(-expression.value)
-    statement_error("statement operator invalid '%s'" % stmt.operator, stmt)
+    statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
 
 
 def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBeforeExpression, env: Environment) -> RuntimeValue:
@@ -251,7 +251,7 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
         variable = NumberValue(variable_original.value - 1)
         env.assign(stmt.identifier, variable, stmt)
         return variable_original
-    statement_error("interpret_unary_after_expression unimplemented", stmt)
+    statement_error("Interpret_unary_after_expression unimplemented.", stmt)
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
     if not isinstance(stmt.assignee, ast.Identifier):
@@ -355,7 +355,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
 
                 scope.declare(param.identifier.value, value, param.mutable, stmt)
             else:
-                statement_error("(function) variable type to declare not implemented '%s'" % param.type.type, stmt)
+                statement_error("(Function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
         # go through all statements and execute
         last = interpret_block_expression(function.function.body, scope)
@@ -371,7 +371,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             return last
         return NoneValue() # block has ran to end
 
-    statement_error("Dunction type not implemented.", stmt)
+    statement_error("Function type not implemented.", stmt)
 
 def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
     condition = interpret(stmt.test, env)
