@@ -16,36 +16,65 @@ class NoneValue(RuntimeValue):
     def __init__(self):
         super().__init__()
         self.value = None
+    def __repr__(self):
+        return "None"
 
 class BooleanValue(RuntimeValue):
     def __init__(self, value: bool):
         super().__init__()
         self.value = value
+    def __repr__(self):
+        return str(self.value)
 
 class NumberValue(RuntimeValue):
     def __init__(self, value: int):
         super().__init__()
         self.value = value
+    def __repr__(self):
+        return str(self.value)
 
 class StringValue(RuntimeValue):
     def __init__(self, value: str):
         super().__init__()
         self.value = value
+    def __repr__(self):
+        return '"' + str(self.value) + '"'
+
+class ListValue(RuntimeValue):
+    def __init__(self, value: list[any]):
+        super().__init__()
+        self.value = value
+    def __repr__(self):
+        return str(self.value)
+        # return '"' + ",".join([str(s) for s in self.value]) + '"'
 
 class ObjectValue(RuntimeValue):
     def __init__(self, value: object):
         super().__init__()
         self.value = value
+    def __repr__(self):
+        return str(self.value)
 
-class ArrayValue(RuntimeValue):
-    def __init__(self, value: list[any]):
+class SetValue(RuntimeValue):
+    def __init__(self, value: set):
         super().__init__()
         self.value = value
+    def __repr__(self):
+        return str(self.value)
+
+class TupleValue(RuntimeValue):
+    def __init__(self, value: tuple):
+        super().__init__()
+        self.value = value
+    def __repr__(self):
+        return str(self.value)
 
 class NativeFunction(RuntimeValue):
     def __init__(self, callback: typing.Callable):
         super().__init__()
         self.callback = callback
+    def __repr__(self):
+        return "<native_function>"
 
 class RuntimeFunctionParameter:
     def __init__(self, mutable: bool, type: ast.Type, identifier: str, default: RuntimeValue = None):
@@ -61,7 +90,8 @@ class RuntimeFunction(RuntimeValue):
         self.result = result
         self.identifier = identifier
         self.body = body
-
+    def __repr__(self):
+        return "<runtime_funciton>"
 
 def statement_error(message, stmt: ast.Statement):
     runtime_error(message, stmt.loc)
@@ -116,6 +146,8 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_global_variable_declaration(stmt, env)
     if isinstance(stmt, ast.LocalVariableDeclaration):
         return interpret_local_variable_declaration(stmt, env)
+    if isinstance(stmt, ast.DynamicVariableDeclaration):
+        return interpret_dynamic_variable_declaration(stmt, env)
     if isinstance(stmt, ast.BinaryExpression):
         return interpret_binary_expression(stmt, env)
     if isinstance(stmt, ast.UnaryBeforeExpression):
@@ -159,25 +191,36 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.UnreachableExpression):
         statement_error("Reached unreachable expression.", stmt)
 
+    if isinstance(stmt, ast.ListLiteral):
+        return interpret_list_literal(stmt, env)
+    if isinstance(stmt, ast.ObjectLiteral):
+        return interpret_object_literal(stmt, env)
+    if isinstance(stmt, ast.SetLiteral):
+        return interpret_set_literal(stmt, env)
+    if isinstance(stmt, ast.TupleLiteral):
+        return interpret_tuple_literal(stmt, env)
+
     statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
 
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
-        if stmt.value:
-            value = interpret(stmt.value, env)
-        else:
-            value = NumberValue(0)
+        value = interpret(stmt.value, env)
         return env.declare(stmt.identifier, value, stmt.mutable, stmt)
     statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
-        if stmt.value:
-            value = interpret(stmt.value, env)
-        else:
-            value = NumberValue(0)
+        value = interpret(stmt.value, env)
         return env.declare(stmt.identifier, value, stmt.mutable, stmt)
     statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
+
+def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
+    if stmt.type.type is lexer.INT:
+        value = interpret(stmt.value, env)
+        return env.declare(stmt.identifier, value, stmt.mutable, stmt)
+    statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
+
+interpret_dynamic_variable_declaration
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
     left = interpret(stmt.left, env)
@@ -500,3 +543,20 @@ def interpret_continue_expression(stmt: ast.ContinueExpression, env: Environment
     env.state = envstate.CONTINUE
     return NoneValue()
 
+
+
+def interpret_list_literal(stmt: ast.ListLiteral, env: Environment) -> RuntimeValue:
+    values = [interpret(value, env) for value in stmt.values]
+    return ListValue(values)
+
+def interpret_object_literal(stmt: ast.ObjectLiteral, env: Environment) -> RuntimeValue:
+    properties = [interpret(property, env) for property in stmt.properties]
+    return ObjectValue(properties)
+
+def interpret_set_literal(stmt: ast.SetLiteral, env: Environment) -> RuntimeValue:
+    values = [interpret(value, env) for value in stmt.values]
+    return SetValue()
+
+def interpret_tuple_literal(stmt: ast.TupleLiteral, env: Environment) -> RuntimeValue:
+    values = [interpret(value, env) for value in stmt.values]
+    return TupleValue()

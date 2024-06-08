@@ -183,6 +183,13 @@ class Token:
         if self.value:
             return "%s:'%s'" % (type_str, self.value)
         return "%s" % (type_str)
+    def len(self):
+        if self.value != None:
+            return len(self.value)
+        if isinstance(self.type, str):
+            return len(self.type)
+        return 1
+
 
 def remove_comments(line):
     # removes the comments from the source line.

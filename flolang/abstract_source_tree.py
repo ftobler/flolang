@@ -50,7 +50,7 @@ class Type(Statement):
         self.builtin = is_builtin
 
 class LocalVariableDeclaration(Statement):
-    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression = None):
+    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
         super().__init__()
         self.mutable = mutable
         self.type = type
@@ -58,7 +58,15 @@ class LocalVariableDeclaration(Statement):
         self.value = value
 
 class GlobalVariableDeclaration(Statement):
-    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression = None):
+    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
+        super().__init__()
+        self.mutable = mutable
+        self.type = type
+        self.identifier = identifier
+        self.value = value
+
+class DynamicVariableDeclaration(Statement):
+    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
         super().__init__()
         self.mutable = mutable
         self.type = type
@@ -216,9 +224,19 @@ class ObjectLiteral(Literal):
         self.properties = properties
 
 class ListLiteral(Literal):
-    def __init__(self, arguments: list[Expression]):
+    def __init__(self, values: list[Expression]):
         super().__init__()
-        self.arguments = arguments
+        self.values = values
+
+class SetLiteral(Literal):
+    def __init__(self, values: list[Expression]):
+        super().__init__()
+        self.values = values
+
+class TupleLiteral(Literal):
+    def __init__(self, values: list[Expression]):
+        super().__init__()
+        self.values = values
 
 
 

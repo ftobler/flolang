@@ -14,7 +14,7 @@ def runtime_error(comment: str, loc=None):
         full_line = loc.start.symbols[3]
         start = loc.start.symbols[2]
         end = loc.end.symbols[2]
-        length = end - start
+        length = end - start + loc.end.len()
         if length <= 0:
             length = 1
     else:
@@ -25,13 +25,13 @@ def runtime_error(comment: str, loc=None):
     message = error_text(comment, full_line, file, line_nr, start, length)
     raise RuntimeException(message)
 
-def parser_error(comment: str, start_token, ent_token):
+def parser_error(comment: str, start_token, end_token):
     file = start_token.symbols[0]
     line_nr = start_token.symbols[1]
     full_line = start_token.symbols[3]
     start = start_token.symbols[2]
-    end = ent_token.symbols[2]
-    length = end - start
+    end = end_token.symbols[2]
+    length = end - start + end_token.len()
     if length <= 0:
         length = 1
     message = error_text(comment, full_line, file, line_nr, start, length)
