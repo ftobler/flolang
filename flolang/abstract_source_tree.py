@@ -338,13 +338,28 @@ class Parser:
     # fn foo():
     # fn foo(a, b, c) d:
     def parse_function_declaration(self):
+        # fn foo():
+        # ^^
         loc_start = self.eat() # eat 'fn' keyword
+
+        # fn foo():
+        #    ^^^
         identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier after '%s' keyword." % lexer.FUNCTION, loc_start).value
 
+        # fn foo(int a, int b):
+        #       ^^^^^^^^^^^^^^
         args = self.parse_function_arguments()
+
+        # fn foo(int a, int b) int:
+        #                      ^^^
+        # fn foo(int a, int b):
+        #                    ~~   => None
         result = self.parse_next_type()
 
+        # fn foo(int a, int b):
+        #                     ^
         self.eat_expect(lexer.COLON, "Expect '%s' following function declaration." % lexer.COLON, loc_start)
+
         body = self.parse_block_declaration()
 
         return FunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
@@ -524,16 +539,22 @@ class Parser:
 
     def parse_return_declaration(self):
         loc_start = self.at()
+
+        # return (...)
+        # ^^^^^^
         # eat the 'return' keyword
         value = self.eat().value
+
         # the current token might be on the next line or not. There is no way
         # the token system has this information because a new line is not a thing
         # that exists for that. Instead the value of the return keyword has been
         # annotated and is 1 for end of line and default None if there are more
         # tokens on the same line.
         if value == None:
+            # return (...)
+            #        ^^^^^
             right = self.parse_expression()
-            self.skip_until_end_of_code_block()
+            self.skip_until_end_of_code_block(loc_start)
             return ReturnExpression(right).location(loc_start, self.at())
         return ReturnExpression().location(loc_start, self.at())
 
@@ -541,14 +562,14 @@ class Parser:
         loc_start = self.at()
         # eat the 'break' keyword
         self.eat()
-        self.skip_until_end_of_code_block()
+        self.skip_until_end_of_code_block(loc_start)
         return BreakExpression().location(loc_start, self.at())
 
     def parse_continue_declaration(self):
         loc_start = self.at()
         # eat the 'continue' keyword
         self.eat()
-        self.skip_until_end_of_code_block()
+        self.skip_until_end_of_code_block(loc_start)
         return ContinueExpression().location(loc_start, self.at())
 
     def parse_unreachable_declaration(self):
@@ -558,12 +579,17 @@ class Parser:
         # unreachable expression is put in to assert that control flow will never reach
         # this expression and when it does at runtime the program can abort or trap
         # Can stop parsing at this point until EOF or end of current code block.
-        self.skip_until_end_of_code_block()
+        self.skip_until_end_of_code_block(loc_start)
         return UnreachableExpression().location(loc_start, self.at())
 
-    def skip_until_end_of_code_block(self):
-        while self.not_eof() and self.at().type is not lexer.BLOCKEND:
-            self.parse_statement() #throw it away
+    def skip_until_end_of_code_block(self, loc_start: Token):
+        # straight up refuse dead code
+        if self.not_eof() and self.at().type is not lexer.BLOCKEND:
+            parser_error("Expect block statement to end here. Dead code is not allowed. Possible indentation error.", loc_start, self.at())
+
+        # alternative the statments can be consumed. They are syntax checked this way.
+        # while self.not_eof() and self.at().type is not lexer.BLOCKEND:
+        #     self.parse_statement() #throw it away
 
     # (...)
     def parse_expression(self):

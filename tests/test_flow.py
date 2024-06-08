@@ -871,7 +871,7 @@ fn bar() int:
 foo()
 """) == "bar"
 
-def test_function_lcoal_variable_mutability_1():
+def test_function_locall_variable_mutability_1():
     with pytest.raises(Exception):
         eval("""
 
@@ -883,7 +883,7 @@ foo(4)
 
 """) == 16
 
-def test_function_lcoal_variable_mutability_2():
+def test_function_local_variable_mutability_2():
     assert eval("""
 
 fn foo(mut int i) int:
@@ -893,5 +893,43 @@ fn foo(mut int i) int:
 foo(4)
 
 """) == 16
+
+def test_dead_code_1():
+    with pytest.raises(Exception):
+        eval("""
+
+fn foo(mut int i) int:
+    return i
+    print(i)
+
+foo(4)
+
+""")
+
+def test_dead_code_2():
+    with pytest.raises(Exception):
+        eval("""
+
+fn foo(mut int i) int:
+    return i
+# comment
+    print(i)
+
+foo(4)
+
+""")
+
+def test_dead_code_3():
+    with pytest.raises(Exception):
+        eval("""
+
+fn foo(mut int i) int:
+    return i
+
+    print(i)
+
+foo(4)
+
+""")
 
 
