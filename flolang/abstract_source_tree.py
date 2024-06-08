@@ -979,7 +979,3 @@ class Parser:
         parser_error("Unexpected or unimplemented token reached. Token is %s." % str(self.at()), loc_start, self.at())
 
 
-if __name__ == "__main__":
-    import main
-    main.run4()
-

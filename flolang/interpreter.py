@@ -475,18 +475,3 @@ def interpret_continue_expression(stmt: ast.ContinueExpression, env: Environment
     env.state = envstate.CONTINUE
     return NoneValue()
 
-
-
-
-# if __name__ == "__main__":
-#     print(RuntimeValue())
-#     print(NoneValue())
-#     print(BooleanValue(True))
-#     print(NumberValue(10))
-#     print(ObjectValue({'a': 10}))
-#     print(ArrayValue([]))
-#     print(ArrayValue([]))
-
-if __name__ == "__main__":
-    import main
-    main.run4()

@@ -359,17 +359,3 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     tokens.append(Token(symbols, EOF))
     return tokens
 
-
-if __name__ == "__main__":
-    print(tokenize("+-*===hello"))
-    print(tokenize("a10 + a2"))
-    print(tokenize("10 + 20.2"))
-    print(tokenize('import <stdio-h>'))
-    print(tokenize('import "stdio-h" #comment'))
-    print(tokenize('import "stdi\\\"o-h"'))
-    print(tokenize('let int a = 5    #comment'))
-    print(tokenize('let int a = d    #comment'))
-    print(tokenize("""
-def main():
-    pass
-    """))
