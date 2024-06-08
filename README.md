@@ -44,6 +44,7 @@ not in scope:
 With return and break not yet working, use is inconvenient. But below samples execute with the interpreter.
 ```python
 #!flolang
+
 fn crc8_update(int data, int polynomial=0x07) int:
     crc ^= data
     for int _ in 0..8:
@@ -54,34 +55,41 @@ fn crc8_update(int data, int polynomial=0x07) int:
         crc &= 0xFF  # Ensure CRC remains 8-bit
     return crc
 
-let int init_value = 0x00
-let mut int crc = init_value
-for int i in 1..4:
-    crc = crc8_update(i)
+fn main():
+    let int init_value = 0x00
+    let mut int crc = init_value
+    for int i in 1..4:
+        crc = crc8_update(i)
 
-# print result
-print(crc)
+    # print result
+    print(crc)
+
+main()
 ```
 
 ```python
 #!flolang
+
 fn recur_factorial(int n) int:
     let mut int result = n
     if n != 1:
         result = n*recur_factorial(n-1)
     return result
 
-let int num = 7
-let mut int fac = 0
+fn main():
+    let int num = 7
 
-# check if the number is negative
-if num < 0:
-    print("Sorry, factorial does not exist for negative numbers")
-    fac = -1
-elif num == 0:
-    fac = 1
-else:
-    fac = recur_factorial(num)
+    # check if the number is negative
+    if num < 0:
+        print("Sorry, factorial does not exist for negative numbers")
+    elif num == 0:
+        print("Factorial is 1.")
+    else:
+        let int fac = recur_factorial(num)
+        print("Factorial is")
+        print(fac)
+
+main()
 ```
 *(syntax highlighting similar to python works)*
 

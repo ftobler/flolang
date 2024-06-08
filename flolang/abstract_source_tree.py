@@ -179,6 +179,11 @@ class MemberExpression(Expression):
         self.property = property
         self.computed = computed #TODO unused?
 
+class ShebangExpression(Expression):
+    def __init__(self, shebang: str):
+        super().__init__()
+        self.shebang = shebang
+
 class Literal(Expression):
     pass
 
@@ -301,6 +306,8 @@ class Parser:
             return self.parse_continue_declaration()
         if type is lexer.UNREACHABLE:
             return self.parse_unreachable_declaration()
+        if type is lexer.SHEBANG:
+            return self.parse_shebang()
         return self.parse_expression()
 
     # let a = (...)
@@ -599,6 +606,19 @@ class Parser:
         # Can stop parsing at this point until EOF or end of current code block.
         self.skip_until_end_of_code_block(loc_start)
         return UnreachableExpression().location(loc_start, self.at())
+
+    # #:flolang
+    def parse_shebang(self):
+        loc_start = self.at()
+        # eat the shebang '#:' keyword
+        # #:flolang
+        # ^^^^^^^^^
+        shebang_value = self.eat().value
+
+        # this is the value at this point
+        # #:flolang
+        #   ^^^^^^^
+        return ShebangExpression(shebang_value).location(loc_start, loc_start)
 
     def skip_until_end_of_code_block(self, loc_start: Token):
         # straight up refuse dead code

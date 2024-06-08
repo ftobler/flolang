@@ -133,6 +133,8 @@ variable_tokens = [
     INT, OBJ, STR, BOOL, I8, U8, I16, U16, I32, U32, I64, U64, F32, F64, CHAR
 ]
 
+SHEBANG = "#!"
+
 # Counts the number of leading spaces in a string.
 def count_leading_spaces(string: str) -> int:
     count = 0
@@ -195,8 +197,9 @@ def remove_comments(line):
     # removes the comments from the source line.
     # note that it is enforced that the '#' has a space before and after.
     # except the comment is at the start of the input.
-    return re.sub("(?:^| * )#(?: .*|$|!.*)", "", line) # allow shebang
-    # return re.sub("(?:^| * )#(?: .*|$)", "", line) #do not allow shebang
+
+    # return re.sub("(?:^| * )#(?: .*|$|!.*)", "", line) # allow shebang
+    return re.sub("(?:^| * )#(?: .*|$)", "", line) #do not allow shebang
 
 
 def starts_with_alphanumeric(string, prefix):
@@ -231,6 +234,15 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     lines = sourcecode.splitlines()
     current_ident = 0 # everything starts out as not idented
     for line_nr, full_line in enumerate(lines):
+
+        symbols = (filename, line_nr, 0, full_line)
+
+        # must parse shebang before comment removal
+        # as its syntax might interfere with the comments
+        if full_line.startswith(SHEBANG):
+            tokens.append(Token(symbols, SHEBANG, full_line.strip()))
+            full_line = ""
+
         source = remove_comments(full_line)
 
         # if only whitespace remains after the comment do not interpret the line, as it might mess up glock tokenizing
@@ -238,7 +250,6 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             continue
 
         source_len = len(source)
-        symbols = (filename, line_nr, 0, full_line)
 
         # evaluate indentation changes
         ident = count_idents(source, symbols)

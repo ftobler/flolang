@@ -84,14 +84,13 @@ class RuntimeFunctionParameter:
         self.default = default
 
 class RuntimeFunction(RuntimeValue):
-    def __init__(self, parameters: list[RuntimeFunctionParameter], result: ast.Type, identifier: str, body: ast.BlockStatement):
+    def __init__(self, parameters: list[RuntimeFunctionParameter], result: ast.Type, body: ast.BlockStatement):
         super().__init__()
         self.parameters = parameters
         self.result = result
-        self.identifier = identifier
         self.body = body
     def __repr__(self):
-        return "<runtime_funciton>"
+        return "<runtime_function>"
 
 def statement_error(message, stmt: ast.Statement):
     runtime_error(message, stmt.loc)
@@ -104,13 +103,38 @@ class envstate:
     CONTINUE = "env_continue"
 
 class Environment:
-    def __init__(self, parent_environment_self = None):
+    def __init__(self, parent_environment_self = None, runtime_function : RuntimeFunction = None):
         self.scope = {}
         self.mutables = []
         self.parent = parent_environment_self # cannot use typing.Self on older python versions
         self.state = envstate.RUN
+        self.runtime_function = runtime_function
+        self.is_script = False
 
-    def declare(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement) -> RuntimeValue:
+    def declare_local(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement) -> RuntimeValue:
+        if self.parent:
+            self._declare(name, value, is_mutable, stmt)
+            return value
+        # if we are script, then we allow this.
+        if self.is_script:
+            return self._declare(name, value, is_mutable, stmt)
+        statement_error("Cannot declare local variable '%s'in global environment." % name, stmt)
+
+    def declare_global(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement):
+        # declare variable on current scope. A function does have its own global scope.
+
+        # check if this is a function scope.
+        # if not propagate to parent, which should be a function scope at some point.
+        # if no parent is found, this is the global scope. Declare it here.
+        if self.runtime_function:
+            self.runtime_function.env._declare(name, value, is_mutable, stmt)
+        elif self.parent:
+            self.parent.declare_global(name, value, is_mutable, stmt)
+        else:
+            self._declare(name, value, is_mutable, stmt)
+        return value
+
+    def _declare(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement) -> RuntimeValue:
         if self.scope.get(name):
             statement_error("Variable '%s' is already defined." % name, stmt)
         self.scope[name] = value
@@ -140,12 +164,8 @@ class Environment:
             return self.parent._resolve(name)
         return None
 
-
 def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
-    if isinstance(stmt, ast.GlobalVariableDeclaration):
-        return interpret_global_variable_declaration(stmt, env)
-    if isinstance(stmt, ast.LocalVariableDeclaration):
-        return interpret_local_variable_declaration(stmt, env)
+
     if isinstance(stmt, ast.DynamicVariableDeclaration):
         return interpret_dynamic_variable_declaration(stmt, env)
     if isinstance(stmt, ast.BinaryExpression):
@@ -168,6 +188,11 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.Identifier):
         return env.lookup(stmt.symbol, stmt)
 
+    if isinstance(stmt, ast.GlobalVariableDeclaration):
+        return interpret_global_variable_declaration(stmt, env)
+    if isinstance(stmt, ast.LocalVariableDeclaration):
+        return interpret_local_variable_declaration(stmt, env)
+
     if isinstance(stmt, ast.Program):
         return interpret_program(stmt, env)
     if isinstance(stmt, ast.FunctionDeclaration):
@@ -188,8 +213,6 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_break_expression(stmt, env)
     if isinstance(stmt, ast.ContinueExpression):
         return interpret_continue_expression(stmt, env)
-    if isinstance(stmt, ast.UnreachableExpression):
-        statement_error("Reached unreachable expression.", stmt)
 
     if isinstance(stmt, ast.ListLiteral):
         return interpret_list_literal(stmt, env)
@@ -200,24 +223,29 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.TupleLiteral):
         return interpret_tuple_literal(stmt, env)
 
+    if isinstance(stmt, ast.ShebangExpression):
+        return interpret_shebang_expression(stmt, env)
+    if isinstance(stmt, ast.UnreachableExpression):
+        statement_error("Reached unreachable expression.", stmt)
+
     statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
 
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
         value = interpret(stmt.value, env)
-        return env.declare(stmt.identifier, value, stmt.mutable, stmt)
+        return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
     statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
         value = interpret(stmt.value, env)
-        return env.declare(stmt.identifier, value, stmt.mutable, stmt)
+        return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
     statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     if stmt.type.type is lexer.INT:
         value = interpret(stmt.value, env)
-        return env.declare(stmt.identifier, value, stmt.mutable, stmt)
+        return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
     statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 interpret_dynamic_variable_declaration
@@ -384,7 +412,8 @@ def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) 
         #build the function declaration and add to list
         runtime_parameters.append(RuntimeFunctionParameter(param.mutable, param.type, param.identifier, evaluated_default))
 
-    return env.declare(stmt.identifier, RuntimeFunction(runtime_parameters, stmt.result, stmt.identifier, stmt.body), True, stmt) # function declarations are always constant
+    # function declarations are always constant and globally declared
+    return env.declare_global(stmt.identifier, RuntimeFunction(runtime_parameters, stmt.result, stmt.body), True, stmt) 
 
 def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> RuntimeValue:
     # need the function identifier name. interpret the caller expression
@@ -403,7 +432,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         # create new function scope
         # optionally this scope could be passed from function runtime variable, but that is a script
         # thing to do and not how C works. To keep compatibility with C, need to do it the boring way.
-        scope = Environment(env)
+        scope = Environment(env, runtime_function=function)
         for param, argument in itertools.zip_longest(function.parameters, stmt.arguments):
             # make sure the function has enough parameters if not, that is fatal
             if param == None:
@@ -421,7 +450,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 else:
                     statement_error("Either argument default or a value for argument must be provided", stmt)
 
-                scope.declare(param.identifier.value, value, param.mutable, stmt)
+                scope.declare_local(param.identifier.value, value, param.mutable, stmt)
             else:
                 statement_error("(Function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
@@ -487,7 +516,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     # for loop has the limited scope iteration variable. Make a new Environment for it.
     scope = Environment(env)
     loopvarname = stmt.identifier.value
-    scope.declare(loopvarname, NumberValue(0), True, stmt)
+    scope.declare_local(loopvarname, NumberValue(0), True, stmt)
 
     # do the loop
     for i in range(min, max):
@@ -560,3 +589,14 @@ def interpret_set_literal(stmt: ast.SetLiteral, env: Environment) -> RuntimeValu
 def interpret_tuple_literal(stmt: ast.TupleLiteral, env: Environment) -> RuntimeValue:
     values = [interpret(value, env) for value in stmt.values]
     return TupleValue()
+
+def interpret_shebang_expression(stmt: ast.ShebangExpression, env: Environment):
+    # this is used to configure the interpreter. Conveniently, that is this module.
+    # the expression is the entire line
+    # #:flolang
+    expression = stmt.shebang
+
+    if expression == "#!script":
+        env.is_script = True
+
+    return NoneValue()

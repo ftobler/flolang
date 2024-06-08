@@ -1,3 +1,6 @@
+#!flolang
+#!script
+
 print("this is a string literal!")
 
 let int hello = "hello, "

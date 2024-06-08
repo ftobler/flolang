@@ -243,16 +243,16 @@ def test_illegal_variable():
         eval("some_identifier_is_here")
 
     with pytest.raises(Exception):
-        eval("let i")
+        eval("let i = 10")
 
     with pytest.raises(Exception):
-        eval("var int i")
+        eval("var int i = 10")
 
     with pytest.raises(Exception):
-        eval("mut int i")
+        eval("mut int i = 10")
 
     with pytest.raises(Exception):
-        eval("let int* i")
+        eval("let int* i = 10")
 
     with pytest.raises(Exception):
         eval("😥")
@@ -261,28 +261,28 @@ def test_illegal_variable():
 
 def test_illegal_variable_cases():
     with pytest.raises(Exception):
-        eval("let int kebap-case")
+        eval("let int kebap-case = 10")
 
     with pytest.raises(Exception):
-        eval("let int emojy😥case")
+        eval("let int emojy😥case = 10")
 
     with pytest.raises(Exception):
-        eval("let int illegal_@_name")
+        eval("let int illegal_@_name = 10")
 
     with pytest.raises(Exception):
-        eval("let int illegal_ä_name")
+        eval("let int illegal_ä_name = 10")
 
     with pytest.raises(Exception):
-        eval("let int illegal_$_name")
+        eval("let int illegal_$_name = 10")
 
     with pytest.raises(Exception):
-        eval("let int illegal_!_name")
+        eval("let int illegal_!_name = 10")
 
     with pytest.raises(Exception):
-        eval("let int illegal.name")
+        eval("let int illegal.name = 10")
 
     with pytest.raises(Exception):
-        eval("let int illegalname()")
+        eval("let int illegalname() = 10")
 
 def test_builtin_native_functions():
     #these are pure native functions
