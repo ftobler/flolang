@@ -16,16 +16,27 @@ works:
 * There is a interpreter which works. It is written in python.
 * Mathematical and logical evaluations work.
 * Core building blocks work. (functions, loops, if).
+* Return and break, continue statements work correctly.
+* Error indication with source code context
 
 progress:
 * Variables and types are still in concept. (int works, but accepts everything)
-* Return and break statements do not work correctly.
 * Error handling. Too many run time errors that should be checked at compile time.
 
 concepts:
 * Class and structure type system still in concept.
 * C backend is in planning
 * Pool allocation concepts, garbage disposal (not collector).
+* Arrays, ArraySlices maybe?
+* Templates maybe?
+* anonymous functions maybe? (but they would not share scope with the declaration)
+
+not in scope:
+* file handling, tcp/ip, threading, extensive std lib.
+* garbage collector
+* pointers
+* Exceptions
+* dynamic typing
 
 
 ## syntax
