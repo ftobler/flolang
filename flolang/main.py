@@ -12,9 +12,35 @@ if __name__ == "__main__":
 
 
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
-from colorama import Fore, Style  # Back
+from colorama import Fore, Style  # , Back
+
 
 pretty_print = True
+
+
+def print_exception(e, tok_copy, ast, value):
+    if pretty_print:
+        print(Fore.LIGHTBLACK_EX, end="")
+        if tok_copy:
+            print(tok_copy)
+        if ast:
+            print(ast.json())
+        if value:
+            print(value)
+        print(Fore.YELLOW, end="")
+        typename = type(e).__name__
+        print(Fore.RED, end="")
+        print(typename, ":", e)
+        print(Style.RESET_ALL, end="")
+    else:
+        if tok_copy:
+            print(tok_copy)
+        if ast:
+            print(ast.json())
+        if value:
+            print(value)
+        typename = type(e).__name__
+        print(typename, ":", e)
 
 
 def main_console():
@@ -35,42 +61,7 @@ def main_console():
             env.assign("_", value, None)
             print(to_native(value))
         except Exception as e:
-            if pretty_print:
-                print(Fore.LIGHTBLACK_EX, end="")
-                if tok_copy:
-                    print(tok_copy)
-                if ast:
-                    print(ast.json())
-                if value:
-                    print(value)
-                typename = type(e).__name__
-                print(Fore.RED, end="")
-                print(typename, ":", e)
-                print(Style.RESET_ALL, end="")
-            else:
-                if tok_copy:
-                    print(tok_copy)
-                if ast:
-                    print(ast.json())
-                if value:
-                    print(value)
-                typename = type(e).__name__
-                print(typename, ":", e)
-
-            # if pretty_print:
-            #     print(Fore.LIGHTBLACK_EX, end="")
-            # if tok_copy:
-            #     print(tok_copy)
-            # if ast:
-            #     print(ast.json())
-            # if value:
-            #     print(value)
-            # typename = type(e).__name__
-            # if pretty_print:
-            #     print(Fore.RED, end="")
-            # print(typename, ":", e)
-            # if pretty_print:
-            #     print(Style.RESET_ALL, end="")
+            print_exception(e, tok_copy, ast, value)
 
 
 def declare_arguments(env, arguments):
@@ -81,13 +72,20 @@ def declare_arguments(env, arguments):
 
 def main_execute(script_file, arguments):
     with open(script_file, "r") as f:
-        code = f.read()
-        tok = tokenize(code)
-        ast = parse(tok)
-        env = default_environment()
-        declare_arguments(env, arguments)
-        interpret(ast, env)
-        # print(value)  # value is the result of interpret()
+        tok_copy = None
+        ast = None
+        value = None
+        try:
+            code = f.read()
+            tok = tokenize(code)
+            tok_copy = tok
+            ast = parse(tok)
+            env = default_environment()
+            declare_arguments(env, arguments)
+            value = interpret(ast, env)
+            # print(value)
+        except Exception as e:
+            print_exception(e, tok_copy, ast, value)
 
 
 def parse_arguments(argv):

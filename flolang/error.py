@@ -13,11 +13,6 @@ class TokenError(Exception):
 
 def runtime_error(comment: str, loc=None):
     if loc:
-        # file = loc.start.symbols[0]
-        # line_nr = loc.start.symbols[1]
-        # full_line = loc.start.symbols[3]
-        # start = loc.start.symbols[2]
-        # end = loc.end.symbols[2]
         file = loc.start.symbols.filename
         line_nr = loc.start.symbols.line_nr
         full_line = loc.start.symbols.line
@@ -37,11 +32,6 @@ def runtime_error(comment: str, loc=None):
 
 
 def parser_error(comment: str, start_token, end_token):
-    # file = start_token.symbols[0]
-    # line_nr = start_token.symbols[1]
-    # full_line = start_token.symbols[3]
-    # start = start_token.symbols[2]
-    # end = end_token.symbols[2]
     file = start_token.symbols.filename
     line_nr = start_token.symbols.line_nr
     full_line = start_token.symbols.line

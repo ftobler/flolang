@@ -11,9 +11,9 @@ class Location:
 
     def __repr__(self):
         #
-        line = self.start.symbols[3]
-        start = self.start.symbols[2]
-        end = self.end.symbols[2]
+        line = self.start.symbols.line
+        start = self.start.symbols.line_pos
+        end = self.end.symbols.line_pos
         if start < end:
             snippet = line[start:end+1]
             return '"' + snippet + '"'
