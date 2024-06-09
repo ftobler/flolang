@@ -8,15 +8,16 @@ ignores = [" ", "\t", "\n", "\r"]
 # special tokens requiring custom code
 EOF = 0
 IDENTIFIER = 1
-NUMBER = 2
-FLOAT = 3
-STRING = 4
+RESERVED_IDENTIFIER = 2
+NUMBER = 3
+FLOAT = 4
+STRING = 5
 # use idents "    " like python to denote blocks. But the lexer translates this to
 # a block start and end token, which do not exist in the source code itself.
 # Could easyly be replace by "{" and "}".
 # The colong denoting the start of a block is a independent token.
-BLOCKSTART = 5
-BLOCKEND = 6
+BLOCKSTART = 6
+BLOCKEND = 7
 
 # long string tokens requiring direct string compare
 # these must be handled before the smaller tokens as duplicated characters can lead
@@ -110,12 +111,16 @@ DELETE = "delete"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, IF, ELSE, ELIF, WHILE,
     FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, UNREACHABLE, DELETE,
+]
+
+potentially_reserved_keywords = [
     "data", "is", "from", "struct", "switch",
     # since this aims to be comptaible with C, some keywords should be allocated here
     # because cant have a variable with the same name or it might cause issues
     "void", "do", "auto", "alignas", "alignof", "chase", "constexpr", "default", "extern",
-    "goto", "inline", "nullptr", "register", "restrict", "sizeof", "typedef", "typeof", "typeof_unqual",
-    "union", "volatile", "asm", "pragma", "include", "defined", "define"
+    "goto", "inline", "nullptr", "register", "restrict", "sizeof", "typedef", "typeof",
+    "typeof_unqual", "union", "volatile", "asm", "pragma", "include", "defined", "define",
+    "generic", "try", "catch", "except", "raise", "finally", "always", "type", "range"
 ]
 
 # # keywords for types
@@ -300,9 +305,14 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
                 match = re.search("^[a-zA-Z_]+[a-zA-Z_0-9]*", source)
                 if match:
                     identifier = match[0]
-                    tokens.append(Token(symbols, IDENTIFIER, identifier))
-                    source = source[len(identifier):]
-                    found = True
+                    if not identifier in potentially_reserved_keywords:
+                        tokens.append(Token(symbols, IDENTIFIER, identifier))
+                        source = source[len(identifier):]
+                        found = True
+                    else:
+                        tokens.append(Token(symbols, RESERVED_IDENTIFIER, identifier))
+                        source = source[len(identifier):]
+                        found = True
 
             # search for hex integers
             if not found:

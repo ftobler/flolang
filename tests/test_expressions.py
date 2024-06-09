@@ -769,3 +769,11 @@ def test_delete_4():
 let int i = 0
 let int i = 0
 """)
+
+@pytest.mark.skip(reason="type checking not yet implemented")
+def test_template():
+    with pytest.raises(error.RuntimeException):
+        eval("""
+class Animal<T>:
+    let T: appendage
+""")

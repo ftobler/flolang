@@ -308,7 +308,11 @@ class Parser:
     def eat_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
         prev = self.eat()
         if prev.type is not token_type:
-            parser_error(error_comment, loc_start, prev)
+            type = prev.type
+            if isinstance(prev.type, int):
+                type = prev.value
+            got_message = " Got '%s' instead." % type
+            parser_error(error_comment + got_message, loc_start, prev)
         return prev
 
     def at_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
@@ -718,6 +722,17 @@ class Parser:
         # class foo:
         #       ^^^
         classname = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % lexer.CLASS, loc_start).value
+
+        # class foo<T>:
+        #       ^^^
+        if self.at().type is lexer.SMALLER:
+            self.eat()
+            # class foo<T>:
+            #       ^^^^^^
+            # TODO
+            Exception("TODO: Template")
+            self.eat_expect(lexer.BIGGER, "Expect '%s' after identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
+
         self.eat_expect(lexer.COLON, "Expect '%s' after identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
         self.eat_expect(lexer.BLOCKSTART, "Expect block statement after '%s' identifier in '%s'." % (lexer.COLON, lexer.CLASS), loc_start)
 
