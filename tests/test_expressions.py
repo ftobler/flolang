@@ -382,6 +382,10 @@ def test_comments_shebang():
     assert eval("#!/usr/bin/python") == None
     assert eval("#!flolang") == None
 
+def test_inline_double_declaration_to_itself():
+    with pytest.raises(Exception):
+        eval("let mut int a = 3 == a")
+
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_dict_literal_1():
     eval("{a: 1, b: 2}")
