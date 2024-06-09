@@ -11,13 +11,12 @@ IDENTIFIER = 1
 NUMBER = 2
 FLOAT = 3
 STRING = 4
-BUILTINTYPE = 5
 # use idents "    " like python to denote blocks. But the lexer translates this to
 # a block start and end token, which do not exist in the source code itself.
 # Could easyly be replace by "{" and "}".
 # The colong denoting the start of a block is a independent token.
-BLOCKSTART = 6
-BLOCKEND = 7
+BLOCKSTART = 5
+BLOCKEND = 6
 
 # long string tokens requiring direct string compare
 # these must be handled before the smaller tokens as duplicated characters can lead
@@ -114,25 +113,25 @@ keyword_tokens = [
     FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, IS, UNREACHABLE
 ]
 
-# keywords for types
-INT = "int"
-OBJ = "obj"
-STR = "str"
-BOOL = "bool"
-I8 = "i8"
-U8 = "u8"
-I16 = "i16"
-U16 = "u16"
-I32 = "i32"
-U32 = "u32"
-I64 = "i64"
-U64 = "u64"
-F32 = "f32"
-F64 = "f64"
-CHAR = "char"
-variable_tokens = [
-    INT, OBJ, STR, BOOL, I8, U8, I16, U16, I32, U32, I64, U64, F32, F64, CHAR
-]
+# # keywords for types
+# INT = "int"
+# OBJ = "obj"
+# STR = "str"
+# BOOL = "bool"
+# I8 = "i8"
+# U8 = "u8"
+# I16 = "i16"
+# U16 = "u16"
+# I32 = "i32"
+# U32 = "u32"
+# I64 = "i64"
+# U64 = "u64"
+# F32 = "f32"
+# F64 = "f64"
+# CHAR = "char"
+# variable_tokens = [
+#     INT, OBJ, STR, BOOL, I8, U8, I16, U16, I32, U32, I64, U64, F32, F64, CHAR
+# ]
 
 SHEBANG = "#!"
 
@@ -175,8 +174,6 @@ class Token:
             type_str = "FLOAT"
         elif self.type == STRING:
             type_str = "STRING"
-        elif self.type == BUILTINTYPE:
-            type_str = "BUILTINTYPE"
         elif self.type == BLOCKSTART:
             type_str = "BLOCKSTART"
         elif self.type == BLOCKEND:
@@ -231,7 +228,7 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     tokenlist_symbolic = string_tokens + small_tokens
     tokenlist_symbolic.sort()
     tokenlist_symbolic.reverse()
-    tokenlist_alphanumeric = keyword_tokens + variable_tokens
+    tokenlist_alphanumeric = keyword_tokens # + variable_tokens
     tokenlist_alphanumeric.sort()
     tokenlist_alphanumeric.reverse()
     lines = sourcecode.splitlines()
@@ -275,16 +272,9 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             for s in tokenlist_symbolic:
                 # if source.startswith(s):
                 if source.startswith(s):
-                    if s in variable_tokens:
-                        tokens.append(Token(symbols, BUILTINTYPE, s))
-                        source = source[len(s):]
-                        found = True
-                        break
-                    else:
-                        tokens.append(Token(symbols, s))
-                        source = source[len(s):]
-                        found = True
-                        break
+                    tokens.append(Token(symbols, s))
+                    source = source[len(s):]
+                    found = True
 
             # search for the basic alphanumeric tokens
             # also includes builtin type matches
@@ -295,16 +285,10 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 for s in tokenlist_alphanumeric:
                     if starts_with_alphanumeric(source, s):
-                        if s in variable_tokens:
-                            tokens.append(Token(symbols, BUILTINTYPE, s))
-                            source = source[len(s):]
-                            found = True
-                            break
-                        else:
-                            tokens.append(Token(symbols, s))
-                            source = source[len(s):]
-                            found = True
-                            break
+                        tokens.append(Token(symbols, s))
+                        source = source[len(s):]
+                        found = True
+                        break
 
             # search for names
             if not found:

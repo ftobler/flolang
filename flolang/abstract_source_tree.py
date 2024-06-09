@@ -44,10 +44,9 @@ class Program(Statement):
         self.body = []
 
 class Type(Statement):
-    def __init__(self, type: str, is_builtin: bool):
+    def __init__(self, type: str):
         super().__init__()
         self.type = type
-        self.builtin = is_builtin
 
 class VariableDeclaration(Statement):
     def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
@@ -377,19 +376,11 @@ class Parser:
             is_mutable = True
             self.eat() # eat 'mut'
 
-        # let mut int a = (...)
-        #         ^^^
-        type_start = self.at()
-        if self.at().type is lexer.IDENTIFIER:
-            type = Type(self.eat().value, False).location(type_start, self.at())
-        elif self.at().type is lexer.BUILTINTYPE:
-            type = Type(self.eat().value, True).location(type_start, self.at())
-        else:
-            parser_error("Expect identifier or builtin type for variable type declaration", loc_start, self.at())
-
-        # let mut int indentifier = (...)
-        #             ^^^^^^^^^^^
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect indentifier after type for variable declaration.", loc_start).value
+        # let mut type identifier = (...)
+        #         ^^^^^^^^^^^^^^^
+        # let mut identifier = (...)
+        #         ^^^^^^^^^^
+        type, identifier = self.parse_type_and_identifier()
 
         # let mut int a = (...)
         #               ^
@@ -489,12 +480,35 @@ class Parser:
         self.eat_expect(lexer.COURVE_R, "Expect function argument list ending with '%s'." % lexer.COURVE_R, loc_start)
         return args
 
+    # int foo
+    # foo
+    def parse_type_and_identifier(self) -> tuple:
+        loc_start = self.at()
+        type = None
+        # int foo
+        # ^^^
+        # foo
+        # ^^^
+        first = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable type declaration", loc_start).value
+        if self.at().type is lexer.IDENTIFIER:
+            # int foo
+            # ^^^
+            type = Type(first).location(loc_start, self.at())
+            # int foo
+            #     ^^^
+            identifier = self.eat().value
+            return type, identifier
+        else:
+            # foo
+            # ^^^
+            type = None
+            identifier = first
+            return type, identifier
+
     def parse_next_type(self) -> Type:
         loc_start = self.at()
         if self.at().type is lexer.IDENTIFIER:
-            return Type(self.eat().value, False).location(loc_start, self.at())
-        elif self.at().type is lexer.BUILTINTYPE:
-            return Type(self.eat().value, True).location(loc_start, self.at())
+            return Type(self.eat().value).location(loc_start, self.at())
         return None
 
     def parse_if_declaration(self):
@@ -729,9 +743,7 @@ class Parser:
         #     ^^^
         type_start = self.at()
         if self.at().type is lexer.IDENTIFIER:
-            type = Type(self.eat().value, False).location(type_start, self.at())
-        elif self.at().type is lexer.BUILTINTYPE:
-            type = Type(self.eat().value, True).location(type_start, self.at())
+            type = Type(self.eat().value).location(type_start, self.at())
         else:
             parser_error("Expect identifier or builtin type for variable type declaration", loc_start, self.at())
 

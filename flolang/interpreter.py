@@ -241,22 +241,28 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
 
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
-    if stmt.type.type is lexer.INT:
+    # TODO: use the type
+    if True:
+    # if stmt.type.type is lexer.INT:
         value = interpret(stmt.value, env)
         return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
-    statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
+    # statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
-    if stmt.type.type is lexer.INT:
+    # TODO: use the type
+    if True:
+    # if stmt.type.type is lexer.INT:
         value = interpret(stmt.value, env)
         return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
-    statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
+    # statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
-    if stmt.type.type is lexer.INT:
+    # TODO: use the type
+    if True:
+    # if stmt.type.type is lexer.INT:
         value = interpret(stmt.value, env)
         return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
-    statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
+    # statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
 interpret_dynamic_variable_declaration
 
@@ -494,7 +500,9 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             if param == None:
                 statement_error("function does not have enough parameters.", stmt)
 
-            if param.type.type is lexer.INT:
+            # TODO: use the type
+            if True:
+            # if param.type.type is lexer.INT:
 
                 # evaluate value of provided argument (if provided)
                 # evaluate value per provided function default (if provided)
@@ -507,8 +515,8 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                     statement_error("Either argument default or a value for argument must be provided", stmt)
 
                 scope.declare_local(param.identifier.value, value, param.mutable, stmt)
-            else:
-                statement_error("(Function) variable type to declare not implemented '%s'" % param.type.type, stmt)
+            # else:
+                # statement_error("(Function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
         # go through all statements and execute
         last = interpret_block_expression(function.body, scope)
