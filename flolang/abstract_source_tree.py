@@ -203,10 +203,10 @@ class CallExpression(Expression):
         self.arguments = arguments
 
 class MemberExpression(Expression):
-    def __init__(self, object: Expression, property: Expression, computed: bool):
+    def __init__(self, object: Expression, key: Expression, computed: bool):
         super().__init__()
         self.object = object
-        self.property = property
+        self.key = key
         self.computed = computed #TODO unused?
 
 class ShebangExpression(Expression):

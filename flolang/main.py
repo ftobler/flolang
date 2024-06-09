@@ -20,6 +20,7 @@ def main():
     print("flolang v0.1 by ftobler")
     env = default_environment()
     env.declare_global("_", interpret(parse(tokenize("None")), env), True, None)
+    interpret(parse(tokenize("#!script")), env)
     while True:
         tok_copy = None
         ast = None
