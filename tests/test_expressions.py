@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval, eval_parse
 import pytest, math, time
+import flolang.error as error
 
 def test_literal_number_epressions():
     assert eval("0") == 0
@@ -734,3 +735,37 @@ def test_function_is_executed_after_program_variable_declarations_native():
 sin(pi/2)
 8
 """) == 1.0
+
+def test_unreachable():
+    with pytest.raises(error.RuntimeException):
+        eval("unreachable")
+
+def test_delete_1():
+    eval("""
+let int i = 0
+delete i
+""")
+
+def test_delete_2():
+    # delete is not allowed in normal mode without the script shebang.
+    # that is passed by default in the tests, so the code is shorter
+    # and requires no main function
+    with pytest.raises(error.RuntimeException):
+        eval("""
+static int i = 0
+delete i
+""", shebang = None)
+
+def test_delete_3():
+    eval("""
+let int i = 0
+delete i
+let int i = 0
+""")
+
+def test_delete_4():
+    with pytest.raises(error.RuntimeException):
+        eval("""
+let int i = 0
+let int i = 0
+""")

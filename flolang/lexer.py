@@ -108,9 +108,10 @@ IN = "in"
 IS = "is"
 UNREACHABLE = "unreachable"
 ALLOC = "@alloc"
+DELETE = "delete"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
-    FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, IS, UNREACHABLE
+    FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, IS, UNREACHABLE, DELETE
 ]
 
 # # keywords for types

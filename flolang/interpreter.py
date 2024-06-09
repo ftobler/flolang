@@ -121,7 +121,7 @@ class Environment:
             self._declare(name, value, is_mutable, stmt)
             return value
         # if we are script, then we allow this.
-        if self.is_script:
+        if self.get_root_env().is_script:
             return self._declare(name, value, is_mutable, stmt)
         statement_error("Cannot declare local variable '%s'in global environment." % name, stmt)
 
@@ -162,8 +162,23 @@ class Environment:
             return env.scope[name]
         statement_error("Variable '%s' is not defined." % name, stmt)
 
+    def delete(self, name: str, stmt: ast.Statement):
+        if not self.get_root_env().is_script:
+            statement_error("Delete Expression '%s' is only allowed in script mode. Did you forgot '#!script' shebang?" % (lexer.DELETE), stmt)
+        env = self._resolve(name)
+        if env:
+            del env.scope[name]
+            return noneValue
+        statement_error("Variable '%s' is not defined." % name, stmt)
+
+
     def has(self, name: str):
         return self._resolve(name)
+
+    def get_root_env(self):
+        if self.parent:
+            return self.parent.get_root_env()
+        return self
 
     def _resolve(self, name: str):
         if name in self.scope:
@@ -238,6 +253,8 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
 
     if isinstance(stmt, ast.ShebangExpression):
         return interpret_shebang_expression(stmt, env)
+    if isinstance(stmt, ast.DeleteExpression):
+        return interpret_delete_expression(stmt, env)
     if isinstance(stmt, ast.UnreachableExpression):
         statement_error("Reached unreachable expression.", stmt)
 
@@ -444,7 +461,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             if last == None:
                 statement_error("Must return a runtime value.", stmt) # this is a development check mainly
 
-    if env.is_script:
+    if env.get_root_env().is_script:
         # in script mode interpret all function calls in order
         for statement in defer:
             last = interpret(statement, env)
@@ -695,6 +712,11 @@ def interpret_shebang_expression(stmt: ast.ShebangExpression, env: Environment):
     expression = stmt.shebang
 
     if expression == "#!script":
-        env.is_script = True
+        env.get_root_env().is_script = True
 
+    return noneValue
+
+def interpret_delete_expression(stmt: ast.DeleteExpression, env: Environment):
+    identifier = stmt.identifier
+    env.delete(identifier, stmt)
     return noneValue

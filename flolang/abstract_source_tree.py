@@ -170,6 +170,11 @@ class UnreachableExpression(Statement):
     def __init__(self):
         super().__init__()
 
+class DeleteExpression(Statement):
+    def __init__(self, identifier: str):
+        super().__init__()
+        self.identifier = identifier
+
 class AssignmentExpression(Expression):
     def __init__(self, assignee: Expression, value: Expression, operator: str):
         super().__init__()
@@ -345,8 +350,6 @@ class Parser:
             return self.parse_break_declaration()
         if type is lexer.CONTINUE:
             return self.parse_continue_declaration()
-        if type is lexer.UNREACHABLE:
-            return self.parse_unreachable_declaration()
         if type is lexer.SHEBANG:
             return self.parse_shebang()
         if type is lexer.CLASS:
@@ -355,6 +358,10 @@ class Parser:
             return self.parse_enum()
         if type is lexer.ALLOC:
             return self.parse_alloc()
+        if type is lexer.UNREACHABLE:
+            return self.parse_unreachable_declaration()
+        if type is lexer.DELETE:
+            return self.parse_delete_declaration()
         return self.parse_expression()
 
     # let a = (...)
@@ -672,6 +679,21 @@ class Parser:
         # Can stop parsing at this point until EOF or end of current code block.
         self.skip_until_end_of_code_block(loc_start)
         return UnreachableExpression().location(loc_start, self.at())
+
+    def parse_delete_declaration(self):
+        loc_start = self.at()
+        # delete identifier
+        # ^^^^^^
+        # eat the 'delete' keyword
+        self.eat()
+        # delete expression is just for the interpreter to have a way of deleting the variable.
+        # flolang must be in script mode. This will not work in normal mode.
+
+        # delete identifier
+        #        ^^^^^^^^^^
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % lexer.DELETE, loc_start).value
+        return DeleteExpression(identifier).location(loc_start, self.at())
+
 
     # #:flolang
     def parse_shebang(self):
