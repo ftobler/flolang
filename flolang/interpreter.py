@@ -649,7 +649,10 @@ def interpret_object_literal(stmt: ast.ObjectLiteral, env: Environment) -> Runti
     obj = {}
     for property in stmt.properties:
         key: str = property.key
-        value: RuntimeValue = interpret(property.value, env)
+        if property.value:
+            value: RuntimeValue = interpret(property.value, env)
+        else:
+            value: RuntimeValue = env.lookup(key, stmt)
         obj[key] = value
     return ObjectValue(obj)
 
