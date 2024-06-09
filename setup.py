@@ -17,7 +17,7 @@ setup(
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
-        "colorama>=0.4.0"
+        "colorama"
         # Add your dependencies here.
         # example:
         # 'numpy>=1.21.0,<2.0.0',
