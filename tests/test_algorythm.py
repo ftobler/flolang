@@ -29,10 +29,10 @@ def test_crc_calculation_1():
 
     assert eval("""
 
-fn crc8(int[] data, int polynomial=0x07, int init_value=0x00) int:
+fn crc8(int[] dat, int polynomial=0x07, int init_value=0x00) int:
 
     let int crc = init_value
-    for byte in data:
+    for byte in dat:
         crc ^=byte
         for _ in 0..8:
             if crc & 0x80:
@@ -50,8 +50,8 @@ def test_crc_calculation_2():
 
     assert eval("""
 
-fn crc8_update(int data, int polynomial=0x07) int:
-    crc ^= data
+fn crc8_update(int dat, int polynomial=0x07) int:
+    crc ^= dat
     for int _ in 0..8:
         if crc & 0x80:
             crc = (crc << 1) ^ polynomial
@@ -74,8 +74,8 @@ def test_crc_calculation_3():
     #this time overload the polynominal default value
     assert eval("""
 
-fn crc8_update(int data, int polynomial=0x07) int:
-    crc ^= data
+fn crc8_update(int dat, int polynomial=0x07) int:
+    crc ^= dat
     for int _ in 0..8:
         if crc & 0x80:
             crc = (crc << 1) ^ polynomial

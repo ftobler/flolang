@@ -45,8 +45,8 @@ With return and break not yet working, use is inconvenient. But below samples ex
 ```python
 #!flolang
 
-fn crc8_update(int data, int polynomial=0x07) int:
-    crc ^= data
+fn crc8_update(int dat, int polynomial=0x07) int:
+    crc ^= dat
     for int _ in 0..8:
         if crc & 0x80:
             crc = (crc << 1) ^ polynomial

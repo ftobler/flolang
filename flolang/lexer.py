@@ -86,10 +86,9 @@ AND = "and"
 OR = "or"
 NOT = "not"
 FUNCTION = "fn"
-CLASS = "class"
+CLASS = "class"   # change that to 'data'? alterantive struct, object
 ENUM = "enum"
 IMPORT = "import"
-FROM = "from"
 IF = "if"
 ELSE = "else"
 ELIF = "elif"
@@ -98,20 +97,25 @@ FOR = "for"
 RETURN = "return"
 BREAK = "break"
 CONTINUE = "continue"
-# NONE = "None"    # keep this in here?
 LET = "let"
 STATIC = "static"
 MUT = "mut"
 DYN = "dyn"
 PASS = "pass"
 IN = "in"
-IS = "is"
+# IS = "is"
 UNREACHABLE = "unreachable"
 ALLOC = "@alloc"
 DELETE = "delete"
 keyword_tokens = [
-    AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, FROM, IF, ELSE, ELIF, WHILE,
-    FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, IS, UNREACHABLE, DELETE
+    AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, IF, ELSE, ELIF, WHILE,
+    FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, UNREACHABLE, DELETE,
+    "data", "is", "from", "struct", "switch",
+    # since this aims to be comptaible with C, some keywords should be allocated here
+    # because cant have a variable with the same name or it might cause issues
+    "void", "do", "auto", "alignas", "alignof", "chase", "constexpr", "default", "extern",
+    "goto", "inline", "nullptr", "register", "restrict", "sizeof", "typedef", "typeof", "typeof_unqual",
+    "union", "volatile", "asm", "pragma", "include", "defined", "define"
 ]
 
 # # keywords for types
