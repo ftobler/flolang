@@ -36,12 +36,47 @@ def test_literal_number_epressions_special():
     assert eval("0.5") == .5     # this here is an interesting one
     # assert eval(".5") == .5    # this here is an interesting one
 
-def test_literal_string_expressions():
+def test_literal_string_expressions_1():
     assert eval('""') == ""
     assert eval('"1"') == "1"
     assert eval('"1asdfasdfasd"') == "1asdfasdfasd"
     assert eval('"+*ç%&/()="') == "+*ç%&/()="
-    assert eval('"\\\""') == '\\"' # this here is an interesting one
+    assert eval('"\\\\\\""') == '\\"' # this here is an interesting one
+
+def test_literal_string_expressions_2():
+    assert eval("''") == ""
+    assert eval("'1'") == "1"
+    assert eval("'1asdfasdfasd'") == "1asdfasdfasd"
+    assert eval("'+*ç%&/()='") == "+*ç%&/()="
+    assert eval("'\\\\\\''") == "\\'" # this here is an interesting one
+
+def test_literal_string_expressions_3():
+    assert eval("``") == ""
+    assert eval("`1`") == "1"
+    assert eval("`1asdfasdfasd`") == "1asdfasdfasd"
+    assert eval("`+*ç%&/()=`") == "+*ç%&/()="
+    assert eval('`\\\\\\``') == '\\`' # this here is an interesting one
+
+def test_literal_string_expressions_escapement_1():
+    # escapement of the delimiting character
+    # this tests the string escapment in parsing
+    assert eval('"\\\""') == '"'
+    assert eval("'\"'") == '"'
+    assert eval('`"`') == '"'
+
+def test_literal_string_expressions_escapement_2():
+    # escapement of the non-delimiting character
+    # this tests the string escapment in parsing
+    assert eval('"\'"') == "'"
+    assert eval("'\\\''") == "'"
+    assert eval("`'`") == "'"
+
+def test_literal_string_expressions_escapement_3():
+    # escapement of the non-delimiting character
+    # this tests the string escapment in parsing
+    assert eval('"`"') == "`"
+    assert eval("'`'") == "`"
+    assert eval("`\\``") == "`"
 
 def test_nesting():
     assert eval("1") == 1

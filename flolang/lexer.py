@@ -223,6 +223,8 @@ def check_numeric_expression_for_dotdot(string):
             return candidate
     return string
 
+def string_escape(input):
+    return input.replace("\\'", "'").replace('\\"', '"').replace('\\`', '`').replace('\\\\', '\\')
 
 def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     tokens = []
@@ -346,6 +348,27 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
                 match = re.search('^"((?:[^"\\\\]*(?:\\\\.[^"\\\\]*)*))"', source)
                 if match:
                     string = match[1] #need group 1 containing the string without "
+                    string = string_escape(string) # escape it
+                    tokens.append(Token(symbols, STRING, string))
+                    source = source[len(match[0]):]
+                    found = True
+
+            # search for a string literal with single quotes '
+            if not found:
+                match = re.search("^'((?:[^'\\\\]*(?:\\\\.[^'\\\\]*)*))'", source)
+                if match:
+                    string = match[1] #need group 1 containing the string without "
+                    string = string_escape(string) # escape it
+                    tokens.append(Token(symbols, STRING, string))
+                    source = source[len(match[0]):]
+                    found = True
+
+            # search for a string literal with tilted quotes `
+            if not found:
+                match = re.search("^`((?:[^`\\\\]*(?:\\\\.[^`\\\\]*)*))`", source)
+                if match:
+                    string = match[1] #need group 1 containing the string without "
+                    string = string_escape(string) # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
                     found = True
