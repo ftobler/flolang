@@ -4,8 +4,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval, eval_parse
-import pytest, math, time
+import pytest
+import math
+import time
 import flolang.error as error
+
 
 def test_literal_number_epressions():
     assert eval("0") == 0
@@ -33,16 +36,19 @@ def test_literal_number_epressions():
     assert eval("20.2") == 20.2
     assert eval("+1") == +1
 
+
 def test_literal_number_epressions_special():
     assert eval("0.5") == .5     # this here is an interesting one
     # assert eval(".5") == .5    # this here is an interesting one
+
 
 def test_literal_string_expressions_1():
     assert eval('""') == ""
     assert eval('"1"') == "1"
     assert eval('"1asdfasdfasd"') == "1asdfasdfasd"
     assert eval('"+*ç%&/()="') == "+*ç%&/()="
-    assert eval('"\\\\\\""') == '\\"' # this here is an interesting one
+    assert eval('"\\\\\\""') == '\\"'  # this here is an interesting one
+
 
 def test_literal_string_expressions_2():
     assert eval("''") == ""
@@ -51,12 +57,14 @@ def test_literal_string_expressions_2():
     assert eval("'+*ç%&/()='") == "+*ç%&/()="
     assert eval("'\\\\\\''") == "\\'" # this here is an interesting one
 
+
 def test_literal_string_expressions_3():
     assert eval("``") == ""
     assert eval("`1`") == "1"
     assert eval("`1asdfasdfasd`") == "1asdfasdfasd"
     assert eval("`+*ç%&/()=`") == "+*ç%&/()="
-    assert eval('`\\\\\\``') == '\\`' # this here is an interesting one
+    assert eval('`\\\\\\``') == '\\`'  # this here is an interesting one
+
 
 def test_literal_string_expressions_escapement_1():
     # escapement of the delimiting character
@@ -65,12 +73,14 @@ def test_literal_string_expressions_escapement_1():
     assert eval("'\"'") == '"'
     assert eval('`"`') == '"'
 
+
 def test_literal_string_expressions_escapement_2():
     # escapement of the non-delimiting character
     # this tests the string escapment in parsing
     assert eval('"\'"') == "'"
     assert eval("'\\\''") == "'"
     assert eval("`'`") == "'"
+
 
 def test_literal_string_expressions_escapement_3():
     # escapement of the non-delimiting character
@@ -79,12 +89,14 @@ def test_literal_string_expressions_escapement_3():
     assert eval("'`'") == "`"
     assert eval("`\\``") == "`"
 
+
 def test_nesting():
     assert eval("1") == 1
     assert eval("(1)") == 1
     assert eval("(((1)))") == 1
     assert eval("( ((1) ))") == 1
     assert eval("( ((1)     ))") == 1
+
 
 def test_math_expression_basic():
     assert eval("1+1") == 2
@@ -93,6 +105,7 @@ def test_math_expression_basic():
     assert eval("2*0+3") == 3
     assert eval("2*(0+3)") == 6
     assert eval("(2*0)+3") == 3
+
 
 def test_math_expression():
     # asked chatgpt for some random math expressions
@@ -147,7 +160,8 @@ def test_math_expression():
     assert eval("5**2.0-3*4") == 13.0
     assert eval("18%5.0 + 7") == 10.0
 
-def test_logic_expressions():
+
+def test_logic_expressions_1():
     # asked chatgpt for some random logic expressions
     assert eval("5 > 3 and 2 < 4") == True
     assert eval("10 == 10") == True
@@ -174,6 +188,16 @@ def test_logic_expressions():
     assert eval("3 & ~2 | 1") == 1
     assert eval("(8 >> 1) << 2") == 16
 
+
+@pytest.mark.skip(reason="not yet implemented")
+def test_logic_expressions_2():
+    # asked chatgpt for some random logic expressions
+    assert eval("False is not True") == True
+    assert eval("False is not False") == False
+    assert eval("False is True") == False
+    assert eval("False is False") == True
+
+
 def test_logic_math_expressions():
     # asked chatgpt for some random logic expressions
     assert eval("(3 + 4 * 2) > 10 and 5 < 7") == True
@@ -198,11 +222,13 @@ def test_logic_math_expressions():
     assert eval("(8 >> 1) << 2 == 16 and 4 > 2") == True
     assert eval("not (True and 10 / 2 != 5)") == True
 
+
 def test_logic_math_expressions_precidence_problems_1():
     # differs from python because == has more precidence
     # assert eval("8 | (1 ^ 2) == 11") == True
     assert eval("(8 | (1 ^ 2)) == 11") == True
     assert eval("8 | (1 ^ 2) == 11") == 8
+
 
 def test_logic_math_expressions_precidence_problems_2():
     # differs from python because == has more precidence
@@ -210,12 +236,14 @@ def test_logic_math_expressions_precidence_problems_2():
     assert eval("(7 & (3 << 2)) == 4") == True
     assert eval("7 & (3 << 2) == 4") == 0
 
+
 def test_logic_math_expressions_precidence_problems_3():
     # this one is interesing because it differs from python.
     # 2>4 is evaluated first, then bitwise OR yields 6.
     # assert eval("6 | 2 > 4") == True
     assert eval("6 | 2 > 4") == 6
     # assert eval("4 ^ 1 < 6") == True
+
 
 def test_inline_statements_2():
     # you can actually execute multiple statements in 1 line
@@ -230,6 +258,7 @@ def test_inline_statements_2():
     assert eval("if True: 1 123") == 123
     assert eval("if False: 1 1123") == 1123
 
+
 def test_assignment():
     assert eval("let mut int i = 10          i = 20") == 20
     assert eval("let mut int i = 10          i += 20") == 30
@@ -242,6 +271,7 @@ def test_assignment():
     assert eval("let mut int i = 0x09        i |= 0x18") == 0x19
     assert eval("let mut int i = 0x09        i <<= 1") == 0x12
     assert eval("let mut int i = 0x09        i >>= 1") == 0x04
+
 
 def test_elvis_1():
     # basic
@@ -256,13 +286,16 @@ def test_elvis_1():
     assert eval("10 > 5 ? 42 : 99") == 42
     assert eval("not 0 ? 3.14 : 0") == 3.14
 
+
 def test_elvis_2():
     assert eval("10 > 5 ? 42 : 99") == 42
     assert eval("not 0 ? 3.14 : 1") == 3.14
 
+
 def test_elvis_strings():
     # Additional tests
     assert eval('"abc" ? "yes" : "no"') == "yes"  # Non-empty string evaluates to True
+
 
 def test_variables():
     assert eval("static int i = 0") == 0
@@ -273,6 +306,7 @@ def test_variables():
     assert eval("static mut int i = 1") == 1
     assert eval("let mut int i = 0") == 0
     assert eval("let mut int i = 1") == 1
+
 
 def test_variables_starting_with_keywords():
     #these are critical because they start with keywords
@@ -287,6 +321,7 @@ def test_variables_starting_with_keywords():
     assert eval("let int constant = 1") == 1
     assert eval("let int integer = 1") == 1
 
+
 def test_variables_exotic_names():
     # some a bit more exotic names we allow
     eval("let int __name   = 0")
@@ -294,6 +329,7 @@ def test_variables_exotic_names():
     eval("let int _0_name  = 0")
     eval("let int   _name0 = 0")
     eval("let int __name__ = 0")
+
 
 def test_illegal_variable_1():
     # with pytest.raises(Exception):
@@ -311,12 +347,14 @@ def test_illegal_variable_1():
     with pytest.raises(Exception):
         eval("😥")
 
-    eval('"🥰"') # that just belongs here now
+    eval('"🥰"')  # that just belongs here now
+
 
 @pytest.mark.skip(reason="type checking not yet implemented")
 def test_illegal_variable_2():
     with pytest.raises(Exception):
-        eval("some_identifier_is_here") #this is legal. Problem is, it currently parses because there is no type checking and this is a variable without type
+        eval("some_identifier_is_here")  # this is legal. Problem is, it currently parses because there is no type checking and this is a variable without type
+
 
 def test_illegal_variable_cases():
     with pytest.raises(Exception):
@@ -343,10 +381,12 @@ def test_illegal_variable_cases():
     with pytest.raises(Exception):
         eval("let int illegalname() = 10")
 
+
 def test_builtin_native_functions():
     #these are pure native functions
     assert eval("print(1)") == None
     assert abs(eval("time()") - time.time()) < 0.01 #might break if interpreter is suuuper slow
+
 
 def test_builtin_native_functions_trigonometry():
     assert eval("sin(1)") == math.sin(1)
@@ -360,14 +400,17 @@ def test_builtin_native_functions_trigonometry():
     assert eval("atan2(1, 1)") == math.pi / 4
     assert eval("atan2(1, 2)") == math.atan2(1, 2)
 
+
 def test_builtin_native_functions_round():
     assert eval("round(0.49)") == 0
     assert eval("round(0.51)") == 1
+
 
 def test_builtin_native_functions_nan():
     assert eval("isnan(nan)") == True
     assert eval("isnan(pi)") == False
     assert eval("isnan(inf)") == False
+
 
 def test_builtin_native_functions_inf():
     assert eval("isinf(inf)") == True
@@ -375,23 +418,28 @@ def test_builtin_native_functions_inf():
     assert eval("isinf(pi)") == False
     assert eval("isinf(nan)") == False
 
+
 def test_builtin_functions_const():
     # these are normal functions
     assert eval("pi") == math.pi
     assert eval("euler") == math.e
     assert eval("tau") == math.tau
 
+
 def test_builtin_functions_nan_inf():
     assert math.isnan(eval("nan")) == True
     assert math.isinf(eval("inf")) == True
+
 
 def test_builtin_functions_floor():
     assert eval("floor(0.49)") == 0
     assert eval("floor(0.51)") == 0
 
+
 def test_builtin_functions_conversion():
     assert eval("degrees(1.3)") == math.degrees(1.3)
     assert eval("radians(123)") == math.radians(123)
+
 
 def test_builtin_functions_random():
     import statistics
@@ -417,11 +465,13 @@ def test_builtin_functions_random():
     assert mean_value > randmax * 0.4 and mean_value < randmax * 0.6
     assert variance_value > randmax
 
+
 def test_builtin_functions_sleep():
     import time
     t = time.time()
     assert eval("sleep(0.1)") == None
     assert time.time() - t < 0.05
+
 
 def test_comments():
     assert eval("") == None
@@ -434,6 +484,7 @@ def test_comments():
     assert eval("1 # comment") == 1
     assert eval("1     #           comment") == 1
 
+
 def test_comments_shebang():
     # want to allow this. Normally the ' ' after the '#' is
     # mandatory, so this is an exception
@@ -441,13 +492,16 @@ def test_comments_shebang():
     assert eval("#!/usr/bin/python") == None
     assert eval("#!flolang") == None
 
+
 def test_inline_double_declaration_to_itself():
     with pytest.raises(Exception):
         eval("let mut int a = 3 == a")
 
+
 def test_dict_literal_1():
     eval("{a: 1, b: 2}")
     eval("{a: 1, b: 2,}")
+
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_dict_literal_2():
@@ -455,19 +509,23 @@ def test_dict_literal_2():
     eval("dyn dict i = {a: 1, b: 2}")
     eval("dyn dict i = {pi, euler, tau}")
 
+
 def test_dict_literal_3():
     eval("let int i = {a: 1, b: 2}")
     eval("let int i = {a: 1, b: 2}")
     eval("let int i = {pi, euler, tau}")
+
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_set_literal_1():
     eval("dyn set i = pi, euler, tau}")
     eval("dyn set i = {1, 2, 3}")
 
+
 def test_list_literal_1():
     eval("[1, 2, 3]")
     eval("[1, 2, 3,]")
+
 
 @pytest.mark.skip(reason="not yet implemented correctly")
 def test_list_literal_2():
@@ -482,16 +540,19 @@ def test_member_expression_1():
     eval_parse("foo.bar[1]")
     eval_parse("foo.bar()")
 
+
 def test_member_expression_2():
     eval_parse("foo[0].bar")
     eval_parse("foo[0].bar[1]")
     eval_parse("foo[0].bar()")
+
 
 @pytest.mark.skip(reason="Test not yet implemented correctly")
 def test_member_expression_3():
     eval_parse("foo().bar")
     eval_parse("foo().bar[1]")
     eval_parse("foo().bar()")
+
 
 def test_return_expression():
     assert eval("""
@@ -502,7 +563,9 @@ fn foo(int n) int:
         return n
 foo(7)
 
-""") == 7
+"""
+) == 7
+
 
 def test_function_default_values_1():
     assert eval("""
@@ -510,6 +573,7 @@ fn foo(int n = 123) int:
     return n
 foo()
 """) == 123
+
 
 def test_function_default_values_2():
     #this is not allowed
@@ -520,12 +584,14 @@ fn foo(int n) int:
 foo() # this is not allowed
 """)
 
+
 def test_function_default_values_3():
     assert eval("""
 fn foo(int a, int b = 2) int:
     return a + b
 foo(10)
 """) == 12
+
 
 def test_function_default_values_4():
     assert eval("""
@@ -534,12 +600,14 @@ fn foo(int a, int b = 2) int:
 foo(10, 20)
 """) == 30
 
+
 def test_function_default_values_5():
     assert eval("""
 fn foo(int a = 1, int b = 2) int:
     return a + b
 foo(10, 20)
 """) == 30
+
 
 def test_function_default_values_6():
     assert eval("""
@@ -548,6 +616,7 @@ fn foo(int a = 1, int b) int:
 foo(10, 20)
 """) == 30
 
+
 def test_function_default_values_7():
     assert eval("""
 fn foo(int a, int b = 2) int:
@@ -555,12 +624,14 @@ fn foo(int a, int b = 2) int:
 foo(10)
 """) == 12
 
+
 def test_function_default_values_8():
     assert eval("""
 fn foo(int a = 1, int b = 2) int:
     return a + b
 foo(10)
 """) == 12
+
 
 def test_function_default_values_9():
     with pytest.raises(Exception):
@@ -570,6 +641,7 @@ fn foo(int a = 1, int b) int:
 foo(10)
 """)
 
+
 def test_function_default_values_10():
     with pytest.raises(Exception):
         eval("""
@@ -578,12 +650,14 @@ fn foo(int a, int b = 2) int:
 foo()
 """)
 
+
 def test_function_default_values_11():
     assert eval("""
 fn foo(int a = 1, int b = 2) int:
     return a + b
 foo()
 """) == 3
+
 
 def test_function_default_values_12():
     with pytest.raises(Exception):
@@ -593,12 +667,14 @@ fn foo(int a = 1, int b) int:
 foo()
 """)
 
+
 def test_function_default_value_syntax_1():
     assert eval("""
 fn foo(int a= 1, int b) int:
     return a + b
 foo(1, 3)
 """) == 4
+
 
 def test_function_default_value_syntax_2():
     assert eval("""
@@ -607,6 +683,7 @@ fn foo(int a =1, int b) int:
 foo(1, 3)
 """) == 4
 
+
 def test_function_default_value_syntax_3():
     assert eval("""
 fn foo(int a=1, int b) int:
@@ -614,18 +691,22 @@ fn foo(int a=1, int b) int:
 foo(1, 3)
 """) == 4
 
+
 def test_function_default_value_syntax_4():
     assert eval("""
 fn foo(int a=1 , int b) int:
     return a + b
 foo(1, 3)
 """) == 4
+    
+
 def test_function_default_value_syntax_5():
     assert eval("""
 fn foo(int a= 1) int:
     return a
 foo(1)
 """) == 1
+
 
 def test_function_default_value_syntax_6():
     assert eval("""
@@ -634,12 +715,14 @@ fn foo(int a =1) int:
 foo(1)
 """) == 1
 
+
 def test_function_default_value_syntax_7():
     assert eval("""
 fn foo(int a=1) int:
     return a
 foo(1)
 """) == 1
+
 
 def test_function_default_value_syntax_8():
     assert eval("""
@@ -648,12 +731,14 @@ fn foo(int a=1 ) int:
 foo(1)
 """) == 1
 
+
 def test_function_default_value_with_expression_1():
     assert eval("""
 fn foo(int a = 2**8) int:
     return a
 foo()
 """) == 256
+
 
 def test_function_default_value_with_expression_2():
     # ok, cool, but ... is this a good idea? Python allows this
@@ -667,6 +752,7 @@ fn foo(int a = bar()) int:
     return a
 foo()
 """) == 42
+
 
 def test_function_default_value_with_expression_3():
     # ok, cool, but ... is this a good idea? Python allows this
@@ -687,11 +773,13 @@ fn foo(int a = bar()) int:
 bar_ran
 """) == 1
 
+
 def test_continue_expression():
     with pytest.raises(Exception):
         eval("continue #not allowed because this is not a loop")
     with pytest.raises(Exception):
         eval("continue")
+
 
 def test_break_expression():
     with pytest.raises(Exception):
@@ -699,11 +787,13 @@ def test_break_expression():
     with pytest.raises(Exception):
         eval("break")
 
+
 def test_return_expression():
     with pytest.raises(Exception):
         eval("return #not allowed because this is not a function")
     with pytest.raises(Exception):
         eval("return")
+
 
 def test_break_not_allowed_in_function_1():
     with pytest.raises(Exception):
@@ -712,6 +802,7 @@ fn foo(int n) int:
     break # not allowed in function
 foo(7)
 """) == 7
+
 
 def test_break_not_allowed_in_function_2():
     with pytest.raises(Exception):
@@ -722,6 +813,7 @@ fn foo(int n) int:
 foo(7)
 """) == 7
 
+
 def test_function_is_executed_after_program_variable_declarations_normal():
     assert eval("""
 fn ret(int x) int:
@@ -730,21 +822,25 @@ ret(714)
 6
 """) == 714
 
+
 def test_function_is_executed_after_program_variable_declarations_native():
     assert eval("""
 sin(pi/2)
 8
 """) == 1.0
 
+
 def test_unreachable():
     with pytest.raises(error.RuntimeException):
         eval("unreachable")
+
 
 def test_delete_1():
     eval("""
 let int i = 0
 delete i
 """)
+
 
 def test_delete_2():
     # delete is not allowed in normal mode without the script shebang.
@@ -754,7 +850,8 @@ def test_delete_2():
         eval("""
 static int i = 0
 delete i
-""", shebang = None)
+""", shebang=None)
+
 
 def test_delete_3():
     eval("""
@@ -762,6 +859,7 @@ let int i = 0
 delete i
 let int i = 0
 """)
+
 
 def test_delete_4():
     with pytest.raises(error.RuntimeException):

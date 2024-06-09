@@ -4,7 +4,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
-import pytest, math, time
 
 
 def test_dynamic_array_1():

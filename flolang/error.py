@@ -1,8 +1,12 @@
 
 class RuntimeException(Exception):
     pass
+
+
 class ParserError(Exception):
     pass
+
+
 class TokenError(Exception):
     pass
 
@@ -26,6 +30,7 @@ def runtime_error(comment: str, loc=None):
     message = error_text(comment, full_line, file, line_nr, start, length)
     raise RuntimeException(message)
 
+
 def parser_error(comment: str, start_token, end_token):
     file = start_token.symbols[0]
     line_nr = start_token.symbols[1]
@@ -38,8 +43,10 @@ def parser_error(comment: str, start_token, end_token):
     message = error_text(comment, full_line, file, line_nr, start, length)
     raise ParserError(message)
 
+
 def error_token(comment: str, token):
     error_symbol(comment, token.symbols)
+
 
 def error_symbol(comment: str, symbols: tuple):
     file, line_nr, line_pos, full_line = symbols
@@ -50,9 +57,10 @@ def error_symbol(comment: str, symbols: tuple):
 def error_text(comment, full_line, file=None, line_nr=0, line_pos=0, length=1):
     indicator = " " * line_pos + "^" * length
     filename = "None"
-    if file != None:
+    if file is not None:
         filename = '"' + file + '"'
-    msg = "File %s, line %d.\n%s\n%s\n%s" % (filename, line_nr, full_line, indicator, comment)
+    msg = "File %s, line %d.\n%s\n%s\n%s" % (filename, line_nr, full_line,
+                                             indicator, comment)
     return msg
 
 

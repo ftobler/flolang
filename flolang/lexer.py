@@ -1,6 +1,4 @@
-from enum import auto
 import re
-from .error import error_token
 from .error import error_symbol
 
 ignores = [" ", "\t", "\n", "\r"]
@@ -104,7 +102,8 @@ MUT = "mut"
 DYN = "dyn"
 PASS = "pass"
 IN = "in"
-# IS = "is"
+ISNOT = "is not"  # logical !=. Also used to check dynamic References
+IS = "is"  # logical ==. Also used to check dynamic References
 UNREACHABLE = "unreachable"
 ALLOC = "@alloc"
 DELETE = "delete"
@@ -114,7 +113,7 @@ keyword_tokens = [
 ]
 
 potentially_reserved_keywords = [
-    "data", "is", "from", "struct", "switch",
+    "data", "from", "struct", "switch",
     # since this aims to be comptaible with C, some keywords should be allocated here
     # because cant have a variable with the same name or it might cause issues
     "void", "do", "auto", "alignas", "alignof", "chase", "constexpr", "default", "extern",
@@ -145,6 +144,7 @@ potentially_reserved_keywords = [
 
 SHEBANG = "#!"
 
+
 # Counts the number of leading spaces in a string.
 def count_leading_spaces(string: str) -> int:
     count = 0
@@ -154,22 +154,26 @@ def count_leading_spaces(string: str) -> int:
         count += 1
     return count
 
+
 def count_idents(string: str, symbols: tuple) -> int:
     spaces = count_leading_spaces(string)
     if spaces % 4 == 0:
         return spaces // 4
     error_symbol("indentation is not a multiple of 4 (its %d)." % spaces, symbols)
 
+
 def consume_idents(line: str, ident: int) -> str:
     return line[(ident*4):]
 
+
 class Token:
-    def __init__(self, symbols: tuple, type: any, value: any=None):
+    def __init__(self, symbols: tuple, type: any, value: any = None):
         self.type = type
         self.value = value
         # debug symbols. If anything goes wrong, want to have the information which line is affected
         # self.filename, self.line_nr, self.line_pos, self.line = symbols
         self.symbols = symbols
+
     def __repr__(self):
         type_str = ""
         if isinstance(self.type, str):
@@ -193,8 +197,9 @@ class Token:
         if self.value:
             return "%s:'%s'" % (type_str, self.value)
         return "%s" % (type_str)
+
     def len(self):
-        if self.value != None:
+        if self.value is not None:
             return len(self.value)
         if isinstance(self.type, str):
             return len(self.type)
@@ -207,7 +212,7 @@ def remove_comments(line):
     # except the comment is at the start of the input.
 
     # return re.sub("(?:^| * )#(?: .*|$|!.*)", "", line)  # allow shebang
-    return re.sub("(?:^| * )#(?: .*|$)", "", line)  #do not allow shebang
+    return re.sub("(?:^| * )#(?: .*|$)", "", line)  # do not allow shebang
 
 
 def starts_with_alphanumeric(string, prefix):
@@ -216,6 +221,7 @@ def starts_with_alphanumeric(string, prefix):
             return not string[len(prefix)].isalnum()
         return True  # end of input, keyword still matches
     return False
+
 
 def check_numeric_expression_for_dotdot(string):
     index = string.find("..")
@@ -230,10 +236,12 @@ def check_numeric_expression_for_dotdot(string):
             return candidate
     return string
 
+
 def string_escape(input):
     return input.replace("\\'", "'").replace('\\"', '"').replace('\\`', '`').replace('\\\\', '\\')
 
-def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
+
+def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
     tokens = []
     tokenlist_symbolic = string_tokens + small_tokens
     tokenlist_symbolic.sort()
@@ -305,7 +313,7 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
                 match = re.search("^[a-zA-Z_]+[a-zA-Z_0-9]*", source)
                 if match:
                     identifier = match[0]
-                    if not identifier in potentially_reserved_keywords:
+                    if identifier not in potentially_reserved_keywords:
                         tokens.append(Token(symbols, IDENTIFIER, identifier))
                         source = source[len(identifier):]
                         found = True
@@ -319,7 +327,7 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
                 match = re.search("^0x[0-9a-fA-F]+", source)
                 if match:
                     number = match[0]
-                    #it is a valid integer but given in hex format
+                    # it is a valid integer but given in hex format
                     tokens.append(Token(symbols, NUMBER, number))
                     source = source[len(number):]
                     found = True
@@ -346,7 +354,7 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 match = re.search('^"((?:[^"\\\\]*(?:\\\\.[^"\\\\]*)*))"', source)
                 if match:
-                    string = match[1]  #need group 1 containing the string without "
+                    string = match[1]  # need group 1 containing the string without "
                     string = string_escape(string)  # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
@@ -356,7 +364,7 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 match = re.search("^'((?:[^'\\\\]*(?:\\\\.[^'\\\\]*)*))'", source)
                 if match:
-                    string = match[1]  #need group 1 containing the string without "
+                    string = match[1]  # need group 1 containing the string without "
                     string = string_escape(string)  # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
@@ -366,7 +374,7 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 match = re.search("^`((?:[^`\\\\]*(?:\\\\.[^`\\\\]*)*))`", source)
                 if match:
-                    string = match[1]  #need group 1 containing the string without "
+                    string = match[1]  # need group 1 containing the string without "
                     string = string_escape(string)  # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
@@ -386,7 +394,6 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             last_token = tokens[-1]
             if last_token.type is RETURN:
                 last_token.value = 1
-
 
     # insert the needed amount of block endings according current operating ident.
     while current_ident > 0:

@@ -11,7 +11,6 @@ import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
 
 
-
 def test_runtime_error_1():
     with pytest.raises(err.RuntimeException):
         err.runtime_error("comment")

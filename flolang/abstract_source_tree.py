@@ -3,10 +3,12 @@ import flolang.lexer as lexer
 from .lexer import Token
 from .error import error_token, parser_error
 
+
 class Location:
     def __init__(self, start: Token, end: Token):
         self.start = start
         self.end = end
+
     def __repr__(self):
         #
         line = self.start.symbols[3]
@@ -17,56 +19,72 @@ class Location:
             return '"' + snippet + '"'
         return str(self.start) + ".." + str(self.end)
 
+
 class NoLocation(Location):
     def __init__(self):
         super().__init__(None, None)
+
     def __repr__(self):
         return "?"
+
 
 class Statement:
     def __init__(self):
         self.kind = type(self).__name__
         self.loc = NoLocation()
+
     def __repr__(self):
         return str(self.json())
+
     def json(self):
         return vars(self)
+
     def location(self, start: Token, end: Token):
         self.loc = Location(start, end)
         return self
 
+
 class Expression(Statement):
     pass
+
 
 class Program(Statement):
     def __init__(self):
         super().__init__()
         self.body = []
 
+
 class Type(Statement):
     def __init__(self, type: str):
         super().__init__()
         self.type = type
 
+
 class VariableDeclaration(Statement):
-    def __init__(self, mutable: bool, type: Type, identifier: str, value: Expression):
+    def __init__(self, mutable: bool, dynamic: bool, type: Type, identifier: str, value: Expression):
         super().__init__()
         self.mutable = mutable
+        self.dynamic = dynamic
         self.type = type
         self.identifier = identifier
         self.value = value
 
+
 class LocalVariableDeclaration(VariableDeclaration):
     pass
+
 
 class GlobalVariableDeclaration(VariableDeclaration):
     pass
 
+
 class DynamicVariableDeclaration(VariableDeclaration):
     pass
 
+
 class ClassMemberVariableDeclaration(VariableDeclaration):
     pass
+
 
 class ParameterStatement(Statement):
     def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression = None):
@@ -76,10 +94,12 @@ class ParameterStatement(Statement):
         self.identifier = identifier
         self.default = default
 
+
 class BlockStatement(Statement):
     def __init__(self, body: list[Statement]):
         super().__init__()
         self.body = body
+
 
 class FunctionDeclaration(Statement):
     def __init__(self, parameters: list[ParameterStatement], result: Type, identifier: str, body: BlockStatement):
@@ -89,16 +109,17 @@ class FunctionDeclaration(Statement):
         self.identifier = identifier
         self.body = body
 
+
 class ClassMemberFunctionDeclaration(FunctionDeclaration):
     pass
 
+
 class ClassDeclaration(Statement):
     def __init__(self, classname: str,
-                functions: list[ClassMemberFunctionDeclaration],
-                dynamics: list[ClassMemberVariableDeclaration],
-                mutables: list[ClassMemberVariableDeclaration],
-                constants: list[ClassMemberVariableDeclaration]
-                ):
+                 functions: list[ClassMemberFunctionDeclaration],
+                 dynamics:  list[ClassMemberVariableDeclaration],
+                 mutables:  list[ClassMemberVariableDeclaration],
+                 constants: list[ClassMemberVariableDeclaration]):
         super().__init__()
         self.classname = classname
         self.functions = functions
@@ -106,11 +127,13 @@ class ClassDeclaration(Statement):
         self.mutables = mutables
         self.constants = constants
 
+
 class EnumFieldDeclaration(Statement):
     def __init__(self, identifier: str, value: Expression = None):
         super().__init__()
         self.identifier = identifier
         self.value = value
+
 
 class EnumDeclaration(Statement):
     def __init__(self, enumname: str, fields: list[EnumFieldDeclaration]):
@@ -118,10 +141,12 @@ class EnumDeclaration(Statement):
         self.enumname = enumname
         self.fields = fields
 
+
 class AllocatorSwitch(Statement):
     def __init__(self, identifier: str):
         super().__init__()
         self.identifier = identifier
+
 
 class ElvisExpression(Statement):
     def __init__(self, condition: Expression, consequent: Statement, alternate: Statement):
@@ -130,12 +155,14 @@ class ElvisExpression(Statement):
         self.consequent = consequent
         self.alternate = alternate
 
+
 class IfExpression(Statement):
     def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement = None):
         super().__init__()
         self.test = condition
         self.consequent = consequent
         self.alternate = alternate
+
 
 class ForExpression(Statement):
     def __init__(self, type: Type, identifier: str, body: BlockStatement, quantity_min: Expression, quantity_max: Expression):
@@ -146,34 +173,40 @@ class ForExpression(Statement):
         self.quantity_min = quantity_min
         self.quantity_max = quantity_max
 
+
 class WhileExpression(Statement):
     def __init__(self, condition: Expression, body: BlockStatement):
         super().__init__()
         self.condition = condition
         self.body = body
 
+
 class ReturnExpression(Statement):
-    value: Expression
     def __init__(self, value: Expression = None):
         super().__init__()
         self.value = value
+
 
 class BreakExpression(Statement):
     def __init__(self):
         super().__init__()
 
+
 class ContinueExpression(Statement):
     def __init__(self):
         super().__init__()
+
 
 class UnreachableExpression(Statement):
     def __init__(self):
         super().__init__()
 
+
 class DeleteExpression(Statement):
     def __init__(self, identifier: str):
         super().__init__()
         self.identifier = identifier
+
 
 class AssignmentExpression(Expression):
     def __init__(self, assignee: Expression, value: Expression, operator: str):
@@ -182,6 +215,7 @@ class AssignmentExpression(Expression):
         self.value = value
         self.operator = operator
 
+
 class BinaryExpression(Expression):
     def __init__(self, left: Expression, right: Expression, operator: str):
         super().__init__()
@@ -189,11 +223,13 @@ class BinaryExpression(Expression):
         self.right = right
         self.operator = operator
 
+
 class UnaryBeforeExpression(Expression):
     def __init__(self, expr: Expression, operator: str):
         super().__init__()
         self.expr = expr
         self.operator = operator
+
 
 class UnaryIdentifierBeforeExpression(Expression):
     def __init__(self, identifier: str, operator: str):
@@ -201,11 +237,13 @@ class UnaryIdentifierBeforeExpression(Expression):
         self.identifier = identifier
         self.operator = operator
 
+
 class UnaryIdentifierAfterExpression(Expression):
     def __init__(self, identifier: str, operator: str):
         super().__init__()
         self.identifier = identifier
         self.operator = operator
+
 
 class CallExpression(Expression):
     def __init__(self, caller: Expression, arguments: list[Expression]):
@@ -213,28 +251,34 @@ class CallExpression(Expression):
         self.caller = caller
         self.arguments = arguments
 
+
 class MemberExpression(Expression):
     def __init__(self, object: Expression, key: Expression, computed: bool):
         super().__init__()
         self.object = object
         self.key = key
-        self.computed = computed  #TODO unused?
+        self.computed = computed  # TODO unused?
+
 
 class ShebangExpression(Expression):
     def __init__(self, shebang: str):
         super().__init__()
         self.shebang = shebang
 
+
 class Literal(Expression):
     pass
 
+
 class SimpleLiteral(Literal):
     pass
+
 
 class Identifier(SimpleLiteral):
     def __init__(self, symbol: str):
         super().__init__()
         self.symbol = symbol
+
 
 class NumericLiteral(SimpleLiteral):
     def __init__(self, value_raw: str):
@@ -245,39 +289,47 @@ class NumericLiteral(SimpleLiteral):
         else:
             self.value = int(value_raw)
 
+
 class FloatLiteral(SimpleLiteral):
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
         self.value = float(value_raw)
 
+
 class StringLiteral(SimpleLiteral):
     def __init__(self, value: str):
         super().__init__()
         self.value = value
 
+
 # dont count them to simple literals, because They are dynamic
 
+
 class ObjectProperty(Literal):
-    def __init__(self, key: str, value: Expression=None):
+    def __init__(self, key: str, value: Expression = None):
         super().__init__()
         self.key = key
         self.value = value
+
 
 class ObjectLiteral(Literal):
     def __init__(self, properties: list[ObjectProperty]):
         super().__init__()
         self.properties = properties
 
+
 class ListLiteral(Literal):
     def __init__(self, values: list[Expression]):
         super().__init__()
         self.values = values
 
+
 class SetLiteral(Literal):
     def __init__(self, values: list[Expression]):
         super().__init__()
         self.values = values
+
 
 class TupleLiteral(Literal):
     def __init__(self, values: list[Expression]):
@@ -285,11 +337,9 @@ class TupleLiteral(Literal):
         self.values = values
 
 
-
-
 class Parser:
     def __init__(self):
-        self.tokens: list[Token] # tokens from lexer
+        self.tokens: list[Token]  # tokens from lexer
         self._last_eaten = None
 
     def not_eof(self) -> bool:
@@ -406,9 +456,9 @@ class Parser:
         #                 ^^^^^
         value = self.parse_expression()
         if is_static:
-            return GlobalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at_last())
+            return GlobalVariableDeclaration(is_mutable, False, type, identifier, value).location(loc_start, self.at_last())
         else:
-            return LocalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at_last())
+            return LocalVariableDeclaration(is_mutable, False, type, identifier, value).location(loc_start, self.at_last())
 
     # fn foo():
     # fn foo(a, b, c) d:
@@ -581,7 +631,6 @@ class Parser:
             # but only one item in body is allowed.
             body = [self.parse_statement()]
 
-
         return BlockStatement(body).location(loc_start, self.at())
 
     # for int n in 50:
@@ -652,7 +701,7 @@ class Parser:
         # that exists for that. Instead the value of the return keyword has been
         # annotated and is 1 for end of line and default None if there are more
         # tokens on the same line.
-        if value == None:
+        if value is None:
             # return (...)
             #        ^^^^^
             right = self.parse_expression()
@@ -697,7 +746,6 @@ class Parser:
         #        ^^^^^^^^^^
         identifier = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % lexer.DELETE, loc_start).value
         return DeleteExpression(identifier).location(loc_start, self.at())
-
 
     # #:flolang
     def parse_shebang(self):
@@ -802,7 +850,7 @@ class Parser:
         # mut int a = (...)
         #             ^^^^^
         value = self.parse_expression()
-        return ClassMemberVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at())
+        return ClassMemberVariableDeclaration(is_mutable, is_dynamic, type, identifier, value).location(loc_start, self.at())
 
     def parse_enum(self):
         # eat then 'enum' keyword
@@ -1028,7 +1076,7 @@ class Parser:
     def parse_logic_equality_expr(self):
         loc_start = self.at()
         left = self.parse_logic_compare_expr()
-        expressions = [lexer.COMPARE, lexer.NOTCOMPARE]
+        expressions = [lexer.COMPARE, lexer.NOTCOMPARE, lexer.ISNOT, lexer.IS]
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_logic_compare_expr()
@@ -1060,7 +1108,6 @@ class Parser:
             right = self.parse_additive_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
         return left  # no more things to do, return last expression
-
 
     # (...) + (...)
     # (...) - (...)
@@ -1176,7 +1223,8 @@ class Parser:
     # (1, 2, 3)
     def parse_call_arguments(self):
         loc_start = self.at()
-        self.eat_expect(lexer.COURVE_L, "Call is denoted with its list and must begin with '%s' even when empty." % lexer.COURVE_L, loc_start)
+        self.eat_expect(lexer.COURVE_L, "Call is denoted with its list and must begin with '%s' even when empty." %
+                        lexer.COURVE_L, loc_start)
         if self.at().type is lexer.COURVE_R:
             # call argument list is empy
             args = []
@@ -1218,7 +1266,8 @@ class Parser:
                 child = self.parse_primary_expr()
                 computed = False
                 if not isinstance(child, Identifier):
-                    parser_error("Cannot use '%s' operator without right hand side being a identifier." % lexer.DOT, loc_start, self.at())
+                    parser_error("Cannot use '%s' operator without right hand side being a identifier." % lexer.DOT,
+                                 loc_start, self.at())
             else:
                 # operator is '['
                 # this value could be any other expression

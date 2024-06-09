@@ -12,9 +12,10 @@ if __name__ == "__main__":
 
 
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
-from colorama import Fore, Back, Style
+from colorama import Fore, Style  # Back
 
 pretty_print = True
+
 
 def main_console():
     print("flolang v0.1 by ftobler")
@@ -34,19 +35,27 @@ def main_console():
             env.assign("_", value, None)
             print(to_native(value))
         except Exception as e:
-            if pretty_print: print(Fore.LIGHTBLACK_EX, end="")
-            if tok_copy: print(tok_copy)
-            if ast: print(ast.json())
-            if value: print(value)
+            if pretty_print:
+                print(Fore.LIGHTBLACK_EX, end="")
+            if tok_copy:
+                print(tok_copy)
+            if ast:
+                print(ast.json())
+            if value:
+                print(value)
             typename = type(e).__name__
-            if pretty_print: print(Fore.RED, end="")
+            if pretty_print:
+                print(Fore.RED, end="")
             print(typename, ":", e)
-            if pretty_print: print(Style.RESET_ALL, end="")
+            if pretty_print:
+                print(Style.RESET_ALL, end="")
+
 
 def declare_arguments(env, arguments):
     # declare argument array in environment
     command = "static int __argv = " + str(arguments).replace("'", '"')
     eval(command, env=env, shebang=None)
+
 
 def main_execute(script_file, arguments):
     with open(script_file, "r") as f:
@@ -55,8 +64,9 @@ def main_execute(script_file, arguments):
         ast = parse(tok)
         env = default_environment()
         declare_arguments(env, arguments)
-        _value = interpret(ast, env)
-        # print(value)
+        interpret(ast, env)
+        # print(value)  # value is the result of interpret()
+
 
 def parse_arguments(argv):
     # note: arguments at this stage are
@@ -72,6 +82,7 @@ def parse_arguments(argv):
         else:
             break
     return switches, args
+
 
 def main():
     _switches, args = parse_arguments(sys.argv)

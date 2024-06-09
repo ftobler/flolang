@@ -2,84 +2,107 @@ import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
 import itertools
 from flolang.error import runtime_error
-import typing  #Callable, Self
+import typing  # Callable, Self
+
 
 class RuntimeValue:
     def __init__(self):
         self.variant = type(self).__name__
+
     def __repr__(self):
         return str(self.json())
+
     def json(self):
         return vars(self)
+
 
 class NoneValue(RuntimeValue):
     def __init__(self):
         super().__init__()
         self.value = None
+
     def __repr__(self):
         return "None"
+
 
 # instead of instantiating a class with the
 # same content over and over again,
 # reuse this instance
 noneValue = NoneValue()
 
+
 class BooleanValue(RuntimeValue):
     def __init__(self, value: bool):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return str(self.value)
+
 
 class NumberValue(RuntimeValue):
     def __init__(self, value: int):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return str(self.value)
+
 
 class StringValue(RuntimeValue):
     def __init__(self, value: str):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return '"' + str(self.value) + '"'
+
 
 class ListValue(RuntimeValue):
     def __init__(self, value: list[any]):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return str(self.value)
         # return '"' + ",".join([str(s) for s in self.value]) + '"'
+
 
 class ObjectValue(RuntimeValue):
     def __init__(self, value: object):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return str(self.value)
+
 
 class SetValue(RuntimeValue):
     def __init__(self, value: set):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return str(self.value)
+
 
 class TupleValue(RuntimeValue):
     def __init__(self, value: tuple):
         super().__init__()
         self.value = value
+
     def __repr__(self):
         return str(self.value)
+
 
 class NativeFunction(RuntimeValue):
     def __init__(self, callback: typing.Callable):
         super().__init__()
         self.callback = callback
+
     def __repr__(self):
         return "<native_function>"
+
 
 class RuntimeFunctionParameter:
     def __init__(self, mutable: bool, type: ast.Type, identifier: str, default: RuntimeValue = None):
@@ -88,17 +111,21 @@ class RuntimeFunctionParameter:
         self.identifier = identifier
         self.default = default
 
+
 class RuntimeFunction(RuntimeValue):
     def __init__(self, parameters: list[RuntimeFunctionParameter], result: ast.Type, body: ast.BlockStatement):
         super().__init__()
         self.parameters = parameters
         self.result = result
         self.body = body
+
     def __repr__(self):
         return "<runtime_function>"
 
+
 def statement_error(message, stmt: ast.Statement):
     runtime_error(message, stmt.loc)
+
 
 # small name because its used as enumeration
 class envstate:
@@ -107,8 +134,9 @@ class envstate:
     RETURN = "env_return"
     CONTINUE = "env_continue"
 
+
 class Environment:
-    def __init__(self, parent_environment_self = None, runtime_function : RuntimeFunction = None):
+    def __init__(self, parent_environment_self=None, runtime_function: RuntimeFunction = None):
         self.scope = {}
         self.mutables = []
         self.parent = parent_environment_self  # cannot use typing.Self on older python versions
@@ -150,7 +178,7 @@ class Environment:
     def assign(self, name: str, value: RuntimeValue, stmt: ast.Statement) -> RuntimeValue:
         env = self._resolve(name)
         if env:
-            if not name in env.mutables:
+            if name not in env.mutables:
                 statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
             env.scope[name] = value
             return value
@@ -171,7 +199,6 @@ class Environment:
             return noneValue
         statement_error("Variable '%s' is not defined." % name, stmt)
 
-
     def has(self, name: str):
         return self._resolve(name)
 
@@ -186,6 +213,7 @@ class Environment:
         if self.parent:
             return self.parent._resolve(name)
         return None
+
 
 def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
 
@@ -241,7 +269,6 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.ElvisExpression):
         return interpret_elvis_expression(stmt, env)
 
-
     if isinstance(stmt, ast.ListLiteral):
         return interpret_list_literal(stmt, env)
     if isinstance(stmt, ast.ObjectLiteral):
@@ -260,31 +287,36 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
 
     statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
 
+
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     # TODO: use the type
-    if True:
     # if stmt.type.type is lexer.INT:
+    if True:
         value = interpret(stmt.value, env)
         return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
     # statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
+
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     # TODO: use the type
-    if True:
     # if stmt.type.type is lexer.INT:
+    if True:
         value = interpret(stmt.value, env)
         return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
     # statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
+
 def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
     # TODO: use the type
-    if True:
     # if stmt.type.type is lexer.INT:
+    if True:
         value = interpret(stmt.value, env)
         return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
     # statement_error("Variable type to declare not implemented '%s'." % stmt.type, stmt)
 
+
 interpret_dynamic_variable_declaration
+
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
     left = interpret(stmt.left, env)
@@ -359,6 +391,7 @@ def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBefore
         env.assign(stmt.identifier, variable, stmt)
         return variable
 
+
 def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterExpression, env: Environment) -> RuntimeValue:
     variable_original = env.lookup(stmt.identifier, stmt)
     if stmt.operator is lexer.INCREMENT:
@@ -370,6 +403,7 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
         env.assign(stmt.identifier, variable, stmt)
         return variable_original
     statement_error("Interpret_unary_after_expression unimplemented.", stmt)
+
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
     if isinstance(stmt.assignee, ast.Identifier):
@@ -458,7 +492,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
                 statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
             if env.state is envstate.RETURN:
                 statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
-            if last == None:
+            if last is None:
                 statement_error("Must return a runtime value.", stmt)  # this is a development check mainly
 
     if env.get_root_env().is_script:
@@ -471,7 +505,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
                 statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
             if env.state is envstate.RETURN:
                 statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
-            if last == None:
+            if last is None:
                 statement_error("Must return a runtime value.", stmt)  # this is a development check mainly
     else:
         # in normal or program mode just call main function only.
@@ -482,6 +516,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             last = interpret(ast.CallExpression(ast.Identifier("main"), []), env)
 
     return last
+
 
 def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
     # must interpret the evaluation of the runtime parameters at compile time and not just
@@ -500,6 +535,7 @@ def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) 
     # function declarations are always constant and globally declared
     return env.declare_global(stmt.identifier, RuntimeFunction(runtime_parameters, stmt.result, stmt.body), True, stmt)
 
+
 def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> RuntimeValue:
     # need the function identifier name. interpret the caller expression
     function = interpret(stmt.caller, env)
@@ -507,7 +543,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
     if isinstance(function, NativeFunction):
         argument_list = [interpret(s, env) for s in stmt.arguments]
         result = function.callback(argument_list)
-        if result == None:  # native function might not return anything, fix this here.
+        if result is None:  # native function might not return anything, fix this here.
             result = noneValue
         if not isinstance(result, RuntimeValue):
             statement_error("Result of native function call is not of a runtime type.", stmt)
@@ -520,24 +556,26 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         scope = Environment(env, runtime_function=function)
         for param, argument in itertools.zip_longest(function.parameters, stmt.arguments):
             # make sure the function has enough parameters if not, that is fatal
-            if param == None:
+            if param is None:
                 statement_error("function does not have enough parameters.", stmt)
 
             # TODO: use the type
             if True:
-            # if param.type.type is lexer.INT:
+                # if param.type.type is lexer.INT:
 
                 # evaluate value of provided argument (if provided)
                 # evaluate value per provided function default (if provided)
-                if argument != None:
+                if argument is not None:
                     value = interpret(argument, env)
-                elif param.default != None:
+                elif param.default is not None:
                     # is pre interpreted at declaration time. so this is already a runtime variable
                     value = param.default
                 else:
                     statement_error("Either argument default or a value for argument must be provided", stmt)
 
                 scope.declare_local(param.identifier.value, value, param.mutable, stmt)
+
+            # TODO: use the type
             # else:
                 # statement_error("(Function) variable type to declare not implemented '%s'" % param.type.type, stmt)
 
@@ -557,6 +595,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
 
     statement_error("Function type not implemented.", stmt)
 
+
 def interpret_member_expression(stmt: ast.MemberExpression, env: Environment) -> RuntimeValue:
     object = interpret(stmt.object, env).value
     if isinstance(stmt.key, ast.Identifier):
@@ -570,6 +609,7 @@ def interpret_member_expression(stmt: ast.MemberExpression, env: Environment) ->
     if isinstance(object, list):
         return object[key]
     statement_error("Incompatible Datatype in expression: %s%s%s%s" % (object, lexer.SQUARE_L, key, lexer.SQUARE_R), stmt)
+
 
 def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
     condition = interpret(stmt.test, env)
@@ -593,6 +633,7 @@ def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> Runtime
                 return last
     return noneValue
 
+
 def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> RuntimeValue:
     # make the conditional check and loop.
     # must do this every time
@@ -609,6 +650,7 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
         if env.state is envstate.RETURN:
             return last
     return noneValue
+
 
 def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> RuntimeValue:
     min = interpret(stmt.quantity_min, env).value
@@ -637,6 +679,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
             return last
     return noneValue
 
+
 def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> RuntimeValue:
     # create a new local environment. C has this, so we need too.
     scope = Environment(env)
@@ -654,6 +697,7 @@ def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> Ru
             return last
     return noneValue
 
+
 def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
     if stmt.value:
         # interpret it
@@ -665,13 +709,16 @@ def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) ->
     env.state = envstate.RETURN
     return noneValue
 
+
 def interpret_break_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
     env.state = envstate.BREAK
     return noneValue
 
+
 def interpret_continue_expression(stmt: ast.ContinueExpression, env: Environment) -> RuntimeValue:
     env.state = envstate.CONTINUE
     return noneValue
+
 
 def interpret_elvis_expression(stmt: ast.ElvisExpression, env: Environment) -> RuntimeValue:
     condition = interpret(stmt.test, env)
@@ -686,6 +733,7 @@ def interpret_list_literal(stmt: ast.ListLiteral, env: Environment) -> RuntimeVa
     values = [interpret(value, env) for value in stmt.values]
     return ListValue(values)
 
+
 def interpret_object_literal(stmt: ast.ObjectLiteral, env: Environment) -> RuntimeValue:
     obj = {}
     for property in stmt.properties:
@@ -697,13 +745,16 @@ def interpret_object_literal(stmt: ast.ObjectLiteral, env: Environment) -> Runti
         obj[key] = value
     return ObjectValue(obj)
 
+
 def interpret_set_literal(stmt: ast.SetLiteral, env: Environment) -> RuntimeValue:
     values = [interpret(value, env) for value in stmt.values]
     return SetValue(values)
 
+
 def interpret_tuple_literal(stmt: ast.TupleLiteral, env: Environment) -> RuntimeValue:
     values = [interpret(value, env) for value in stmt.values]
     return TupleValue(values)
+
 
 def interpret_shebang_expression(stmt: ast.ShebangExpression, env: Environment):
     # this is used to configure the interpreter. Conveniently, that is this module.
@@ -715,6 +766,7 @@ def interpret_shebang_expression(stmt: ast.ShebangExpression, env: Environment):
         env.get_root_env().is_script = True
 
     return noneValue
+
 
 def interpret_delete_expression(stmt: ast.DeleteExpression, env: Environment):
     identifier = stmt.identifier
