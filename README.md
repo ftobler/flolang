@@ -41,7 +41,7 @@ not in scope:
 
 ## syntax
 
-With return and break not yet working, use is inconvenient. But below samples execute with the interpreter.
+Stuff might change, but these samples execute with the interpreter.
 ```python
 #!flolang
 
