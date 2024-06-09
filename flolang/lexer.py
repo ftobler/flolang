@@ -110,6 +110,7 @@ DELETE = "delete"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, IF, ELSE, ELIF, WHILE,
     FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, UNREACHABLE, DELETE,
+    ALLOC
 ]
 
 potentially_reserved_keywords = [

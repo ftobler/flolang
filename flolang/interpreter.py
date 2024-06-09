@@ -124,7 +124,8 @@ class RuntimeFunction(RuntimeValue):
 
 
 def statement_error(message, stmt: ast.Statement):
-    runtime_error(message, stmt.loc)
+    mesg = message + " In '%s' statement." % stmt.kind
+    runtime_error(mesg, stmt.loc)
 
 
 # small name because its used as enumeration
@@ -363,7 +364,7 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
         if stmt.operator is lexer.POW:
             return NumberValue(left.value ** right.value)
     except TypeError as te:
-        statement_error("Interpreter type error '%s'. Unable to resolve operation with given types." % str(te), stmt)
+        statement_error('Interpreter type error "%s". Unable to resolve operation with given types.' % str(te), stmt)
     statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
 
 
@@ -377,7 +378,7 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
         return expression  # does nothing
     if stmt.operator is lexer.MINUS:
         return NumberValue(-expression.value)
-    statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
+    statement_error("Statement operator invalid '%s' for unary." % stmt.operator, stmt)
 
 
 def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBeforeExpression, env: Environment) -> RuntimeValue:
@@ -390,6 +391,7 @@ def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBefore
         variable = NumberValue(variable.value - 1)
         env.assign(stmt.identifier, variable, stmt)
         return variable
+    statement_error("Statement operator invalid '%s' for unary." % stmt.operator, stmt)
 
 
 def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterExpression, env: Environment) -> RuntimeValue:
@@ -402,7 +404,7 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
         variable = NumberValue(variable_original.value - 1)
         env.assign(stmt.identifier, variable, stmt)
         return variable_original
-    statement_error("Interpret_unary_after_expression unimplemented.", stmt)
+    statement_error("Statement operator invalid '%s' for unary post expression." % stmt.operator, stmt)
 
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
