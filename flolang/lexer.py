@@ -146,6 +146,16 @@ potentially_reserved_keywords = [
 SHEBANG = "#!"
 
 
+class Symbols:
+    def __init__(self, filename: str, line_nr: int, line_pos: int, line: str):
+        self.filename = filename
+        self.line_nr = line_nr
+        self.line_pos = line_pos
+        self.line = line
+
+    def unpack(self):
+        return self.filename, self.line_nr, self.line_pos, self.line
+
 # Counts the number of leading spaces in a string.
 def count_leading_spaces(string: str) -> int:
     count = 0
@@ -254,7 +264,7 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
     current_ident = 0  # everything starts out as not idented
     for line_nr, full_line in enumerate(lines):
 
-        symbols = (filename, line_nr, 0, full_line)
+        symbols = Symbols(filename, line_nr, 0, full_line)
 
         # must parse shebang before comment removal
         # as its syntax might interfere with the comments
@@ -283,7 +293,7 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
         while len(source):
             line_pos = source_len - len(source)
             found = False
-            symbols = (filename, line_nr, line_pos, full_line)
+            symbols = Symbols(filename, line_nr, line_pos, full_line)
 
             # search the basic symbolic tokens
             # this is combined to be able to distinguish '+' from '+='.
@@ -402,9 +412,9 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
         current_ident -= 1
 
     if len(lines):
-        symbols = (filename, len(lines) - 1, len(lines[-1]) - 1, lines[-1])
+        symbols = Symbols(filename, len(lines) - 1, len(lines[-1]) - 1, lines[-1])
     else:
-        symbols = (filename, 0, 0, "")
+        symbols = Symbols(filename, 0, 0, "")
     tokens.append(Token(symbols, EOF))
     return tokens
 

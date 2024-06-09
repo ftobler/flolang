@@ -37,18 +37,40 @@ def main_console():
         except Exception as e:
             if pretty_print:
                 print(Fore.LIGHTBLACK_EX, end="")
-            if tok_copy:
-                print(tok_copy)
-            if ast:
-                print(ast.json())
-            if value:
-                print(value)
-            typename = type(e).__name__
-            if pretty_print:
+                if tok_copy:
+                    print(tok_copy)
+                if ast:
+                    print(ast.json())
+                if value:
+                    print(value)
+                typename = type(e).__name__
                 print(Fore.RED, end="")
-            print(typename, ":", e)
-            if pretty_print:
+                print(typename, ":", e)
                 print(Style.RESET_ALL, end="")
+            else:
+                if tok_copy:
+                    print(tok_copy)
+                if ast:
+                    print(ast.json())
+                if value:
+                    print(value)
+                typename = type(e).__name__
+                print(typename, ":", e)
+
+            # if pretty_print:
+            #     print(Fore.LIGHTBLACK_EX, end="")
+            # if tok_copy:
+            #     print(tok_copy)
+            # if ast:
+            #     print(ast.json())
+            # if value:
+            #     print(value)
+            # typename = type(e).__name__
+            # if pretty_print:
+            #     print(Fore.RED, end="")
+            # print(typename, ":", e)
+            # if pretty_print:
+            #     print(Style.RESET_ALL, end="")
 
 
 def declare_arguments(env, arguments):

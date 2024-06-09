@@ -13,11 +13,16 @@ class TokenError(Exception):
 
 def runtime_error(comment: str, loc=None):
     if loc:
-        file = loc.start.symbols[0]
-        line_nr = loc.start.symbols[1]
-        full_line = loc.start.symbols[3]
-        start = loc.start.symbols[2]
-        end = loc.end.symbols[2]
+        # file = loc.start.symbols[0]
+        # line_nr = loc.start.symbols[1]
+        # full_line = loc.start.symbols[3]
+        # start = loc.start.symbols[2]
+        # end = loc.end.symbols[2]
+        file = loc.start.symbols.filename
+        line_nr = loc.start.symbols.line_nr
+        full_line = loc.start.symbols.line
+        start = loc.start.symbols.line_pos
+        end = loc.end.symbols.line_pos
         length = end - start + loc.end.len()
         if length <= 0:
             length = 1
@@ -32,11 +37,16 @@ def runtime_error(comment: str, loc=None):
 
 
 def parser_error(comment: str, start_token, end_token):
-    file = start_token.symbols[0]
-    line_nr = start_token.symbols[1]
-    full_line = start_token.symbols[3]
-    start = start_token.symbols[2]
-    end = end_token.symbols[2]
+    # file = start_token.symbols[0]
+    # line_nr = start_token.symbols[1]
+    # full_line = start_token.symbols[3]
+    # start = start_token.symbols[2]
+    # end = end_token.symbols[2]
+    file = start_token.symbols.filename
+    line_nr = start_token.symbols.line_nr
+    full_line = start_token.symbols.line
+    start = start_token.symbols.line_pos
+    end = end_token.symbols.line_pos
     length = end - start + end_token.len()
     if length <= 0:
         length = 1
@@ -49,8 +59,7 @@ def error_token(comment: str, token):
 
 
 def error_symbol(comment: str, symbols: tuple):
-    file, line_nr, line_pos, full_line = symbols
-    message = error_text(comment, full_line, file, line_nr, line_pos)
+    message = error_text(comment, symbols.line, symbols.filename, symbols.line_nr, symbols.line_pos)
     raise TokenError(message)
 
 
