@@ -24,6 +24,7 @@ def crc8(data: bytes, polynomial=0x07, init_value=0x00):
             crc &= 0xFF  # Ensure CRC remains 8-bit
     return crc
 
+
 @pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
 def test_crc_calculation_1():
 
@@ -45,6 +46,7 @@ fn crc8(int[] dat, int polynomial=0x07, int init_value=0x00) int:
 crc8([1,2,3,4])
 
 """) == crc8([1,2,3,4])
+
 
 def test_crc_calculation_2():
 
@@ -68,6 +70,7 @@ for int i in 1..5:
 crc
 
 """) == crc8([1,2,3,4])
+
 
 def test_crc_calculation_3():
 
@@ -123,6 +126,7 @@ fac
 
 """) == 5040
 
+
 def test_factorial_variant_2():
 
     assert eval("""
@@ -150,7 +154,7 @@ else:
 fac
 
 """) == 5040
-    
+
 
 def test_factorial_variant_3():
 
@@ -179,6 +183,7 @@ else:
 fac
 
 """) == 5040
+
 
 # @pytest.mark.skip(reason="Need to debug what goes wrong here")
 def test_factorial_variant_4():
@@ -211,6 +216,7 @@ fac
 
 """) == 5040
 
+
 def test_calc_pi_variant_1():
     assert eval("""
 
@@ -222,6 +228,7 @@ fn printValueOfPi():
 printValueOfPi()
 
 """) == 3.142
+
 
 def test_calc_pi_variant_2():
     assert eval("""
@@ -241,6 +248,7 @@ fn printValueOfPi() int:
 printValueOfPi()
 
 """) == 3.142
+
 
 def test_calc_pi_variant_3():
     assert eval("""
@@ -264,6 +272,7 @@ while i < n:
 s
 
 """) == 3.1315929035585537
+
 
 def test_calc_pi_variant_4():
     assert eval("""

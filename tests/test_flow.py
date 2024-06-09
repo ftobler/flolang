@@ -16,7 +16,7 @@ def test_function_1():
     assert eval("""
 fn foo():
     return 1234
-""") == "<RuntimeFunction>" #not liking the result, but its for now what is coming out here
+""") == "<RuntimeFunction>"  # not liking the result, but its for now what is coming out here
 
 def test_function_2():
     # funtion with returntype

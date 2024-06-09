@@ -74,7 +74,7 @@ BITOR = "|"
 BITAND = "&"
 BITNOT = "~"
 XOR = "^"
-ELVIS = "?" # Ternary conditional operator. Otherwise called 'elvis' in this language
+ELVIS = "?"  # Ternary conditional operator. Otherwise called 'elvis' in this language
 small_tokens = [
     DOT, DOTDOT, COLON, COMMA, COURVE_L, COURVE_R, SQUARE_L, SQUARE_R, WIGGLE_L,
     WIGGLE_R, PLUS, MINUS, MUL, DIV, MOD, POW, ASSIGN, BIGGER, SMALLER,
@@ -167,7 +167,7 @@ class Token:
     def __init__(self, symbols: tuple, type: any, value: any=None):
         self.type = type
         self.value = value
-        #debug symbols. If anything goes wrong, want to have the information which line is affected
+        # debug symbols. If anything goes wrong, want to have the information which line is affected
         # self.filename, self.line_nr, self.line_pos, self.line = symbols
         self.symbols = symbols
     def __repr__(self):
@@ -206,15 +206,15 @@ def remove_comments(line):
     # note that it is enforced that the '#' has a space before and after.
     # except the comment is at the start of the input.
 
-    # return re.sub("(?:^| * )#(?: .*|$|!.*)", "", line) # allow shebang
-    return re.sub("(?:^| * )#(?: .*|$)", "", line) #do not allow shebang
+    # return re.sub("(?:^| * )#(?: .*|$|!.*)", "", line)  # allow shebang
+    return re.sub("(?:^| * )#(?: .*|$)", "", line)  #do not allow shebang
 
 
 def starts_with_alphanumeric(string, prefix):
     if string.startswith(prefix):
         if len(string) > len(prefix):
             return not string[len(prefix)].isalnum()
-        return True # end of input, keyword still matches
+        return True  # end of input, keyword still matches
     return False
 
 def check_numeric_expression_for_dotdot(string):
@@ -238,11 +238,11 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
     tokenlist_symbolic = string_tokens + small_tokens
     tokenlist_symbolic.sort()
     tokenlist_symbolic.reverse()
-    tokenlist_alphanumeric = keyword_tokens # + variable_tokens
+    tokenlist_alphanumeric = keyword_tokens  # + variable_tokens
     tokenlist_alphanumeric.sort()
     tokenlist_alphanumeric.reverse()
     lines = sourcecode.splitlines()
-    current_ident = 0 # everything starts out as not idented
+    current_ident = 0  # everything starts out as not idented
     for line_nr, full_line in enumerate(lines):
 
         symbols = (filename, line_nr, 0, full_line)
@@ -346,8 +346,8 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 match = re.search('^"((?:[^"\\\\]*(?:\\\\.[^"\\\\]*)*))"', source)
                 if match:
-                    string = match[1] #need group 1 containing the string without "
-                    string = string_escape(string) # escape it
+                    string = match[1]  #need group 1 containing the string without "
+                    string = string_escape(string)  # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
                     found = True
@@ -356,8 +356,8 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 match = re.search("^'((?:[^'\\\\]*(?:\\\\.[^'\\\\]*)*))'", source)
                 if match:
-                    string = match[1] #need group 1 containing the string without "
-                    string = string_escape(string) # escape it
+                    string = match[1]  #need group 1 containing the string without "
+                    string = string_escape(string)  # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
                     found = True
@@ -366,8 +366,8 @@ def tokenize(sourcecode: str, filename: str="__unspecified__") -> list[Token]:
             if not found:
                 match = re.search("^`((?:[^`\\\\]*(?:\\\\.[^`\\\\]*)*))`", source)
                 if match:
-                    string = match[1] #need group 1 containing the string without "
-                    string = string_escape(string) # escape it
+                    string = match[1]  #need group 1 containing the string without "
+                    string = string_escape(string)  # escape it
                     tokens.append(Token(symbols, STRING, string))
                     source = source[len(match[0]):]
                     found = True

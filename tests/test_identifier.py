@@ -16,6 +16,7 @@ def test_potentially_reserved_identifiers(keyword):
     with pytest.raises(ParserError):
         eval("let int %s = 0" % keyword)
 
+
 def test_potentially_reserved_identifiers_valid_check():
     assert eval("let int i = 0") == 0
 

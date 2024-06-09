@@ -218,7 +218,7 @@ class MemberExpression(Expression):
         super().__init__()
         self.object = object
         self.key = key
-        self.computed = computed #TODO unused?
+        self.computed = computed  #TODO unused?
 
 class ShebangExpression(Expression):
     def __init__(self, shebang: str):
@@ -256,7 +256,7 @@ class StringLiteral(SimpleLiteral):
         super().__init__()
         self.value = value
 
-#dont count them to simple literals, because They are dynamic
+# dont count them to simple literals, because They are dynamic
 
 class ObjectProperty(Literal):
     def __init__(self, key: str, value: Expression=None):
@@ -390,7 +390,7 @@ class Parser:
         is_mutable = False
         if self.at().type is lexer.MUT:
             is_mutable = True
-            self.eat() # eat 'mut'
+            self.eat()  # eat 'mut'
 
         # let mut type identifier = (...)
         #         ^^^^^^^^^^^^^^^
@@ -415,7 +415,7 @@ class Parser:
     def parse_function_declaration(self, class_member_function=False):
         # fn foo():
         # ^^
-        loc_start = self.eat() # eat 'fn' keyword
+        loc_start = self.eat()  # eat 'fn' keyword
 
         # fn foo():
         #    ^^^
@@ -474,9 +474,9 @@ class Parser:
 
             # (int a = 5, int b)
             #        ^
-            default = None #assume no default available
+            default = None  # assume no default available
             if self.at().type is lexer.ASSIGN:
-                #have a '=' sign here 'int b = 5'
+                # have a '=' sign here 'int b = 5'
                 self.eat()
                 # (int a = 5, int b)
                 #          ^
@@ -542,7 +542,7 @@ class Parser:
 
         at_type = self.at().type
         if at_type is lexer.ELSE:
-            self.eat() # eat 'ELSE'
+            self.eat()  # eat 'ELSE'
             self.eat_expect(lexer.COLON, "Expect '%s' after '%s' | '%s' keywords in '%s' condition." % (lexer.COLON, lexer.ELSE, lexer.ELIF, lexer.IF), loc_start)
             return IfExpression(test, consequent_case, self.parse_block_declaration()).location(loc_start, self.at())
         elif at_type is lexer.ELIF:
@@ -557,7 +557,7 @@ class Parser:
 
         # check if there is a ident change. This will create a BLOCKSTART token
         if self.at().type is lexer.BLOCKSTART:
-            self.eat() # eat BLOCKSTART
+            self.eat()  # eat BLOCKSTART
             # self.eat_expect(lexer.BLOCKSTART, "Expect indented block body after function declaration.", loc_start)
 
             body = []
@@ -614,9 +614,9 @@ class Parser:
         # for int n in 0..50:
         #               ^^
         if self.at().type is lexer.DOTDOT:
-            self.eat() # consume '..'
+            self.eat()  # consume '..'
             quantity_min = quantity_max
-            quantity_max = self.parse_expression() #parse the second quantifier
+            quantity_max = self.parse_expression()  # parse the second quantifier
 
         # consume colon ':'
         self.eat_expect(lexer.COLON, "Expect '%s' after quantifier(s) in '%s' declaration." % (lexer.COLON, lexer.FOR), loc_start)
@@ -777,11 +777,11 @@ class Parser:
         is_mutable = False
         if self.at().type is lexer.MUT:
             is_mutable = True
-            self.eat() # eat 'mut'
+            self.eat()  # eat 'mut'
         is_dynamic = False
         if self.at().type is lexer.DYN:
             is_dynamic = True
-            self.eat() # eat 'dyn'
+            self.eat()  # eat 'dyn'
 
         # mut int a = (...)
         #     ^^^
@@ -846,7 +846,7 @@ class Parser:
     def parse_alloc(self):
         # @alloc allocator_name
         # ^^^^^^
-        loc_start = self.eat() # eat keyword
+        loc_start = self.eat()  # eat keyword
 
         identifier = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % (lexer.ALLOC), loc_start)
 
@@ -859,7 +859,7 @@ class Parser:
 
         # alternative the statments can be consumed. They are syntax checked this way.
         # while self.not_eof() and self.at().type is not lexer.BLOCKEND:
-        #     self.parse_statement() #throw it away
+        #     self.parse_statement()  # throw it away
 
     # (...)
     def parse_expression(self):
@@ -924,7 +924,7 @@ class Parser:
         if self.at().type is not lexer.WIGGLE_L:
             return self.parse_array_expression()
 
-        self.eat() # eat wiggle "{"
+        self.eat()  # eat wiggle "{"
         properties = []
         while self.not_eof() and self.at().type is not lexer.WIGGLE_R:
             loc_start_loop = self.at()
@@ -932,7 +932,7 @@ class Parser:
 
             # handle shorthand key: pair -> { key, }
             if self.at().type is lexer.COMMA:
-                self.eat() #advance comma
+                self.eat()  # advance comma
                 properties.append(ObjectProperty(key).location(loc_start_loop, self.at()))
                 continue
             # handle shorthand key: pair -> { key }
@@ -959,7 +959,7 @@ class Parser:
         if self.at().type is not lexer.SQUARE_L:
             return self.parse_logic_or_expr()
 
-        self.eat() # eat square "["
+        self.eat()  # eat square "["
         list = []
         while self.not_eof() and self.at().type is not lexer.SQUARE_R:
             loop_loc_start = self.at()
@@ -981,7 +981,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_logic_and_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) and (...)
     def parse_logic_and_expr(self):
@@ -991,7 +991,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_bit_logic_or_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) | (...)
     def parse_bit_logic_or_expr(self):
@@ -1001,7 +1001,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_bit_logic_xor_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) ^ (...)
     def parse_bit_logic_xor_expr(self):
@@ -1011,7 +1011,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_bit_logic_and_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) & (...)
     def parse_bit_logic_and_expr(self):
@@ -1021,7 +1021,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_logic_equality_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) == (...)
     # (...) != (...)
@@ -1033,7 +1033,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_logic_compare_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) <= (...)
     # (...) >= (...)
@@ -1047,7 +1047,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_bit_shift_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) << (...)
     # (...) >> (...)
@@ -1059,7 +1059,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_additive_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
 
     # (...) + (...)
@@ -1072,7 +1072,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_multiplicative_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left # no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) * (...)
     # (...) / (...)
@@ -1086,7 +1086,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_exponential_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left #no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # (...) ^ (...)
     def parse_exponential_expr(self):
@@ -1097,7 +1097,7 @@ class Parser:
             operator = self.eat().type
             right = self.parse_single_operator_before_expr()
             left = BinaryExpression(left, right, operator).location(loc_start, self.at())
-        return left #no more things to do, return last expression
+        return left  # no more things to do, return last expression
 
     # not i
     # ~i
@@ -1178,10 +1178,10 @@ class Parser:
         loc_start = self.at()
         self.eat_expect(lexer.COURVE_L, "Call is denoted with its list and must begin with '%s' even when empty." % lexer.COURVE_L, loc_start)
         if self.at().type is lexer.COURVE_R:
-            #call argument list is empy
+            # call argument list is empy
             args = []
         else:
-            #call argument list is not empty
+            # call argument list is not empty
             args = self.parse_call_argument_list()
         self.eat_expect(lexer.COURVE_R, "Expect '%s' to close argument list." % lexer.COURVE_R, loc_start)
         return args
@@ -1194,7 +1194,7 @@ class Parser:
         args.append(self.parse_assignment_expression())
 
         while self.at().type is lexer.COMMA:
-            self.eat() #eat the comma
+            self.eat()  # eat the comma
             args.append(self.parse_assignment_expression())
 
         return args
@@ -1206,12 +1206,12 @@ class Parser:
     # foo[].bar
     # foo.bar[][][].a.b
     def parse_member_expr(self):
-        #the first expression is expected to be here and is a primary
+        # the first expression is expected to be here and is a primary
         obj = self.parse_primary_expr()
 
         while self.at().type is lexer.DOT or self.at().type is lexer.SQUARE_L:
             loc_start = self.at()
-            operator = self.eat() # either '.' or '[
+            operator = self.eat()  # either '.' or '[
 
             if operator.type is lexer.DOT:
                 # the . expressions are non comptable, so they must be a primary_expr
@@ -1246,10 +1246,10 @@ class Parser:
         if type is lexer.STRING:
             return StringLiteral(self.eat().value).location(loc_start, self.at())
         if type is lexer.COURVE_L:
-            self.eat() # eat "("
-            value = self.parse_expression() # evaluate (...)
-            self.eat_expect(lexer.COURVE_R, "Expected '%s' after '%s'." % (lexer.COURVE_R, lexer.COURVE_L), loc_start) # eat ")"
+            self.eat()  # eat "("
+            value = self.parse_expression()  # evaluate (...)
+            self.eat_expect(lexer.COURVE_R, "Expected '%s' after '%s'." % (lexer.COURVE_R, lexer.COURVE_L), loc_start)  # eat ")"
             return value
-        #invalid token reached
+        # invalid token reached
         parser_error("Unexpected or unimplemented token reached. Token is %s." % str(self.at()), loc_start, self.at())
 

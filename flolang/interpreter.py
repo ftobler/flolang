@@ -2,7 +2,7 @@ import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
 import itertools
 from flolang.error import runtime_error
-import typing #Callable, Self
+import typing  #Callable, Self
 
 class RuntimeValue:
     def __init__(self):
@@ -111,7 +111,7 @@ class Environment:
     def __init__(self, parent_environment_self = None, runtime_function : RuntimeFunction = None):
         self.scope = {}
         self.mutables = []
-        self.parent = parent_environment_self # cannot use typing.Self on older python versions
+        self.parent = parent_environment_self  # cannot use typing.Self on older python versions
         self.state = envstate.RUN
         self.runtime_function = runtime_function
         self.is_script = False
@@ -342,7 +342,7 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
     if stmt.operator is lexer.BITNOT:
         return NumberValue(~expression.value)
     if stmt.operator is lexer.PLUS:
-        return expression #does nothing
+        return expression  # does nothing
     if stmt.operator is lexer.MINUS:
         return NumberValue(-expression.value)
     statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
@@ -459,7 +459,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             if env.state is envstate.RETURN:
                 statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
             if last == None:
-                statement_error("Must return a runtime value.", stmt) # this is a development check mainly
+                statement_error("Must return a runtime value.", stmt)  # this is a development check mainly
 
     if env.get_root_env().is_script:
         # in script mode interpret all function calls in order
@@ -472,7 +472,7 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             if env.state is envstate.RETURN:
                 statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
             if last == None:
-                statement_error("Must return a runtime value.", stmt) # this is a development check mainly
+                statement_error("Must return a runtime value.", stmt)  # this is a development check mainly
     else:
         # in normal or program mode just call main function only.
         # any calls to functions are forbidden (for now). Maybe later for something like 'constexpr'
@@ -489,12 +489,12 @@ def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) 
     runtime_parameters = []
     for param in stmt.parameters:
 
-        #check if there is a default. If not None is the default.
+        # check if there is a default. If not None is the default.
         evaluated_default = None
         if param.default:
             evaluated_default = interpret(param.default, env)
 
-        #build the function declaration and add to list
+        # build the function declaration and add to list
         runtime_parameters.append(RuntimeFunctionParameter(param.mutable, param.type, param.identifier, evaluated_default))
 
     # function declarations are always constant and globally declared
@@ -507,7 +507,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
     if isinstance(function, NativeFunction):
         argument_list = [interpret(s, env) for s in stmt.arguments]
         result = function.callback(argument_list)
-        if result == None: # native function might not return anything, fix this here.
+        if result == None:  # native function might not return anything, fix this here.
             result = noneValue
         if not isinstance(result, RuntimeValue):
             statement_error("Result of native function call is not of a runtime type.", stmt)
@@ -543,7 +543,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
 
         # go through all statements and execute
         last = interpret_block_expression(function.body, scope)
-        env.state = scope.state # propagate state outwards
+        env.state = scope.state  # propagate state outwards
         # check for any flow interrupt conditions condition on environment
         if env.state is envstate.BREAK:
             statement_error("Expression '%s' is not allowed outside loop." % lexer.BREAK, stmt)
@@ -553,7 +553,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             # must reset the state because we catched the case and it does not propagate outward
             env.state = envstate.RUN
             return last
-        return noneValue # block has ran to end
+        return noneValue  # block has ran to end
 
     statement_error("Function type not implemented.", stmt)
 
@@ -577,18 +577,18 @@ def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> Runtime
     if condition.value:
         last = interpret_block_expression(stmt.consequent, env)
         if env.state is envstate.BREAK:
-            return noneValue #not allowed here, but might be a loop somewhere on the callstack
+            return noneValue  # not allowed here, but might be a loop somewhere on the callstack
         if env.state is envstate.CONTINUE:
-            return noneValue #not allowed here, but might be a loop somewhere on the callstack
+            return noneValue  # not allowed here, but might be a loop somewhere on the callstack
         if env.state is envstate.RETURN:
             return last
     else:
         if stmt.alternate:
             last = interpret(stmt.alternate, env)
             if env.state is envstate.BREAK:
-                return noneValue #not allowed here, but might be a loop somewhere on the callstack
+                return noneValue  # not allowed here, but might be a loop somewhere on the callstack
             if env.state is envstate.CONTINUE:
-                return noneValue #not allowed here, but might be a loop somewhere on the callstack
+                return noneValue  # not allowed here, but might be a loop somewhere on the callstack
             if env.state is envstate.RETURN:
                 return last
     return noneValue
@@ -623,7 +623,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     for i in range(min, max):
         scope.assign(loopvarname, NumberValue(i), stmt)
         last = interpret_block_expression(stmt.body, scope)
-        env.state = scope.state # propagate state outwards
+        env.state = scope.state  # propagate state outwards
         # check for any flow interrupt conditions condition on environment
         if env.state is envstate.BREAK:
             # must reset the state because we catched the case and it does not propagate outward
@@ -644,7 +644,7 @@ def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> Ru
     last = noneValue
     for statement in stmt.body:
         last = interpret(statement, scope)
-        env.state = scope.state # propagate state outwards
+        env.state = scope.state  # propagate state outwards
         # check for any flow interrupt conditions condition on environment
         if env.state is envstate.BREAK:
             return noneValue

@@ -68,7 +68,7 @@ def parse_arguments(argv):
         arg = args[0]
         if arg.startswith("-"):
             switches.append((arg[1:], args[1]))
-            args = args[2:] # consumed 2 args
+            args = args[2:]  # consumed 2 args
         else:
             break
     return switches, args

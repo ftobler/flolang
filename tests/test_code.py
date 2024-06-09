@@ -6,6 +6,7 @@ from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret
 import pytest
 
+
 # run a script file per filename
 def run_file(file_path):
     basename = os.path.basename(file_path)
@@ -17,16 +18,19 @@ def run_file(file_path):
         value = interpret(ast, env)
         print(value)
 
+
 # get a list of all script files to test
 def get_test_files():
     directory = resolve_path("./code")
     return [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith(".txt")]
+
 
 # TEST
 # Generate test cases dynamically based on files found
 @pytest.mark.parametrize("filename", get_test_files())
 def test_file_automatic(filename):
     run_file(filename)
+
 
 # TEST
 # check that the function getting the script files is not broken
