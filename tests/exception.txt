@@ -1,0 +1,22 @@
+#!flolang
+
+fn crc8_update(int dat, int polynomial=0x07) int:
+    crc ^= dat
+    for int _ in 0..8:
+        if crc & 0x80:
+            crc = (crc << 1) ^ polynomial
+        else:
+            crc = crc << 1
+        crc &= 0xFF  # Ensure CRC remains 8-bit
+        if crc & 0x04:
+            let mut int foo = bar(2**55) ? True : failure
+    return crc
+
+fn main():
+    let int init_value = 0x00
+    let mut int crc = init_value
+    for int i in 1..4:
+        crc = crc8_update(i)
+
+    # print result
+    print(crc)
