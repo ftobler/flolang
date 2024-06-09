@@ -914,10 +914,6 @@ class Parser:
             # ^^^^^
             return expression_or_test
 
-
-        self.test = condition
-        self.consequent = consequent
-        self.alternate = alternate
     # (...)
     # { (...) }
     # { foo: bar }
