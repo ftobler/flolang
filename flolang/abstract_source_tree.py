@@ -768,7 +768,7 @@ class Parser:
         # a = 0
         # ^^^^^
         loc_start = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' in '%s'." % (lexer.COLON, lexer.ENUM))
-        identifier = identifier.value
+        identifier = loc_start.value
 
         # a = 0
         #   ^
