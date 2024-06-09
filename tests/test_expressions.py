@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from tests.context import resolve_path
-from flolang import tokenize, default_environment, parse, interpret, to_native, eval
+from flolang import tokenize, default_environment, parse, interpret, to_native, eval, eval_parse
 import pytest, math, time
 
 def test_literal_number_epressions():
@@ -386,7 +386,6 @@ def test_inline_double_declaration_to_itself():
     with pytest.raises(Exception):
         eval("let mut int a = 3 == a")
 
-@pytest.mark.skip(reason="not yet implemented correctly")
 def test_dict_literal_1():
     eval("{a: 1, b: 2}")
     eval("{a: 1, b: 2,}")
@@ -397,12 +396,16 @@ def test_dict_literal_2():
     eval("dyn dict i = {a: 1, b: 2}")
     eval("dyn dict i = {pi, euler, tau}")
 
-@pytest.mark.skip(reason="not yet implemented correctly")
-def test_set_literal():
-    eval("dyn set i = {pi, euler, tau}")
-    eval("dyn set i = {1, 2, 3}")
+def test_dict_literal_3():
+    eval("let int i = {a: 1, b: 2}")
+    eval("let int i = {a: 1, b: 2}")
+    eval("let int i = {pi, euler, tau}")
 
 @pytest.mark.skip(reason="not yet implemented correctly")
+def test_set_literal_1():
+    eval("dyn set i = pi, euler, tau}")
+    eval("dyn set i = {1, 2, 3}")
+
 def test_list_literal_1():
     eval("[1, 2, 3]")
     eval("[1, 2, 3,]")
@@ -414,17 +417,22 @@ def test_list_literal_2():
     eval("dyn list i = [1, 2, 3]")
     eval("dyn list i = [pi, euler, tau]")
 
+
+def test_member_expression_1():
+    eval_parse("foo.bar")
+    eval_parse("foo.bar[1]")
+    eval_parse("foo.bar()")
+
+def test_member_expression_2():
+    eval_parse("foo[0].bar")
+    eval_parse("foo[0].bar[1]")
+    eval_parse("foo[0].bar()")
+
 @pytest.mark.skip(reason="Test not yet implemented correctly")
-def test_member_expression():
-    eval("foo.bar")
-    eval("foo.bar[1]")
-    eval("foo.bar()")
-    eval("foo[0].bar")
-    eval("foo[0].bar[1]")
-    eval("foo[0].bar()")
-    eval("foo().bar")
-    eval("foo().bar[1]")
-    eval("foo().bar()")
+def test_member_expression_3():
+    eval_parse("foo().bar")
+    eval_parse("foo().bar[1]")
+    eval_parse("foo().bar()")
 
 def test_return_expression():
     assert eval("""
