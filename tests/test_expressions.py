@@ -207,6 +207,27 @@ def test_assignment():
     assert eval("let mut int i = 0x09        i <<= 1") == 0x12
     assert eval("let mut int i = 0x09        i >>= 1") == 0x04
 
+def test_elvis_1():
+    # basic
+    assert eval("True ? 1 : 0") == 1
+    assert eval("False ? 0 : 1") == 1
+
+    # Additional tests
+    assert eval("10 > 5 ? 42 : 99") == 42  # True condition
+    assert eval("not 0 ? 3.14 : 0") == 3.14  # not 0 evaluates to True
+    assert eval("True ? 1 : 0") == 1
+    assert eval("False ? 0 : 1") == 1
+    assert eval("10 > 5 ? 42 : 99") == 42
+    assert eval("not 0 ? 3.14 : 0") == 3.14
+
+def test_elvis_2():
+    assert eval("10 > 5 ? 42 : 99") == 42
+    assert eval("not 0 ? 3.14 : 1") == 3.14
+
+def test_elvis_strings():
+    # Additional tests
+    assert eval('"abc" ? "yes" : "no"') == "yes"  # Non-empty string evaluates to True
+
 def test_variables():
     assert eval("static int i = 0") == 0
     assert eval("static int i = 1") == 1

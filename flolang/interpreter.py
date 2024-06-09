@@ -220,6 +220,9 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         return interpret_break_expression(stmt, env)
     if isinstance(stmt, ast.ContinueExpression):
         return interpret_continue_expression(stmt, env)
+    if isinstance(stmt, ast.ElvisExpression):
+        return interpret_elvis_expression(stmt, env)
+
 
     if isinstance(stmt, ast.ListLiteral):
         return interpret_list_literal(stmt, env)
@@ -639,6 +642,13 @@ def interpret_continue_expression(stmt: ast.ContinueExpression, env: Environment
     env.state = envstate.CONTINUE
     return noneValue
 
+def interpret_elvis_expression(stmt: ast.ElvisExpression, env: Environment) -> RuntimeValue:
+    condition = interpret(stmt.test, env)
+    # make the conditional check
+    if condition.value:
+        return interpret(stmt.consequent, env)
+    else:
+        return interpret(stmt.alternate, env)
 
 
 def interpret_list_literal(stmt: ast.ListLiteral, env: Environment) -> RuntimeValue:
