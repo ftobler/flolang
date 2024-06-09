@@ -8,9 +8,10 @@ import pytest
 
 # run a script file per filename
 def run_file(file_path):
+    basename = os.path.basename(file_path)
     with open(resolve_path(file_path), "r") as f:
         code = f.read()
-        tok = tokenize(code)
+        tok = tokenize(code, filename=basename)
         ast = parse(tok)
         env = default_environment()
         value = interpret(ast, env)

@@ -63,8 +63,6 @@ fn main():
 
     # print result
     print(crc)
-
-main()
 ```
 
 ```python
@@ -88,8 +86,6 @@ fn main():
         let int fac = recur_factorial(num)
         print("Factorial is")
         print(fac)
-
-main()
 ```
 *(syntax highlighting similar to python works)*
 

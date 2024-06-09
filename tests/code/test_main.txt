@@ -1,0 +1,4 @@
+fn main() int:
+    print("Hello World!")
+
+# main() <= don't do this or it will not work

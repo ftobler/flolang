@@ -18,5 +18,3 @@ fn main():
 
     # print result
     print(crc)
-
-main()

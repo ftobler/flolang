@@ -285,6 +285,7 @@ class TupleLiteral(Literal):
 class Parser:
     def __init__(self):
         self.tokens: list[Token] # tokens from lexer
+        self._last_eaten = None
 
     def not_eof(self) -> bool:
         return self.tokens[0].type is not lexer.EOF
@@ -292,8 +293,12 @@ class Parser:
     def at(self) -> Token:
         return self.tokens[0]
 
+    def at_last(self) -> Token:
+        return self._last_eaten
+
     def eat(self) -> Token:
-        return self.tokens.pop(0)
+        self._last_eaten = self.tokens.pop(0)
+        return self._last_eaten
 
     def eat_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
         prev = self.eat()
@@ -315,7 +320,7 @@ class Parser:
     # make the AST (Abstract Syntax Tree)
     def parse(self, tokens: list[Token]) -> Program:
         self.tokens = tokens
-        program = Program()
+        program = Program().location(tokens[0], tokens[-1])
         self.program = program
         # parse until there is nothing left
         while self.not_eof():
@@ -325,7 +330,7 @@ class Parser:
     def parse_statement(self) -> Statement:
         type = self.at().type
         if type is lexer.LET or type is lexer.STATIC:
-            return self.parse_var_declaration()
+            return self.parse_variable_declaration()
         if type is lexer.FUNCTION:
             return self.parse_function_declaration()
         if type is lexer.IF:
@@ -358,7 +363,7 @@ class Parser:
     # let mut a = (...)
     # static mut a
     # static mut a = (...)
-    def parse_var_declaration(self):
+    def parse_variable_declaration(self):
         loc_start = self.at()
 
         # let mut int a = (...)
@@ -390,9 +395,9 @@ class Parser:
         #                 ^^^^^
         value = self.parse_expression()
         if is_static:
-            return GlobalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at())
+            return GlobalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at_last())
         else:
-            return LocalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at())
+            return LocalVariableDeclaration(is_mutable, type, identifier, value).location(loc_start, self.at_last())
 
     # fn foo():
     # fn foo(a, b, c) d:
@@ -462,6 +467,8 @@ class Parser:
             if self.at().type is lexer.ASSIGN:
                 #have a '=' sign here 'int b = 5'
                 self.eat()
+                # (int a = 5, int b)
+                #          ^
                 default = self.parse_expression()
 
             # (int a, int b)

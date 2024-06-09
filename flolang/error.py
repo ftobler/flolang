@@ -22,6 +22,7 @@ def runtime_error(comment: str, loc=None):
         line_nr = 0
         start = 0
         length = 0
+        full_line = ""
     message = error_text(comment, full_line, file, line_nr, start, length)
     raise RuntimeException(message)
 

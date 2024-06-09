@@ -18,5 +18,3 @@ fn main():
         let int fac = recur_factorial(num)
         print("Factorial is")
         print(fac)
-
-main()

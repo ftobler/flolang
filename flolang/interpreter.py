@@ -162,6 +162,9 @@ class Environment:
             return env.scope[name]
         statement_error("Variable '%s' is not defined." % name, stmt)
 
+    def has(self, name: str):
+        return self._resolve(name)
+
     def _resolve(self, name: str):
         if name in self.scope:
             return self
@@ -422,15 +425,9 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
 
 
-
-
-    # statement_error("Can only assign to indentifier. Got '%s' instead. Maybe you meant '%s' instead of '%s'?" % (stmt.assignee.kind, lexer.COMPARE, lexer.ASSIGN), stmt.assignee)
-        
-
-
-
 def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
     last = noneValue
+
     # defer all direct function calls in first pass
     defer = []
     for statement in stmt.body:
@@ -447,17 +444,26 @@ def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
             if last == None:
                 statement_error("Must return a runtime value.", stmt) # this is a development check mainly
 
-    # then interpret everything else
-    for statement in defer:
-        last = interpret(statement, env)
-        if env.state is envstate.BREAK:
-            statement_error("Expression '%s' is not allowed outside loop." % lexer.BREAK, stmt)
-        if env.state is envstate.CONTINUE:
-            statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
-        if env.state is envstate.RETURN:
-            statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
-        if last == None:
-            statement_error("Must return a runtime value.", stmt) # this is a development check mainly
+    if env.is_script:
+        # in script mode interpret all function calls in order
+        for statement in defer:
+            last = interpret(statement, env)
+            if env.state is envstate.BREAK:
+                statement_error("Expression '%s' is not allowed outside loop." % lexer.BREAK, stmt)
+            if env.state is envstate.CONTINUE:
+                statement_error("Expression '%s' is not allowed outside loop." % lexer.CONTINUE, stmt)
+            if env.state is envstate.RETURN:
+                statement_error("Expression '%s' is not allowed outside function." % lexer.RETURN, stmt)
+            if last == None:
+                statement_error("Must return a runtime value.", stmt) # this is a development check mainly
+    else:
+        # in normal or program mode just call main function only.
+        # any calls to functions are forbidden (for now). Maybe later for something like 'constexpr'
+        if len(defer):
+            statement_error("In normal mode the main function gets automatically called. Did you forgot '#!script' shebang?", stmt)
+        if env.has("main"):
+            last = interpret(ast.CallExpression(ast.Identifier("main"), []), env)
+
     return last
 
 def interpret_function_declare(stmt: ast.FunctionDeclaration, env: Environment) -> RuntimeValue:
