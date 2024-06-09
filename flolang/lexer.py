@@ -74,7 +74,7 @@ BITOR = "|"
 BITAND = "&"
 BITNOT = "~"
 XOR = "^"
-ELVIS = "?"
+ELVIS = "?" # Ternary conditional operator. Otherwise called 'elvis' in this language
 small_tokens = [
     DOT, DOTDOT, COLON, COMMA, COURVE_L, COURVE_R, SQUARE_L, SQUARE_R, WIGGLE_L,
     WIGGLE_R, PLUS, MINUS, MUL, DIV, MOD, POW, ASSIGN, BIGGER, SMALLER,

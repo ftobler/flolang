@@ -124,6 +124,13 @@ class AllocatorSwitch(Statement):
         super().__init__()
         self.identifier = identifier
 
+class ElvisExpression(Statement):
+    def __init__(self, condition: Expression, consequent: Statement, alternate: Statement):
+        super().__init__()
+        self.test = condition
+        self.consequent = consequent
+        self.alternate = alternate
+
 class IfExpression(Statement):
     def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement = None):
         super().__init__()
@@ -808,7 +815,7 @@ class Parser:
         loc_start = self.at()
         # foo = bar
         # ^^^
-        assignee = self.parse_object_expression()
+        assignee = self.parse_elvis_operator_expression()
         expressions = [lexer.ASSIGN, lexer.ASSIGNADD, lexer.ASSIGNSUB, lexer.ASSIGNMUL, lexer.ASSIGNDIV,
                        lexer.ASSIGNREM, lexer.ASSIGNBITAND, lexer.ASSIGNBITXOR, lexer.ASSIGNBITOR,
                        lexer.ASSIGNBITSHIFTL, lexer.ASSIGNBITSHIFTR]
@@ -821,6 +828,40 @@ class Parser:
 
         return assignee
 
+    def parse_elvis_operator_expression(self):
+        loc_start = self.at()
+        # (...)
+        # ^^^^^
+        # (...) ? (...) : (...)
+        # ^^^^^
+        expression_or_test = self.parse_object_expression()
+
+        if self.at().type is lexer.ELVIS:
+            # eat '?' / Ternary conditional operator
+            # (...) ? (...) : (...)
+            #       ^
+            self.eat()
+            # (...) ? (...) : (...)
+            #         ^^^^^
+            consequent = self.parse_expression()
+            # (...) ? (...) : (...)
+            #               ^
+            self.eat_expect(lexer.COLON, "Expect '%s' after '%s' Elvis operator." % (lexer.COLON, lexer.ELVIS), loc_start)
+            # (...) ? (...) : (...)
+            #                 ^^^^^
+            alternate = self.parse_expression()
+            # (...) ? (...) : (...)
+            # ^^^^^^^^^^^^^^^^^^^^^
+            return ElvisExpression(expression_or_test, consequent, alternate).location(loc_start, self.at())
+        else:
+            # (...)
+            # ^^^^^
+            return expression_or_test
+
+
+        self.test = condition
+        self.consequent = consequent
+        self.alternate = alternate
     # (...)
     # { (...) }
     # { foo: bar }
@@ -1159,5 +1200,4 @@ class Parser:
             return value
         #invalid token reached
         parser_error("Unexpected or unimplemented token reached. Token is %s." % str(self.at()), loc_start, self.at())
-
 
