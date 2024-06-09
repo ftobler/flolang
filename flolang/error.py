@@ -18,7 +18,7 @@ def runtime_error(comment: str, loc=None):
         if length <= 0:
             length = 1
     else:
-        file = None,
+        file = None
         line_nr = 0
         start = 0
         length = 0
