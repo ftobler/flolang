@@ -881,3 +881,8 @@ def test_alloc_expression():
     # the test is mainly here because of the '@'
     # which makes this keyword special
     eval("@alloc pi")
+
+def test_no_eval():
+    # there must be no eval
+    with pytest.raises(error.RuntimeException):
+        eval("eval('')")
