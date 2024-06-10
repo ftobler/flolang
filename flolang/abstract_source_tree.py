@@ -5,24 +5,28 @@ from .error import error_token, parser_error
 
 
 class Location:
-    def __init__(self, start: Token, end: Token):
+    def __init__(self, start: Token, end: Token, is_multiline):
         self.start = start
         self.end = end
+        self.is_multiline = is_multiline
 
     def __repr__(self):
         #
         line = self.start.symbols.line
         start = self.start.symbols.line_pos
         end = self.end.symbols.line_pos
-        if start < end:
+        if start <= end:
             snippet = line[start:end+1]
             return '"' + snippet + '"'
-        return str(self.start) + ".." + str(self.end)
+        if self.is_multiline:
+            return str(self.start) + ".." + str(self.end)
+        # could just return this, but really something different is wrong
+        raise Exception("Location representation is invalid: " + str(self.start) + ".." + str(self.end))
 
 
 class NoLocation(Location):
     def __init__(self):
-        super().__init__(None, None)
+        super().__init__(None, None, False)
 
     def __repr__(self):
         return "?"
@@ -39,8 +43,8 @@ class Statement:
     def json(self):
         return vars(self)
 
-    def location(self, start: Token, end: Token):
-        self.loc = Location(start, end)
+    def location(self, start: Token, end: Token, multiline=False):
+        self.loc = Location(start, end, multiline)
         return self
 
 
@@ -593,19 +597,19 @@ class Parser:
         # if ...... :
         #    ^^^^^^
         test = self.parse_expression()
-        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF), loc_start)
+        at_last = self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.IF), loc_start)
         consequent_case = self.parse_block_declaration()
 
         at_type = self.at().type
         if at_type is lexer.ELSE:
             self.eat()  # eat 'ELSE'
             self.eat_expect(lexer.COLON, "Expect '%s' after '%s' | '%s' keywords in '%s' condition." % (lexer.COLON, lexer.ELSE, lexer.ELIF, lexer.IF), loc_start)
-            return IfExpression(test, consequent_case, self.parse_block_declaration()).location(loc_start, self.at())
+            return IfExpression(test, consequent_case, self.parse_block_declaration()).location(loc_start, at_last)
         elif at_type is lexer.ELIF:
-            return IfExpression(test, consequent_case, self.parse_if_declaration()).location(loc_start, self.at())
+            return IfExpression(test, consequent_case, self.parse_if_declaration()).location(loc_start, at_last)
 
         # just a plain if without else
-        return IfExpression(test, consequent_case, None).location(loc_start, self.at())
+        return IfExpression(test, consequent_case, None).location(loc_start, at_last)
 
     def parse_block_declaration(self):
         # consutme ':'
@@ -637,7 +641,7 @@ class Parser:
             # but only one item in body is allowed.
             body = [self.parse_statement()]
 
-        return BlockStatement(body).location(loc_start, self.at())
+        return BlockStatement(body).location(loc_start, self.at(), multiline=True)
 
     # for int n in 50:
     # for int n in {...}:
@@ -674,12 +678,12 @@ class Parser:
             quantity_max = self.parse_expression()  # parse the second quantifier
 
         # consume colon ':'
-        self.eat_expect(lexer.COLON, "Expect '%s' after quantifier(s) in '%s' declaration." % (lexer.COLON, lexer.FOR), loc_start)
+        at_last = self.eat_expect(lexer.COLON, "Expect '%s' after quantifier(s) in '%s' declaration." % (lexer.COLON, lexer.FOR), loc_start)
 
         # parse rest of body
         body = self.parse_block_declaration()
 
-        return ForExpression(type, identifier, body, quantity_min, quantity_max).location(loc_start, self.at())
+        return ForExpression(type, identifier, body, quantity_min, quantity_max).location(loc_start, at_last)
 
     # while (...):
     def parse_while_declatation(self):
@@ -690,9 +694,9 @@ class Parser:
         # while ...... :
         #       ^^^^^^
         expr = self.parse_expression()
-        self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.WHILE), loc_start)
+        at_last = self.eat_expect(lexer.COLON, "Expect '%s' after expression in '%s' statement." % (lexer.COLON, lexer.WHILE), loc_start)
         body = self.parse_block_declaration()
-        return WhileExpression(expr, body).location(loc_start, self.at())
+        return WhileExpression(expr, body).location(loc_start, at_last)
 
     def parse_return_declaration(self):
         loc_start = self.at()
@@ -711,23 +715,24 @@ class Parser:
             # return (...)
             #        ^^^^^
             right = self.parse_expression()
+            at_last = self.at_last()
             self.skip_until_end_of_code_block(loc_start)
-            return ReturnExpression(right).location(loc_start, self.at())
-        return ReturnExpression().location(loc_start, self.at())
+            return ReturnExpression(right).location(loc_start, at_last)
+        return ReturnExpression().location(loc_start, self.at_last())
 
     def parse_break_declaration(self):
         loc_start = self.at()
         # eat the 'break' keyword
         self.eat()
         self.skip_until_end_of_code_block(loc_start)
-        return BreakExpression().location(loc_start, self.at())
+        return BreakExpression().location(loc_start, loc_start)
 
     def parse_continue_declaration(self):
         loc_start = self.at()
         # eat the 'continue' keyword
         self.eat()
         self.skip_until_end_of_code_block(loc_start)
-        return ContinueExpression().location(loc_start, self.at())
+        return ContinueExpression().location(loc_start, loc_start)
 
     def parse_unreachable_declaration(self):
         loc_start = self.at()
@@ -737,7 +742,7 @@ class Parser:
         # this expression and when it does at runtime the program can abort or trap
         # Can stop parsing at this point until EOF or end of current code block.
         self.skip_until_end_of_code_block(loc_start)
-        return UnreachableExpression().location(loc_start, self.at())
+        return UnreachableExpression().location(loc_start, loc_start)
 
     def parse_delete_declaration(self):
         loc_start = self.at()
@@ -934,7 +939,7 @@ class Parser:
             value = self.parse_assignment_expression()
             # foo = bar
             #       ^^^
-            return AssignmentExpression(assignee, value, operator).location(loc_start, self.at())
+            return AssignmentExpression(assignee, value, operator).location(loc_start, self.at_last())
 
         return assignee
 
@@ -962,7 +967,7 @@ class Parser:
             alternate = self.parse_expression()
             # (...) ? (...) : (...)
             # ^^^^^^^^^^^^^^^^^^^^^
-            return ElvisExpression(expression_or_test, consequent, alternate).location(loc_start, self.at())
+            return ElvisExpression(expression_or_test, consequent, alternate).location(loc_start, self.at_last())
         else:
             # (...)
             # ^^^^^
@@ -1005,7 +1010,7 @@ class Parser:
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following property" % (lexer.COMMA, lexer.WIGGLE_R), loc_start_loop)
 
         self.eat_expect(lexer.WIGGLE_R, "Expect closing '%s' after '%s' object" % (lexer.WIGGLE_R, lexer.WIGGLE_L), loc_start)
-        return ObjectLiteral(properties).location(loc_start, self.at())
+        return ObjectLiteral(properties).location(loc_start, self.at_last())
 
     def parse_array_expression(self):
         loc_start = self.at()
@@ -1025,7 +1030,7 @@ class Parser:
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following expression" % (lexer.COMMA, lexer.SQUARE_R), loop_loc_start)
 
         self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after '%s' list" % (lexer.SQUARE_R, lexer.SQUARE_L), loc_start)
-        return ListLiteral(list).location(loc_start, self.at())
+        return ListLiteral(list).location(loc_start, self.at_last())
 
     # (...) or (...)
     def parse_logic_or_expr(self):
@@ -1034,7 +1039,7 @@ class Parser:
         while self.at().type is lexer.OR:
             operator = self.eat().type
             right = self.parse_logic_and_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) and (...)
@@ -1044,7 +1049,7 @@ class Parser:
         while self.at().type is lexer.AND:
             operator = self.eat().type
             right = self.parse_bit_logic_or_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) | (...)
@@ -1054,7 +1059,7 @@ class Parser:
         while self.at().type is lexer.BITOR:
             operator = self.eat().type
             right = self.parse_bit_logic_xor_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) ^ (...)
@@ -1064,7 +1069,7 @@ class Parser:
         while self.at().type is lexer.XOR:
             operator = self.eat().type
             right = self.parse_bit_logic_and_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) & (...)
@@ -1074,7 +1079,7 @@ class Parser:
         while self.at().type is lexer.BITAND:
             operator = self.eat().type
             right = self.parse_logic_equality_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) == (...)
@@ -1086,7 +1091,7 @@ class Parser:
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_logic_compare_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) <= (...)
@@ -1100,7 +1105,7 @@ class Parser:
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_bit_shift_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) << (...)
@@ -1112,7 +1117,7 @@ class Parser:
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_additive_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) + (...)
@@ -1124,7 +1129,7 @@ class Parser:
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_multiplicative_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) * (...)
@@ -1138,7 +1143,7 @@ class Parser:
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_exponential_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # (...) ^ (...)
@@ -1149,7 +1154,7 @@ class Parser:
         while self.at().type in expressions:
             operator = self.eat().type
             right = self.parse_single_operator_before_expr()
-            left = BinaryExpression(left, right, operator).location(loc_start, self.at())
+            left = BinaryExpression(left, right, operator).location(loc_start, self.at_last())
         return left  # no more things to do, return last expression
 
     # not i
@@ -1171,7 +1176,7 @@ class Parser:
             expr = self.parse_single_operator_after_expr()
             if not isinstance(expr, Identifier):
                 parser_error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), loc_start, self.at())
-            return UnaryIdentifierBeforeExpression(expr.symbol, operator).location(loc_start, self.at())
+            return UnaryIdentifierBeforeExpression(expr.symbol, operator).location(loc_start, self.at_last())
         return self.parse_single_operator_after_expr()
 
     # i++
@@ -1184,7 +1189,7 @@ class Parser:
             if not isinstance(expr, Identifier):
                 parser_error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), loc_start, self.at())
             operator = self.eat().type
-            return UnaryIdentifierAfterExpression(expr.symbol, operator).location(loc_start, self.at())
+            return UnaryIdentifierAfterExpression(expr.symbol, operator).location(loc_start, self.at_last())
         return expr
 
     # (...)
@@ -1217,7 +1222,7 @@ class Parser:
     # caller(...)
     def parse_call_expr(self, caller, loc_start):
         args = self.parse_call_arguments()
-        call_expr = CallExpression(caller, args).location(loc_start, self.at())
+        call_expr = CallExpression(caller, args).location(loc_start, self.at_last())
 
         if self.at().type == lexer.COURVE_L:
             call_expr = self.parse_call_expr(call_expr, loc_start)
@@ -1281,7 +1286,7 @@ class Parser:
                 self.eat_expect(lexer.SQUARE_R, "Expect closing '%s' after a member call." % lexer.SQUARE_R, loc_start)
                 computed = True
 
-            obj = MemberExpression(obj, child, computed).location(loc_start, self.at())
+            obj = MemberExpression(obj, child, computed).location(loc_start, self.at_last())
 
         return obj
 
@@ -1293,13 +1298,17 @@ class Parser:
         loc_start = self.at()
         type = self.at().type
         if type is lexer.IDENTIFIER:
-            return Identifier(self.eat().value).location(loc_start, self.at())
+            identifier = self.eat().value
+            return Identifier(identifier).location(loc_start, self.at_last())
         if type is lexer.NUMBER:
-            return NumericLiteral(self.eat().value).location(loc_start, self.at())
+            number = self.eat().value
+            return NumericLiteral(number).location(loc_start, self.at_last())
         if type is lexer.FLOAT:
-            return FloatLiteral(self.eat().value).location(loc_start, self.at())
+            float = self.eat().value
+            return FloatLiteral(float).location(loc_start, self.at_last())
         if type is lexer.STRING:
-            return StringLiteral(self.eat().value).location(loc_start, self.at())
+            string = self.eat().value
+            return StringLiteral(string).location(loc_start, self.at_last())
         if type is lexer.COURVE_L:
             self.eat()  # eat "("
             value = self.parse_expression()  # evaluate (...)

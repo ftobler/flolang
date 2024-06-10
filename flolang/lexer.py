@@ -152,6 +152,8 @@ class Symbols:
         self.line_nr = line_nr
         self.line_pos = line_pos
         self.line = line
+        if line_pos < 0 or line_nr < 0:
+            raise Exception("line_nr or line_pos out of range")
 
     def unpack(self):
         return self.filename, self.line_nr, self.line_pos, self.line
@@ -412,7 +414,10 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
         current_ident -= 1
 
     if len(lines):
-        symbols = Symbols(filename, len(lines) - 1, len(lines[-1]) - 1, lines[-1])
+        line_pos = len(lines[-1]) - 1
+        if line_pos < 0:
+            line_pos = 0
+        symbols = Symbols(filename, len(lines) - 1, line_pos, lines[-1])
     else:
         symbols = Symbols(filename, 0, 0, "")
     tokens.append(Token(symbols, EOF))

@@ -19,19 +19,20 @@ def print_ast_json(tree, indentation = ""):
         else:
             tree = "├"
         if isinstance(value, ast.Statement):
-            print(indentation + tree + " " + key + " ╕")
-            whitespace = len(key) * " " + "  "
+            jsonvalue = value.json()
+            print(indentation + tree + " " + key + ": ┬ " + jsonvalue["kind"])
+            whitespace = len(key) * " " + "   "
             if obj_terminated:
                 tree = " "
             else:
                 tree = "│"
-            print_ast_json(value.json(), indentation + tree + whitespace)
+            print_ast_json(jsonvalue, indentation + tree + whitespace)
 
         elif isinstance(value, list):
             if len(value) == 0:
                 print(indentation + tree + " " + key + "[] = []")
             else:
-                print(indentation + tree + " " + key + "[] ╕")
+                print(indentation + tree + " " + key + "[] ┐")
                 whitespace_list = len(key) * " " + "    "
                 if obj_terminated:
                     tree = " "
@@ -46,16 +47,17 @@ def print_ast_json(tree, indentation = ""):
                         looptree = "├"
                     else:
                         looptree = "├"
-                    print(indentation + tree + whitespace_list + looptree + " %d " % j + "╕")
+                    jsonvalue = element.json()
+                    print(indentation + tree + whitespace_list + looptree + " %d " % j + "┬ " + jsonvalue["kind"])
                     whitespace_index = len(str(j)) * " " + "  "
                     if list_terminated:
                         looptree = " "
                     else:
                         looptree = "│"
-                    print_ast_json(element.json(), indentation + tree + whitespace_list + looptree + whitespace_index)
+                    print_ast_json(jsonvalue, indentation + tree + whitespace_list + looptree + whitespace_index)
 
         else:
-            if key != "loc":
+            if key != "ldoc" and key != "kind":
                 print(indentation + tree + " " + key + ": " + str(value))
 
 def print_ast(ast):

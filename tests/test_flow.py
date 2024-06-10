@@ -228,6 +228,118 @@ elif False:
 i
 """) == 0
 
+def test_condition_very_long_block_1():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this PASSED
+    assert eval("""
+let int i = 0
+if False          :
+    i = 1
+elif               False :
+    i = 2
+i
+""") == 0
+
+def test_condition_very_long_block_2():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this PASSED
+    assert eval("""
+let int i = 0
+if False:
+    i = 123456789
+elif False :
+    i = 123456789
+i
+""") == 0
+
+def test_condition_very_long_block_3():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this PASSED
+    assert eval("""
+let int i = 0
+if False:
+    print("very very many")
+    i = 123456789
+elif False :
+    print("lines of code")
+    i = 123456789
+i
+""") == 0
+
+def test_condition_very_long_block_4():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this PASSED
+    assert eval("""
+let int i = 0
+if False       :
+    print("very very many")
+    i = 123456789
+elif False:
+    print("lines of code")
+    i = 123456789
+
+i
+""") == 0
+
+def test_condition_very_long_block_5():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this FAILED
+    assert eval("""
+let int i = 0
+if False       :
+    print("very very many")
+    i = -1
+elif False:
+    print("lines of code")
+    i = 123456789
+
+i
+""") == 0
+
+def test_condition_very_long_block_6():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this FAILED
+    assert eval("""
+let int i = 0
+if False       :
+    print("very very many")
+    i = 123456789
+elif False:
+    print("lines of code")
+    i = -1
+
+i
+""") == 0
+
+def test_condition_very_long_block_7():
+    # got once strange behaviour when the lines before or after a block
+    # had length corresponding or not to the block
+    # type was the 'Location' could not __repr__ to string
+    # => this FAILED
+    assert eval("""
+let int i = 0
+if False       :
+    print("very very many")
+    i = -1
+elif False:
+    print("lines of code")
+    i = -1
+
+i
+""") == 0
+
 
 def test_condition_if_inline_statement_1():
     assert eval("""
@@ -943,7 +1055,7 @@ j
 
 def test_function_declaration_order():
     assert eval("""
-
+                
 let mut int u = 0x50
 foo(4)
 

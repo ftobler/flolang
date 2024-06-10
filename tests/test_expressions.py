@@ -554,17 +554,56 @@ def test_member_expression_3():
     eval_parse("foo().bar()")
 
 
-def test_return_expression():
-    assert eval("""
-fn foo(int n) int:
-    if n == 1:
-        return n
-    else:
-        return n
-foo(7)
+def test_unary_1():
+    with pytest.raises(Exception):
+        eval("let mut i = 3       --i")  # not possible in python
+    with pytest.raises(Exception):
+        eval("let mut i = 3       -i")  # not possible in python
+    with pytest.raises(Exception):
+        eval("let mut i = 3       ++i")  # assumes 3++. i also not defined
+    with pytest.raises(Exception):
+        eval("let mut i = 3       +i")  # i not defined
+    with pytest.raises(Exception):  # incomplete
+        eval("let mut i = 3-")
+    with pytest.raises(Exception):  # incomplete
+        eval("let mut i = 3+")
 
-"""
-) == 7
+def test_unary_2():
+    assert eval("let mut i = 3       ~i") == -4
+    assert eval("let mut i = 3       ~i            i") == 3
+    assert eval("let mut i = 3       not i") == False
+    assert eval("let mut i = 3       i++") == 3
+    assert eval("let mut i = 3       i++           i") == 4
+    assert eval("let mut i = 3       i--") == 3
+    assert eval("let mut i = 3       i--           i ") == 2
+
+def test_unary_3():
+    assert eval("3--1") == 4
+    assert eval("3++1") == 4
+    assert eval("3--+1") == 4
+    assert eval("3---1") == 2
+
+def test_unary_4():
+    assert eval("-1") == -1
+    assert eval("+1") == +1
+    assert eval("++1") == 2
+    assert eval("--1") == 0
+    assert eval("1++") == 1
+    assert eval("1--") == 1
+
+def test_unary_5():
+    assert eval("let mut i = 3++") == 3
+    assert eval("let mut i = ++3") == 4
+    assert eval("let mut i = +3") == 3
+    assert eval("let mut i = 3--") == 3
+    assert eval("let mut i = --3") == 2
+    assert eval("let mut i = -3") == -3
+
+def test_unary_6():
+    with pytest.raises(Exception):
+        eval("1++")
+    with pytest.raises(Exception):
+        eval("1--")
 
 
 def test_function_default_values_1():
@@ -788,12 +827,23 @@ def test_break_expression():
         eval("break")
 
 
-def test_return_expression():
+def test_return_expression_1():
     with pytest.raises(Exception):
         eval("return #not allowed because this is not a function")
     with pytest.raises(Exception):
         eval("return")
 
+def test_return_expression_2():
+    assert eval("""
+fn foo(int n) int:
+    if n == 1:
+        return n
+    else:
+        return n
+foo(7)
+
+"""
+) == 7
 
 def test_break_not_allowed_in_function_1():
     with pytest.raises(Exception):
