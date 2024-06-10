@@ -14,8 +14,10 @@ class Location:
         line = self.start.symbols.line
         start = self.start.symbols.line_pos
         end = self.end.symbols.line_pos
-        if self.start is self.end:
+        if self.start is self.end and isinstance(self.start.value, str):
             end = self.start.symbols.line_pos + len(self.start.value) - 1
+            if start > end:
+                end = start
         if self.start.symbols.line_nr < self.end.symbols.line_nr:
             # multiline by accident, but fine
             # some of those are hard to catch
