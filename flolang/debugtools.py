@@ -58,7 +58,11 @@ def print_ast_json(tree, indentation = ""):
 
         else:
             if key != "ldoc" and key != "kind":
+                if isinstance(value, str):
+                    value = "'" + value + "'"
                 print(indentation + tree + " " + key + ": " + str(value))
+
+
 
 def print_ast(ast):
     print_ast_json(ast.json())
