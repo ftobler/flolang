@@ -6,10 +6,12 @@ from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
 import pytest
 
+
 def test_function_0():
 
     with pytest.raises(Exception):
         x = 1 / 0
+
 
 def test_function_1():
     # declare a function
@@ -17,6 +19,7 @@ def test_function_1():
 fn foo():
     return 1234
 """) == "<RuntimeFunction>"  # not liking the result, but its for now what is coming out here
+
 
 def test_function_2():
     # funtion with returntype
@@ -26,6 +29,7 @@ fn foo() int:
 foo()
 """) == 1234
 
+
 def test_function_3():
     # function with no return type
     assert eval("""
@@ -33,6 +37,7 @@ fn foo():
     return
 foo()
 """) == None
+
 
 def test_function_4():
     # simple additive function
@@ -42,6 +47,7 @@ fn add(int a, int b):
 add(5, 3)
 """) == 8
 
+
 def test_function_5():
     # check that A argument is really A
     assert eval("""
@@ -50,6 +56,7 @@ fn returnA(int a, int b):
 returnA(5, 3)
 """) == 5
 
+
 def test_function_6():
     # check that B argument is really B
     assert eval("""
@@ -57,6 +64,7 @@ fn returnB(int a, int b):
     return b
 returnB(5, 3)
 """) == 3
+
 
 def test_function_7():
     # check nesting function calls
@@ -68,6 +76,16 @@ fn foo():
 bar()
 """) == 456
 
+
+def test_function_8():
+    # check nesting function calls
+    with pytest.raises(Exception):
+        eval("""
+let foo = 0
+foo()
+""")
+
+
 def test_function_variable_scope_1():
     # check that the order of declaration does not matter
     assert eval("""
@@ -76,6 +94,7 @@ fn foo():
     return global_var
 let int global_var = 789
 """) == 789
+
 
 def test_function_variable_scope_2():
     # put a function on a variable
@@ -86,6 +105,7 @@ let int bar = foo
 bar()
 """) == 963
 
+
 def test_condition_if_1():
     # check an if which is branching
     assert eval("""
@@ -95,6 +115,7 @@ if True:
 i
 """) == 1
 
+
 def test_condition_if_2():
     # check an if which is skipping
     assert eval("""
@@ -103,6 +124,7 @@ if False:
     i = 1
 i
 """) == 0
+
 
 def test_condition_if_else_1():
     # check an if-else which is iffing
@@ -115,6 +137,7 @@ else:
 i
 """) == 1
 
+
 def test_condition_if_else_2():
     # check an if-else which is elseing
     assert eval("""
@@ -125,6 +148,7 @@ else:
     i = 2
 i
 """) == 2
+
 
 
 def test_condition_if_elif_else_1():
@@ -140,6 +164,7 @@ else:
 i
 """) == 1
 
+
 def test_condition_if_elif_else_2():
     # check an if-elif-else which is elifing
     assert eval("""
@@ -152,6 +177,7 @@ else:
     i = 3
 i
 """) == 2
+
 
 def test_condition_if_elif_else_3():
     # check an if-elif-else which is elseing
@@ -166,6 +192,7 @@ else:
 i
 """) == 3
 
+
 def test_condition_if_elif_1():
     # check an if-elif which is ifing
     assert eval("""
@@ -176,6 +203,7 @@ elif True:
     i = 2
 i
 """) == 1
+
 
 def test_condition_if_elif_2():
     # check an if-elif-else which is elifing
@@ -188,6 +216,7 @@ elif True:
 i
 """) == 2
 
+
 def test_condition_if_elif_3():
     # check an if-elif-else which is skipping
     assert eval("""
@@ -199,12 +228,14 @@ elif False:
 i
 """) == 0
 
+
 def test_condition_if_inline_statement_1():
     assert eval("""
 let mut int i = 123
 if True: i = 456
 i
 """) == 456
+
 
 def test_condition_if_inline_statement_2():
     assert eval("""
@@ -213,6 +244,7 @@ if False: i = 456
 i
 """) == 123
 
+
 def test_condition_if_inline_statement_3():
     assert eval("""
 let mut int i = 123
@@ -220,12 +252,14 @@ if True: i = 456 else: i = 789
 i
 """) == 456
 
+
 def test_condition_if_inline_statement_4():
     assert eval("""
 let mut int i = 123
 if False: i = 456 else: i = 789
 i
 """) == 789
+
 
 def test_condition_if_inline_statement_5():
     assert eval("""
@@ -235,6 +269,7 @@ if True: i = 456 else:
 i
 """) == 456
 
+
 def test_condition_if_inline_statement_6():
     assert eval("""
 let mut int i = 123
@@ -242,6 +277,7 @@ if False: i = 456 else:
     i = 789
 i
 """) == 789
+
 
 def test_condition_if_inline_statement_7():
     assert eval("""
@@ -252,6 +288,7 @@ else: i = 789
 i
 """) == 456
 
+
 def test_condition_if_inline_statement_8():
     assert eval("""
 let mut int i = 123
@@ -260,6 +297,7 @@ if False:
 else: i = 789
 i
 """) == 789
+
 
 def test_condition_if_inline_statement_9():
     with pytest.raises(Exception):
@@ -271,6 +309,7 @@ if True:
 i
 """) == 789
 
+
 def test_condition_if_inline_statement_10():
     with pytest.raises(Exception):
         eval("""
@@ -280,6 +319,7 @@ if False:
     i = 789
 i
 """) == 456
+
 
 def test_while_1():
     # check a simple while loop with pass
@@ -291,6 +331,7 @@ while --i:
 i
 """) == 0
 
+
 def test_while_2():
     # check a simple while loop
     # expect 9 loops
@@ -301,6 +342,7 @@ while --i:
     n++
 n
 """) == 9
+
 
 def test_while_3():
     # check a simple while loop with pass
@@ -315,6 +357,7 @@ while --i:
 n # this 'n' is an extra statement after the block
     """) == 10
 
+
 def test_while_4():
     # check a simple while loop with pass
     # pass is not allowed after a statement
@@ -326,6 +369,7 @@ while --i:
     n++
     pass
     """) == 10
+
 
 def test_while_5():
     # check a simple while loop with break
@@ -340,6 +384,7 @@ while --i:
 n
 """) == 5
 
+
 def test_while_6():
     # check a simple while loop with break
     # the check decrement has been executed once
@@ -350,6 +395,7 @@ while i--:
 i
 """) == 9
 
+
 def test_while_7():
     # check a simple while loop with break
     assert eval("""
@@ -359,12 +405,14 @@ while i:
 i
 """) == 0
 
+
 def test_unreachable_code_1():
     #unreachable keyword is never reached
     assert eval("""
 if False:
     unreachable
 """) == None
+
 
 def test_unreachable_code_2():
     # unreachable is used to assert that control flow will never reach a
@@ -376,12 +424,14 @@ if x + y != 3:
     unreachable
 """) == None
 
+
 def test_unreachable_code_3():
     # unreachable at runtime creates an exception
     with pytest.raises(Exception):
         eval("""
 unreachable
 """) == None
+
 
 def test_scopes_1():
     # if block has its own scope and does not change base variable
@@ -391,6 +441,7 @@ if True:
     let int a = 456
 a
 """) == 123
+
 
 def test_scopes_2():
     # if block has its own scope and in itself the new variable is used
@@ -404,6 +455,7 @@ if True:
 b
 """) == 456
 
+
 def test_function_nesting_1():
     assert eval("""
 fn foo(int a):
@@ -412,6 +464,7 @@ fn bar(int a):
     return a * 2
 foo(bar(100))
 """) == 2000
+
 
 def test_function_nesting_2():
     assert eval("""
@@ -422,12 +475,14 @@ fn bar(int add):
 foo()(20)
 """) == 120
 
+
 def test_function_with_comments_and_spaces_1():
     assert eval("""
 fn foo():
     return 52
 foo()
 """) == 52
+
 
 def test_function_with_comments_and_spaces_2():
     assert eval("""
@@ -437,6 +492,7 @@ fn foo():
 foo()
 """) == 53
 
+
 def test_function_with_comments_and_spaces_3():
     assert eval("""
 fn foo():
@@ -444,6 +500,7 @@ fn foo():
     return 54
 foo()
 """) == 54
+
 
 def test_function_with_comments_and_spaces_4():
     assert eval("""
@@ -453,6 +510,7 @@ fn foo():
     return 55
 foo()
 """) == 55
+
 
 def test_function_with_comments_and_spaces_5():
     assert eval("""
@@ -465,6 +523,7 @@ fn foo():
 foo()
 """) == 56
 
+
 def test_function_with_comments_and_spaces_6():
     assert eval("""
 fn foo():
@@ -474,6 +533,7 @@ fn foo():
     return 57
 foo()
 """) == 57
+
 
 
 
@@ -488,6 +548,7 @@ while --i:
 i
 """) == 5
 
+
 def test_return_break_statements_2a():
     # check a simple while loop with return
     # expect 5 loops
@@ -501,6 +562,7 @@ fn function_for_return_test():
 function_for_return_test()
 """) == 5
 
+
 def test_return_break_statements_2b():
     # return is not allowed because it is not a function
     with pytest.raises(Exception):
@@ -511,6 +573,7 @@ def test_return_break_statements_2b():
             return # not allowed outside function
     i
     """) == 5
+
 
 def test_return_break_statements_3():
     # check a simple while loop with return
@@ -523,6 +586,7 @@ fn foo():
 foo()
 """) == "success"
 
+
 def test_return_break_statements_4a():
     # simple test case, but can go wrong when 'break' state does propagation handling
     # is bugged.
@@ -534,6 +598,7 @@ fn foo():
         break
 foo()
 """) == None
+
 
 def test_return_break_statements_4b():
     # simple test case, but can go wrong when 'break' state does propagation handling
@@ -548,6 +613,7 @@ fn foo():
 foo()
 """) == "this"
 
+
 def test_return_break_statements_5():
     # simple test cases , but can go wrong when 'break' state does propagation handling
     # is bugged
@@ -557,6 +623,7 @@ fn foo():
         return
 foo()
 """) == None
+
 
 def test_return_break_statements_6():
     assert eval("""
@@ -569,6 +636,7 @@ fn foo():
 foo()
 """) == "success"
 
+
 def test_return_break_statements_7():
     assert eval("""
 fn foo():
@@ -580,6 +648,7 @@ fn foo():
 foo()
 """) == "first"
 
+
 def test_return_break_statements_8():
     assert eval("""
 fn foo():
@@ -589,6 +658,7 @@ fn foo():
         return "not this"
 foo()
 """) == "first"
+
 
 def test_return_break_statements_9():
     assert eval("""
@@ -600,6 +670,7 @@ fn foo():
 foo()
 """) == "first"
 
+
 def test_return_break_statements_10():
     assert eval("""
 fn foo():
@@ -609,6 +680,7 @@ fn foo():
         return "here"
 foo()
 """) == "here"
+
 
 def test_return_break_statements_11():
     assert eval("""
@@ -621,6 +693,7 @@ fn foo():
 foo()
 """) == "at last"
 
+
 def test_return_break_statements_12():
     assert eval("""
 fn foo():
@@ -631,6 +704,7 @@ fn foo():
     return "broken outward here"
 foo()
 """) == "broken outward here"
+
 
 def test_return_break_statements_13():
     assert eval("""
@@ -645,6 +719,7 @@ fn foo():
 foo()
 """) == "broken outward here"
 
+
 def test_return_break_statements_14():
     assert eval("""
 fn foo():
@@ -656,6 +731,7 @@ fn foo():
 foo()
 """) == "this one"
 
+
 def test_return_in_while_loop():
     # Test Case 1: Testing return in a while loop
     assert eval("""
@@ -664,6 +740,7 @@ fn foo():
         return "returned"
 foo()
 """) == "returned"
+
 
 def test_break_in_while_loop():
     # Test Case 2: Testing break in a while loop
@@ -674,6 +751,7 @@ fn foo():
     return "loop exited"
 foo()
 """) == "loop exited"
+
 
 def test_continue_in_while_loop():
     # Test Case 3: Testing continue in a while loop
@@ -687,6 +765,7 @@ fn foo():
         return i
 foo()
 """) == 3
+
 
 def test_break_and_continue_in_while_loop():
     # Test Case 4: Combining break and continue in a while loop
@@ -702,6 +781,7 @@ fn foo():
     return i
 foo()
 """) == 4
+
 
 def test_nested_while_loops():
     # Test Case 5: Nested while loops with return, break, and continue
@@ -721,6 +801,7 @@ fn foo():
             return outer
 foo()
 """) == 2
+
 
 def test_multiple_loops():
     # Comprehensive Test Case: Multiple Loops with return, break, and continue
@@ -746,6 +827,7 @@ fn foo():
             return outer_count == 2 and middle_count == 2 and inner_count == 3
 foo()
 """) == True
+
 
 def test_multiple_loops_with_recursion():
     # Comprehensive Test Case: Multiple Loops with Recursion
@@ -775,6 +857,7 @@ fn recursive_function(int level):
 recursive_function(3)
 """) == "base case reached"
 
+
 def test_for_loop_1():
     assert eval("""
 let mut int n = 0
@@ -782,6 +865,7 @@ for int i in 10..20:
     n++
 n
 """) == 10
+
 
 def test_for_loop_2():
     assert eval("""
@@ -792,6 +876,7 @@ n
 """) == 11
 
 
+
 def test_for_loop_3():
     assert eval("""
 let mut int n = 0
@@ -799,6 +884,7 @@ for int i in 30.. 42:
     n++
 n
 """) == 12
+
 
 def test_for_loop_4():
     assert eval("""
@@ -808,6 +894,7 @@ for int i in 40 .. 53:
 n
 """) == 13
 
+
 def test_for_loop_5():
     assert eval("""
 let mut int n = 0
@@ -815,6 +902,7 @@ for int i in 14:
     n++
 n
 """) == 14
+
 
 
 def test_for_loop_6():
@@ -826,12 +914,14 @@ n
 """) == 10
 
 
+
 def test_assignment_multiple_1():
     assert eval("""
 let mut int i = 0
 let mut int j = 1
 i = j = 5
 """) == 5 # value of i
+
 
 def test_assignment_multiple_2():
     assert eval("""
@@ -841,6 +931,7 @@ i = j = 5
 i
 """) == 5 # value of i
 
+
 def test_assignment_multiple_3():
     assert eval("""
 let mut int i = 0
@@ -848,6 +939,7 @@ let mut int j = 1
 i = j = 5
 j
 """) == 5 # value of j
+
 
 def test_function_declaration_order():
     assert eval("""
@@ -863,6 +955,7 @@ fn bar(int baaar, int q) int:
 
 """) - 441.8499999 < 0.0001
 
+
 def test_function_nested_return_1():
     assert eval("""
 foo()
@@ -872,6 +965,7 @@ fn bar() int:
     return "bar"
 """) == "bar"
 
+
 def test_function_nested_return_3():
     assert eval("""
 fn foo() int:
@@ -880,6 +974,7 @@ fn bar() int:
     return "bar"
 foo()
 """) == "bar"
+
 
 def test_function_locall_variable_mutability_1():
     with pytest.raises(Exception):
@@ -893,6 +988,7 @@ foo(4)
 
 """) == 16
 
+
 def test_function_local_variable_mutability_2():
     assert eval("""
 
@@ -903,6 +999,7 @@ fn foo(mut int i) int:
 foo(4)
 
 """) == 16
+
 
 def test_dead_code_1():
     with pytest.raises(Exception):
@@ -916,6 +1013,7 @@ foo(4)
 
 """)
 
+
 def test_dead_code_2():
     with pytest.raises(Exception):
         eval("""
@@ -928,6 +1026,7 @@ fn foo(mut int i) int:
 foo(4)
 
 """)
+
 
 def test_dead_code_3():
     with pytest.raises(Exception):
