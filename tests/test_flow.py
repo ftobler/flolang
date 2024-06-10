@@ -816,6 +816,16 @@ for int i in 14:
 n
 """) == 14
 
+
+def test_for_loop_6():
+    assert eval("""
+let mut int n = 0
+for int i in 100..110:
+    n++
+n
+""") == 10
+
+
 def test_assignment_multiple_1():
     assert eval("""
 let mut int i = 0
