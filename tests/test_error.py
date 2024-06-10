@@ -20,7 +20,7 @@ def test_runtime_error_1():
 def test_runtime_error_2():
     with pytest.raises(err.RuntimeException):
         tok = lexer.Token(Symbols("filename", 123, 2, "full_line"), "type", None)
-        err.runtime_error("comment", ast.Location(tok, tok))
+        err.runtime_error("comment", ast.Location(tok, tok, False))
 
 
 def test_runtime_error_3():
@@ -28,7 +28,7 @@ def test_runtime_error_3():
     # but it works now, so want to see when it breaks
     with pytest.raises(err.RuntimeException):
         tok = lexer.Token(Symbols(None, 123, 2, None), None, None)
-        err.runtime_error(None, ast.Location(tok, tok))
+        err.runtime_error(None, ast.Location(tok, tok, False))
 
 
 def test_runtime_error_4():

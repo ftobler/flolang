@@ -11,6 +11,10 @@ class TokenError(Exception):
     pass
 
 
+class LocationError(Exception):
+    pass
+
+
 def runtime_error(comment: str, loc=None):
     if loc:
         file = loc.start.symbols.filename

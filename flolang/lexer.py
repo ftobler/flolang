@@ -1,5 +1,5 @@
 import re
-from .error import error_symbol
+from .error import error_symbol, LocationError
 
 ignores = [" ", "\t", "\n", "\r"]
 
@@ -39,10 +39,13 @@ ASSIGNBITXOR = "^="
 ASSIGNBITOR = "|="
 ASSIGNBITSHIFTR = ">>="
 ASSIGNBITSHIFTL = "<<="
+FORBIDDEN_1 = "---"  # ambiguous. ban it.
+FORBIDDEN_2 = "--+"  # ambiguous. ban it.
 string_tokens = [
     COMPARE, NOTCOMPARE, INTDIV, BIGGEREQ, SMALLEREQ, POW, INCREMENT, DECREMENT,
     ASSIGNADD, ASSIGNSUB, ASSIGNMUL, ASSIGNDIV, ASSIGNREM, ASSIGNBITAND,
-    ASSIGNBITXOR, ASSIGNBITOR, ASSIGNBITSHIFTR, ASSIGNBITSHIFTL
+    ASSIGNBITXOR, ASSIGNBITOR, ASSIGNBITSHIFTR, ASSIGNBITSHIFTL,
+    FORBIDDEN_1, FORBIDDEN_2
 ]
 
 # smaller string tokens consisting only of 1 character.
@@ -153,7 +156,7 @@ class Symbols:
         self.line_pos = line_pos
         self.line = line
         if line_pos < 0 or line_nr < 0:
-            raise Exception("line_nr or line_pos out of range")
+            raise LocationError("line_nr or line_pos out of range")
 
     def unpack(self):
         return self.filename, self.line_nr, self.line_pos, self.line

@@ -578,31 +578,45 @@ def test_unary_2():
     assert eval("let mut i = 3       i--           i ") == 2
 
 def test_unary_3():
-    assert eval("3--1") == 4
-    assert eval("3++1") == 4
-    assert eval("3--+1") == 4
-    assert eval("3---1") == 2
+    # these might differ from python as python does not have --i, but will just 
+    # interpret it ast -(-(i))
+    assert eval("let mut i = 3       i--         1") == 1
+    assert eval("let mut i = 3       i++         1") == 1
+    assert eval("let mut i = 3       i--        +1") == 4
+    assert eval("let mut i = 3       i--        -1") == 2
+
+    assert eval("let mut i = 3       i--1") == 1
+    assert eval("let mut i = 3       i++1") == 1
 
 def test_unary_4():
+    # these are ambiguous and therefore banned
+    with pytest.raises(error.ParserError):  # incomplete
+        eval("let mut i = 3       i--+1")
+    with pytest.raises(error.ParserError):  # incomplete
+        eval("let mut i = 3       i---1")
+
+def test_unary_5():
     assert eval("-1") == -1
     assert eval("+1") == +1
     assert eval("++1") == 2
     assert eval("--1") == 0
-    assert eval("1++") == 1
-    assert eval("1--") == 1
 
-def test_unary_5():
-    assert eval("let mut i = 3++") == 3
+def test_unary_6():
+    with pytest.raises(error.ParserError):
+        assert eval("let mut i = 3++") == 3
     assert eval("let mut i = ++3") == 4
     assert eval("let mut i = +3") == 3
-    assert eval("let mut i = 3--") == 3
+    with pytest.raises(error.ParserError):
+        assert eval("let mut i = 3--") == 3
     assert eval("let mut i = --3") == 2
     assert eval("let mut i = -3") == -3
 
-def test_unary_6():
-    with pytest.raises(Exception):
+def test_unary_7():
+    # these are not allowed on identifiers
+    # as programmer expected to change a variable, so it must be one.
+    with pytest.raises(error.ParserError):
         eval("1++")
-    with pytest.raises(Exception):
+    with pytest.raises(error.ParserError):
         eval("1--")
 
 

@@ -1,7 +1,7 @@
 
 import flolang.lexer as lexer
 from .lexer import Token
-from .error import error_token, parser_error
+from .error import error_token, parser_error, LocationError
 
 
 class Location:
@@ -15,13 +15,17 @@ class Location:
         line = self.start.symbols.line
         start = self.start.symbols.line_pos
         end = self.end.symbols.line_pos
+        if self.start.symbols.line_nr < self.end.symbols.line_nr:
+            # multiline by accident, but fine
+            # some of those are hard to catch
+            end = len(line)
         if start <= end:
             snippet = line[start:end+1]
             return '"' + snippet + '"'
         if self.is_multiline:
             return str(self.start) + ".." + str(self.end)
         # could just return this, but really something different is wrong
-        raise Exception("Location representation is invalid: " + str(self.start) + ".." + str(self.end))
+        raise LocationError("Location representation is invalid: " + str(self.start) + ".." + str(self.end))
 
 
 class NoLocation(Location):
@@ -1175,6 +1179,11 @@ class Parser:
             operator = self.eat().type
             expr = self.parse_single_operator_after_expr()
             if not isinstance(expr, Identifier):
+                # shorthand for ++x => (x+1) and --x => (x-1)
+                if operator == lexer.INCREMENT:
+                    return BinaryExpression(expr, NumericLiteral("1"), lexer.PLUS).location(loc_start, self.at_last())
+                if operator == lexer.DECREMENT:
+                    return BinaryExpression(expr, NumericLiteral("1"), lexer.MINUS).location(loc_start, self.at_last())
                 parser_error("Operators '%s' and '%s' are only allowed on Identifiers." % (lexer.INCREMENT, lexer.DECREMENT), loc_start, self.at())
             return UnaryIdentifierBeforeExpression(expr.symbol, operator).location(loc_start, self.at_last())
         return self.parse_single_operator_after_expr()
