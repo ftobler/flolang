@@ -7,7 +7,7 @@ from flolang.main import main, set_pretty_print
 import re
 
 
-def create_input_iterator(list: list[str|Exception]):
+def create_input_iterator(list: list[any]):
 
     # the inputs for input() I want to simulate in a list
     inputs = iter(list)
