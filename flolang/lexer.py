@@ -350,7 +350,8 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
 
             # search for floats or integers
             if not found:
-                match = re.search("^[0-9\.]+(E[0-9]+|)", source)
+                # match = re.search("^[0-9\.]+(E[0-9]+|)", source)  # this fails in python 3.9
+                match = re.search(r"^[0-9\.]+(E[0-9]+|)", source)
                 if match:
                     number = match[0]
                     number = check_numeric_expression_for_dotdot(number)
