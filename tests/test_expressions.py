@@ -932,6 +932,7 @@ let int i = 0
 let int i = 0
 """)
 
+
 @pytest.mark.skip(reason="type checking not yet implemented")
 def test_template():
     with pytest.raises(error.RuntimeException):
@@ -940,13 +941,46 @@ class Animal<T>:
     let T: appendage
 """)
 
+
 @pytest.mark.skip(reason="currently it does not work")
 def test_alloc_expression():
     # the test is mainly here because of the '@'
     # which makes this keyword special
     eval("@alloc pi")
 
+
 def test_no_eval():
     # there must be no eval
     with pytest.raises(error.RuntimeException):
         eval("eval('')")
+
+
+def test_parse_template_type_1():
+    assert eval("let mut foo<T> bar = 1") == 1
+    assert eval("let mut foo<T<J>> bar = 1") == 1
+    assert eval("let mut foo<T<J>>[] bar = 1") == 1
+    assert eval("let mut foo<T<J>[]>[] bar = 1") == 1
+
+def test_parse_template_type_2():
+    assert eval("let mut foo<100> bar = 1") == 1
+    assert eval("let mut foo<T<100>> bar = 1") == 1
+    assert eval("let mut foo<T<100>>[] bar = 1") == 1
+    assert eval("let mut foo<T<100>[]>[] bar = 1") == 1
+
+def test_parse_template_type_3():
+    assert eval("let mut foo<100+10> bar = 1") == 1
+    assert eval("let mut foo<T<100+10>> bar = 1") == 1
+    assert eval("let mut foo<T<100+10>>[] bar = 1") == 1
+    assert eval("let mut foo<T<100+10>[]>[] bar = 1") == 1
+
+def test_parse_template_type_4():
+    assert eval("let mut foo<T<J> > bar = 1") == 1
+    assert eval("let mut foo<T<J> >[] bar = 1") == 1
+    assert eval("let mut foo<T<100> > bar = 1") == 1
+    assert eval("let mut foo<T<100> >[] bar = 1") == 1
+    assert eval("let mut foo<T<100+10> > bar = 1") == 1
+    assert eval("let mut foo<T<100+10> >[] bar = 1") == 1
+
+def test_parse_template_type_5():
+    eval("let mut foo<'asdf'> bar = 1")
+

@@ -110,9 +110,9 @@ def parse_arguments(argv):
             break
     return switches, args
 
+
 def get_help():
-    return """
-run script:
+    return """run script:
 usage: flolang [script] [arg] [arg]...
 
 run interpreter:
@@ -127,12 +127,17 @@ additional switches:
     -help    prints help (this text)
 """
 
+
+def print_help():
+    print(get_help(), end="")
+
+
 def main():
     switches, args = parse_arguments(sys.argv)
     if "p" in switches:
         set_pretty_print(False)
     if "help" in switches:
-        print(get_help())
+        print_help()
         return
     if "c" in switches:
         raise Exception("compiling is unimplemented")

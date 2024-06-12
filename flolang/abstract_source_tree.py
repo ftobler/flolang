@@ -66,9 +66,11 @@ class Program(Statement):
 
 
 class Type(Statement):
-    def __init__(self, type: str):
+    def __init__(self, type: str, templates: list[Expression] = [], is_array: bool = False):
         super().__init__()
         self.type = type
+        self.templates = templates
+        self.is_array = is_array
 
 
 class VariableDeclaration(Statement):
@@ -366,6 +368,12 @@ class Parser:
         self._last_eaten = self.tokens.pop(0)
         return self._last_eaten
 
+    def backtrack(self):
+        if not self._last_eaten:
+            raise Exception("Cannot backtrack.")
+        self.tokens.insert(0, self._last_eaten)
+        self._last_eaten = None
+
     def eat_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
         prev = self.eat()
         if prev.type is not token_type:
@@ -496,7 +504,10 @@ class Parser:
         #                      ^^^
         # fn foo(int a, int b):
         #                    ~~   => None
-        result = self.parse_next_type()
+        if self.at().type is lexer.IDENTIFIER:
+            type = self.parse_next_type()
+        else:
+            type = None
 
         # fn foo(int a, int b):
         #                     ^
@@ -505,8 +516,9 @@ class Parser:
         body = self.parse_block_declaration()
 
         if class_member_function:
-            return ClassMemberFunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
-        return FunctionDeclaration(args, result, identifier, body).location(loc_start, self.at())
+            return ClassMemberFunctionDeclaration(args, type, identifier, body).location(loc_start, self.at())
+        return FunctionDeclaration(args, type, identifier, body).location(loc_start, self.at())
+
 
     # (int a)
     # (int a, int b)
@@ -569,32 +581,137 @@ class Parser:
     # foo
     def parse_type_and_identifier(self) -> tuple:
         loc_start = self.at()
-        type = None
+
         # int foo
         # ^^^
         # foo
         # ^^^
-        first = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable type declaration", loc_start).value
+        first = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable/type declaration", loc_start).value
         if self.at().type is lexer.IDENTIFIER:
+            # its this case:
             # int foo
-            # ^^^
-            type = Type(first).location(loc_start, self.at_last())
-            # int foo
-            #     ^^^
-            identifier = self.eat().value
-            return type, identifier
-        else:
-            # foo
-            # ^^^
-            type = None
-            identifier = first
+            type = Type(first).location(loc_start, self.at())
+            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable/type declaration", loc_start).value
             return type, identifier
 
+        if self.at().type is lexer.SMALLER or self.at() is lexer.SQUARE_L:
+            # its this case:
+            # int<T> foo
+            # int<T>[] foo
+            # int[] foo
+            # foo
+            # need to backtrack the 'first' eat
+            self.backtrack()
+
+            # int<T>[] foo
+            # ^^^^^^^^
+            type = self.parse_next_type()
+
+            # int<T>[] foo
+            #          ^^^
+            identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable/type declaration", loc_start).value
+
+        # just an identifier found.
+        # foo
+        # ^^^
+        return None, first
+
+        type = self.parse_next_type()
+        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable after type declaration", loc_start).value
+        return type, identifier
+        # first = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable type declaration", loc_start).value
+        # if self.at().type is lexer.IDENTIFIER:
+        #     # int foo
+        #     # ^^^
+        #     type = self.parse_next_type()
+        #     # int foo
+        #     #     ^^^
+        #     identifier = self.eat().value
+        #     return type, identifier
+        # else:
+        #     # foo
+        #     # ^^^
+        #     type = None
+        #     identifier = first
+        #     return type, identifier
+
+
     def parse_next_type(self) -> Type:
+        # assuming we are at a type. Not encountering a type is a exception here.
+        # all other paths are a dead end.
+        #
+        # still, there might be a template or the type might be an array
+        #
+        # let type varname = (...)
+        #     ^^^^
+        # let type<T> varname = (...)
+        #     ^^^^^^^
+        # let type[] varname = (...)
+        #     ^^^^^^
+        # let type<T>[] varname = (...)
+        #     ^^^^^^^^^
         loc_start = self.at()
-        if self.at().type is lexer.IDENTIFIER:
-            return Type(self.eat().value).location(loc_start, self.at_last())
-        return None
+        type = self.eat_expect(lexer.IDENTIFIER, "Expect type declaration to start with an identifier.", loc_start).value
+
+        # check for template
+        # let type<(...)> varname = (...)
+        #         ^^^^^^^
+        templates = []
+        if self.at().type is lexer.SMALLER:
+            # check for template
+            # let type<T> varname = (...)
+            #         ^
+            self.eat()  # consume '<'
+            while True:
+                loop_loc_start = self.at()
+
+                if self.at().type is lexer.IDENTIFIER:
+                    # an identifier indicates its an entire Type. Recoursion.
+                    # let type<T> varname = (...)
+                    #          ^
+                    inner_type = self.parse_next_type()
+                    template = Type(inner_type).location(loop_loc_start, self.at_last())
+                else:
+                    # everything else could be a constant expression.
+                    # let type<100> varname = (...)
+                    #          ^^^
+                    # this needs to be of type parse_additive_expr or higher prescidence. this
+                    # is that it does not interfere with the '>' which is shared with the logic syntax.
+                    template = self.parse_additive_expr()
+                templates.append(template)
+
+                # let type<T> varname = (...)
+                #           ^
+                # let type<T, K> varname = (...)
+                #           ^
+                if self.at().type is lexer.COMMA:
+                    self.eat()  # consume ','
+                    # continue looping
+                else:
+                    # expect '<T>' to end
+                    #           ^
+                    # There is a potential problem here. The '>>' keyword could match
+                    # Exception: "Expect '>' or ',' after Identifier opening '<' template bracket. Got '>>' instead.""
+                    if self.at().type is lexer.SHIFTRIGHT:
+                        symbols = self.eat()  # consume '>>'
+                        tok = Token(symbols, lexer.BIGGER)
+                        self.tokens.insert(0, tok)  # isert '>'
+                        self.tokens.insert(0, tok)  # isert '>'
+                    self.eat_expect(lexer.BIGGER, "Expect '%s' or '%s' after Identifier opening '%s' template bracket." % (lexer.BIGGER, lexer.COMMA, lexer.SMALLER), loop_loc_start)
+                    break  # break out of this while loop
+
+        # check for array
+        # let type<T>[] varname = (...)
+        #            ^^
+        # let type[] varname = (...)
+        #         ^^
+        is_array = False
+        if self.at().type is lexer.SQUARE_L:
+            is_array = True
+            self.eat()  # consume '['
+            self.eat_expect(lexer.SQUARE_R, "Expect '%s' after '%s' in type declaration for an array." % (lexer.SQUARE_R, lexer.SQUARE_L), loc_start)
+
+        return Type(type, templates, is_array).location(loc_start, self.at_last())
 
     def parse_if_declaration(self):
         loc_start = self.at()
@@ -851,11 +968,7 @@ class Parser:
 
         # mut int a = (...)
         #     ^^^
-        type_start = self.at()
-        if self.at().type is lexer.IDENTIFIER:
-            type = Type(self.eat().value).location(type_start, self.at_last())
-        else:
-            parser_error("Expect identifier or builtin type for variable type declaration", loc_start, self.at())
+        type = self.parse_next_type()
 
         # mut int indentifier = (...)
         #         ^^^^^^^^^^^

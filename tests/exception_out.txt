@@ -5,8 +5,10 @@
              ├ mutable: False
              ├ dynamic: False
              ├ type: ┬ Type
-             │       ├ loc: 'int'
-             │       └ type: 'int'
+             │       ├ loc: 'int _'
+             │       ├ type: 'int'
+             │       ├ templates[] = []
+             │       └ is_array: False
              ├ identifier: '__argv'
              └ value: ┬ ListLiteral
                       ├ loc: '[]'
@@ -25,7 +27,9 @@
          │   │              │   ├ mutable: False
          │   │              │   ├ type: ┬ Type
          │   │              │   │       ├ loc: 'int'
-         │   │              │   │       └ type: 'int'
+         │   │              │   │       ├ type: 'int'
+         │   │              │   │       ├ templates[] = []
+         │   │              │   │       └ is_array: False
          │   │              │   ├ identifier: IDENTIFIER:'dat'
          │   │              │   └ default: None
          │   │              └ 1 ┬ ParameterStatement
@@ -33,7 +37,9 @@
          │   │                  ├ mutable: False
          │   │                  ├ type: ┬ Type
          │   │                  │       ├ loc: 'int'
-         │   │                  │       └ type: 'int'
+         │   │                  │       ├ type: 'int'
+         │   │                  │       ├ templates[] = []
+         │   │                  │       └ is_array: False
          │   │                  ├ identifier: IDENTIFIER:'polynomial'
          │   │                  └ default: ┬ NumericLiteral
          │   │                             ├ loc: '0x07'
@@ -41,7 +47,9 @@
          │   │                             └ value: 7
          │   ├ result: ┬ Type
          │   │         ├ loc: 'int'
-         │   │         └ type: 'int'
+         │   │         ├ type: 'int'
+         │   │         ├ templates[] = []
+         │   │         └ is_array: False
          │   ├ identifier: 'crc8_update'
          │   └ body: ┬ BlockStatement
          │           ├ loc: '    crc ^= dat'
@@ -59,7 +67,9 @@
          │                    │   ├ loc: 'for int _ in 0..8:'
          │                    │   ├ type: ┬ Type
          │                    │   │       ├ loc: 'int'
-         │                    │   │       └ type: 'int'
+         │                    │   │       ├ type: 'int'
+         │                    │   │       ├ templates[] = []
+         │                    │   │       └ is_array: False
          │                    │   ├ identifier: IDENTIFIER:'_'
          │                    │   ├ body: ┬ BlockStatement
          │                    │   │       ├ loc: '        if crc & 0x80:'
@@ -150,8 +160,10 @@
          │                    │   │                    │                          ├ mutable: True
          │                    │   │                    │                          ├ dynamic: False
          │                    │   │                    │                          ├ type: ┬ Type
-         │                    │   │                    │                          │       ├ loc: 'int'
-         │                    │   │                    │                          │       └ type: 'int'
+         │                    │   │                    │                          │       ├ loc: 'int f'
+         │                    │   │                    │                          │       ├ type: 'int'
+         │                    │   │                    │                          │       ├ templates[] = []
+         │                    │   │                    │                          │       └ is_array: False
          │                    │   │                    │                          ├ identifier: 'foo'
          │                    │   │                    │                          └ value: ┬ ElvisExpression
          │                    │   │                    │                                   ├ loc: 'bar(2**55) ? True : f'
@@ -205,8 +217,10 @@
                               │   ├ mutable: False
                               │   ├ dynamic: False
                               │   ├ type: ┬ Type
-                              │   │       ├ loc: 'int'
-                              │   │       └ type: 'int'
+                              │   │       ├ loc: 'int i'
+                              │   │       ├ type: 'int'
+                              │   │       ├ templates[] = []
+                              │   │       └ is_array: False
                               │   ├ identifier: 'init_value'
                               │   └ value: ┬ NumericLiteral
                               │            ├ loc: '0x00'
@@ -217,8 +231,10 @@
                               │   ├ mutable: True
                               │   ├ dynamic: False
                               │   ├ type: ┬ Type
-                              │   │       ├ loc: 'int'
-                              │   │       └ type: 'int'
+                              │   │       ├ loc: 'int c'
+                              │   │       ├ type: 'int'
+                              │   │       ├ templates[] = []
+                              │   │       └ is_array: False
                               │   ├ identifier: 'crc'
                               │   └ value: ┬ Identifier
                               │            ├ loc: 'init_value'
@@ -227,7 +243,9 @@
                               │   ├ loc: 'for int i in 1..4:'
                               │   ├ type: ┬ Type
                               │   │       ├ loc: 'int'
-                              │   │       └ type: 'int'
+                              │   │       ├ type: 'int'
+                              │   │       ├ templates[] = []
+                              │   │       └ is_array: False
                               │   ├ identifier: IDENTIFIER:'i'
                               │   ├ body: ┬ BlockStatement
                               │   │       ├ loc: '        crc = crc8_update(i)'
