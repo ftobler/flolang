@@ -48,11 +48,13 @@ def print_exception(e, tok_copy, ast, value):
         print(typename, ":", e)
 
 
-def main_console():
+def main_console(arguments=None):
     print("flolang v0.1 by ftobler")
     env = default_environment()
     env.declare_global("_", interpret(parse(tokenize("None")), env), True, None)
     interpret(parse(tokenize("#!script")), env)
+    if arguments:
+        declare_arguments(env, arguments)
     while True:
         tok_copy = None
         ast = None
@@ -102,15 +104,41 @@ def parse_arguments(argv):
     while len(args):
         arg = args[0]
         if arg.startswith("-"):
-            switches.append((arg[1:], args[1]))
-            args = args[2:]  # consumed 2 args
+            switches.append(arg[1:])
+            args = args[1:]  # consume this arg
         else:
             break
     return switches, args
 
+def get_help():
+    return """
+run script:
+usage: flolang [script] [arg] [arg]...
+
+run interpreter:
+usage: flolnang -i [arg] [arg]...
+
+run interpreter (default)
+usage: flolang
+
+additional switches:
+    -p       disable pretty print
+    -c       compile script
+    -help    prints help (this text)
+"""
 
 def main():
-    _switches, args = parse_arguments(sys.argv)
+    switches, args = parse_arguments(sys.argv)
+    if "p" in switches:
+        set_pretty_print(False)
+    if "help" in switches:
+        print(get_help())
+        return
+    if "c" in switches:
+        raise Exception("compiling is unimplemented")
+    if "i" in switches:
+        main_console(args)
+        return
     if len(args):
         script_file = args[0]
         arguments = args[1:]
