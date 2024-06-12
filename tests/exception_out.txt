@@ -1,0 +1,270 @@
+├ loc: 'static int __argv = []'
+└ body[] ┐
+         └ 0 ┬ GlobalVariableDeclaration
+             ├ loc: 'static int __argv = []'
+             ├ mutable: False
+             ├ dynamic: False
+             ├ type: ┬ Type
+             │       ├ loc: 'int'
+             │       └ type: 'int'
+             ├ identifier: '__argv'
+             └ value: ┬ ListLiteral
+                      ├ loc: '[]'
+                      └ values[] = []
+['#!':'#!flolang', 'fn', IDENTIFIER:'crc8_update', '(', IDENTIFIER:'int', IDENTIFIER:'dat', ',', IDENTIFIER:'int', IDENTIFIER:'polynomial', '=', NUMBER:'0x07', ')', IDENTIFIER:'int', ':', BLOCKSTART, IDENTIFIER:'crc', '^=', IDENTIFIER:'dat', 'for', IDENTIFIER:'int', IDENTIFIER:'_', 'in', NUMBER:'0', '..', NUMBER:'8', ':', BLOCKSTART, 'if', IDENTIFIER:'crc', '&', NUMBER:'0x80', ':', BLOCKSTART, IDENTIFIER:'crc', '=', '(', IDENTIFIER:'crc', '<<', NUMBER:'1', ')', '^', IDENTIFIER:'polynomial', BLOCKEND, 'else', ':', BLOCKSTART, IDENTIFIER:'crc', '=', IDENTIFIER:'crc', '<<', NUMBER:'1', BLOCKEND, IDENTIFIER:'crc', '&=', NUMBER:'0xFF', 'if', IDENTIFIER:'crc', '&', NUMBER:'0x04', ':', BLOCKSTART, 'let', 'mut', IDENTIFIER:'int', IDENTIFIER:'foo', '=', IDENTIFIER:'bar', '(', NUMBER:'2', '**', NUMBER:'55', ')', '?', IDENTIFIER:'True', ':', IDENTIFIER:'failure', BLOCKEND, BLOCKEND, 'return', IDENTIFIER:'crc', BLOCKEND, 'fn', IDENTIFIER:'main', '(', ')', ':', BLOCKSTART, 'let', IDENTIFIER:'int', IDENTIFIER:'init_value', '=', NUMBER:'0x00', 'let', 'mut', IDENTIFIER:'int', IDENTIFIER:'crc', '=', IDENTIFIER:'init_value', 'for', IDENTIFIER:'int', IDENTIFIER:'i', 'in', NUMBER:'1', '..', NUMBER:'4', ':', BLOCKSTART, IDENTIFIER:'crc', '=', IDENTIFIER:'crc8_update', '(', IDENTIFIER:'i', ')', BLOCKEND, IDENTIFIER:'print', '(', IDENTIFIER:'crc', ')', BLOCKEND, EOF]
+├ loc: '#!flolang'
+└ body[] ┐
+         ├ 0 ┬ ShebangExpression
+         │   ├ loc: '#!flolang'
+         │   └ shebang: '#!flolang'
+         ├ 1 ┬ FunctionDeclaration
+         │   ├ loc: 'fn crc8_update(int dat, int polynomial=0x07) int:'
+         │   ├ parameters[] ┐
+         │   │              ├ 0 ┬ ParameterStatement
+         │   │              │   ├ loc: 'int dat, i'
+         │   │              │   ├ mutable: False
+         │   │              │   ├ type: ┬ Type
+         │   │              │   │       ├ loc: 'int'
+         │   │              │   │       └ type: 'int'
+         │   │              │   ├ identifier: IDENTIFIER:'dat'
+         │   │              │   └ default: None
+         │   │              └ 1 ┬ ParameterStatement
+         │   │                  ├ loc: 'int polynomial=0x07)'
+         │   │                  ├ mutable: False
+         │   │                  ├ type: ┬ Type
+         │   │                  │       ├ loc: 'int'
+         │   │                  │       └ type: 'int'
+         │   │                  ├ identifier: IDENTIFIER:'polynomial'
+         │   │                  └ default: ┬ NumericLiteral
+         │   │                             ├ loc: '0x07'
+         │   │                             ├ value_raw: '0x07'
+         │   │                             └ value: 7
+         │   ├ result: ┬ Type
+         │   │         ├ loc: 'int'
+         │   │         └ type: 'int'
+         │   ├ identifier: 'crc8_update'
+         │   └ body: ┬ BlockStatement
+         │           ├ loc: '    crc ^= dat'
+         │           └ body[] ┐
+         │                    ├ 0 ┬ AssignmentExpression
+         │                    │   ├ loc: 'crc ^= d'
+         │                    │   ├ assignee: ┬ Identifier
+         │                    │   │           ├ loc: 'crc'
+         │                    │   │           └ symbol: 'crc'
+         │                    │   ├ value: ┬ Identifier
+         │                    │   │        ├ loc: 'dat'
+         │                    │   │        └ symbol: 'dat'
+         │                    │   └ operator: '^='
+         │                    ├ 1 ┬ ForExpression
+         │                    │   ├ loc: 'for int _ in 0..8:'
+         │                    │   ├ type: ┬ Type
+         │                    │   │       ├ loc: 'int'
+         │                    │   │       └ type: 'int'
+         │                    │   ├ identifier: IDENTIFIER:'_'
+         │                    │   ├ body: ┬ BlockStatement
+         │                    │   │       ├ loc: '        if crc & 0x80:'
+         │                    │   │       └ body[] ┐
+         │                    │   │                ├ 0 ┬ IfExpression
+         │                    │   │                │   ├ loc: 'if crc & 0x80:'
+         │                    │   │                │   ├ test: ┬ BinaryExpression
+         │                    │   │                │   │       ├ loc: 'crc & 0x80:'
+         │                    │   │                │   │       ├ left: ┬ Identifier
+         │                    │   │                │   │       │       ├ loc: 'crc'
+         │                    │   │                │   │       │       └ symbol: 'crc'
+         │                    │   │                │   │       ├ right: ┬ NumericLiteral
+         │                    │   │                │   │       │        ├ loc: '0x80'
+         │                    │   │                │   │       │        ├ value_raw: '0x80'
+         │                    │   │                │   │       │        └ value: 128
+         │                    │   │                │   │       └ operator: '&'
+         │                    │   │                │   ├ consequent: ┬ BlockStatement
+         │                    │   │                │   │             ├ loc: '            crc = (crc << 1) ^ polynomial'
+         │                    │   │                │   │             └ body[] ┐
+         │                    │   │                │   │                      └ 0 ┬ AssignmentExpression
+         │                    │   │                │   │                          ├ loc: 'crc = (crc << 1) ^ p'
+         │                    │   │                │   │                          ├ assignee: ┬ Identifier
+         │                    │   │                │   │                          │           ├ loc: 'crc'
+         │                    │   │                │   │                          │           └ symbol: 'crc'
+         │                    │   │                │   │                          ├ value: ┬ BinaryExpression
+         │                    │   │                │   │                          │        ├ loc: '(crc << 1) ^ polynomial'
+         │                    │   │                │   │                          │        ├ left: ┬ BinaryExpression
+         │                    │   │                │   │                          │        │       ├ loc: 'crc << 1)'
+         │                    │   │                │   │                          │        │       ├ left: ┬ Identifier
+         │                    │   │                │   │                          │        │       │       ├ loc: 'crc'
+         │                    │   │                │   │                          │        │       │       └ symbol: 'crc'
+         │                    │   │                │   │                          │        │       ├ right: ┬ NumericLiteral
+         │                    │   │                │   │                          │        │       │        ├ loc: '1'
+         │                    │   │                │   │                          │        │       │        ├ value_raw: '1'
+         │                    │   │                │   │                          │        │       │        └ value: 1
+         │                    │   │                │   │                          │        │       └ operator: '<<'
+         │                    │   │                │   │                          │        ├ right: ┬ Identifier
+         │                    │   │                │   │                          │        │        ├ loc: 'polynomial'
+         │                    │   │                │   │                          │        │        └ symbol: 'polynomial'
+         │                    │   │                │   │                          │        └ operator: '^'
+         │                    │   │                │   │                          └ operator: '='
+         │                    │   │                │   └ alternate: ┬ BlockStatement
+         │                    │   │                │                ├ loc: '            crc = crc << 1'
+         │                    │   │                │                └ body[] ┐
+         │                    │   │                │                         └ 0 ┬ AssignmentExpression
+         │                    │   │                │                             ├ loc: 'crc = crc << 1'
+         │                    │   │                │                             ├ assignee: ┬ Identifier
+         │                    │   │                │                             │           ├ loc: 'crc'
+         │                    │   │                │                             │           └ symbol: 'crc'
+         │                    │   │                │                             ├ value: ┬ BinaryExpression
+         │                    │   │                │                             │        ├ loc: 'crc << 1'
+         │                    │   │                │                             │        ├ left: ┬ Identifier
+         │                    │   │                │                             │        │       ├ loc: 'crc'
+         │                    │   │                │                             │        │       └ symbol: 'crc'
+         │                    │   │                │                             │        ├ right: ┬ NumericLiteral
+         │                    │   │                │                             │        │        ├ loc: '1'
+         │                    │   │                │                             │        │        ├ value_raw: '1'
+         │                    │   │                │                             │        │        └ value: 1
+         │                    │   │                │                             │        └ operator: '<<'
+         │                    │   │                │                             └ operator: '='
+         │                    │   │                ├ 1 ┬ AssignmentExpression
+         │                    │   │                │   ├ loc: 'crc &= 0'
+         │                    │   │                │   ├ assignee: ┬ Identifier
+         │                    │   │                │   │           ├ loc: 'crc'
+         │                    │   │                │   │           └ symbol: 'crc'
+         │                    │   │                │   ├ value: ┬ NumericLiteral
+         │                    │   │                │   │        ├ loc: '0xFF'
+         │                    │   │                │   │        ├ value_raw: '0xFF'
+         │                    │   │                │   │        └ value: 255
+         │                    │   │                │   └ operator: '&='
+         │                    │   │                └ 2 ┬ IfExpression
+         │                    │   │                    ├ loc: 'if crc & 0x04:'
+         │                    │   │                    ├ test: ┬ BinaryExpression
+         │                    │   │                    │       ├ loc: 'crc & 0x04:'
+         │                    │   │                    │       ├ left: ┬ Identifier
+         │                    │   │                    │       │       ├ loc: 'crc'
+         │                    │   │                    │       │       └ symbol: 'crc'
+         │                    │   │                    │       ├ right: ┬ NumericLiteral
+         │                    │   │                    │       │        ├ loc: '0x04'
+         │                    │   │                    │       │        ├ value_raw: '0x04'
+         │                    │   │                    │       │        └ value: 4
+         │                    │   │                    │       └ operator: '&'
+         │                    │   │                    ├ consequent: ┬ BlockStatement
+         │                    │   │                    │             ├ loc: '            let mut int foo = bar(2**55) ? True : failure'
+         │                    │   │                    │             └ body[] ┐
+         │                    │   │                    │                      └ 0 ┬ LocalVariableDeclaration
+         │                    │   │                    │                          ├ loc: 'let mut int foo = bar(2**55) ? True : failure'
+         │                    │   │                    │                          ├ mutable: True
+         │                    │   │                    │                          ├ dynamic: False
+         │                    │   │                    │                          ├ type: ┬ Type
+         │                    │   │                    │                          │       ├ loc: 'int'
+         │                    │   │                    │                          │       └ type: 'int'
+         │                    │   │                    │                          ├ identifier: 'foo'
+         │                    │   │                    │                          └ value: ┬ ElvisExpression
+         │                    │   │                    │                                   ├ loc: 'bar(2**55) ? True : f'
+         │                    │   │                    │                                   ├ test: ┬ CallExpression
+         │                    │   │                    │                                   │       ├ loc: 'bar(2**55) ?'
+         │                    │   │                    │                                   │       ├ caller: ┬ Identifier
+         │                    │   │                    │                                   │       │         ├ loc: 'bar'
+         │                    │   │                    │                                   │       │         └ symbol: 'bar'
+         │                    │   │                    │                                   │       └ arguments[] ┐
+         │                    │   │                    │                                   │                     └ 0 ┬ BinaryExpression
+         │                    │   │                    │                                   │                         ├ loc: '2**55)'
+         │                    │   │                    │                                   │                         ├ left: ┬ NumericLiteral
+         │                    │   │                    │                                   │                         │       ├ loc: '2'
+         │                    │   │                    │                                   │                         │       ├ value_raw: '2'
+         │                    │   │                    │                                   │                         │       └ value: 2
+         │                    │   │                    │                                   │                         ├ right: ┬ NumericLiteral
+         │                    │   │                    │                                   │                         │        ├ loc: '55'
+         │                    │   │                    │                                   │                         │        ├ value_raw: '55'
+         │                    │   │                    │                                   │                         │        └ value: 55
+         │                    │   │                    │                                   │                         └ operator: '**'
+         │                    │   │                    │                                   ├ consequent: ┬ Identifier
+         │                    │   │                    │                                   │             ├ loc: 'True'
+         │                    │   │                    │                                   │             └ symbol: 'True'
+         │                    │   │                    │                                   └ alternate: ┬ Identifier
+         │                    │   │                    │                                                ├ loc: 'failure'
+         │                    │   │                    │                                                └ symbol: 'failure'
+         │                    │   │                    └ alternate: None
+         │                    │   ├ quantity_min: ┬ NumericLiteral
+         │                    │   │               ├ loc: '0'
+         │                    │   │               ├ value_raw: '0'
+         │                    │   │               └ value: 0
+         │                    │   └ quantity_max: ┬ NumericLiteral
+         │                    │                   ├ loc: '8'
+         │                    │                   ├ value_raw: '8'
+         │                    │                   └ value: 8
+         │                    └ 2 ┬ ReturnExpression
+         │                        ├ loc: 'return c'
+         │                        └ value: ┬ Identifier
+         │                                 ├ loc: 'crc'
+         │                                 └ symbol: 'crc'
+         └ 2 ┬ FunctionDeclaration
+             ├ loc: 'fn main():'
+             ├ parameters[] = []
+             ├ result: None
+             ├ identifier: 'main'
+             └ body: ┬ BlockStatement
+                     ├ loc: '    let int init_value = 0x00'
+                     └ body[] ┐
+                              ├ 0 ┬ LocalVariableDeclaration
+                              │   ├ loc: 'let int init_value = 0x00'
+                              │   ├ mutable: False
+                              │   ├ dynamic: False
+                              │   ├ type: ┬ Type
+                              │   │       ├ loc: 'int'
+                              │   │       └ type: 'int'
+                              │   ├ identifier: 'init_value'
+                              │   └ value: ┬ NumericLiteral
+                              │            ├ loc: '0x00'
+                              │            ├ value_raw: '0x00'
+                              │            └ value: 0
+                              ├ 1 ┬ LocalVariableDeclaration
+                              │   ├ loc: 'let mut int crc = init_value'
+                              │   ├ mutable: True
+                              │   ├ dynamic: False
+                              │   ├ type: ┬ Type
+                              │   │       ├ loc: 'int'
+                              │   │       └ type: 'int'
+                              │   ├ identifier: 'crc'
+                              │   └ value: ┬ Identifier
+                              │            ├ loc: 'init_value'
+                              │            └ symbol: 'init_value'
+                              ├ 2 ┬ ForExpression
+                              │   ├ loc: 'for int i in 1..4:'
+                              │   ├ type: ┬ Type
+                              │   │       ├ loc: 'int'
+                              │   │       └ type: 'int'
+                              │   ├ identifier: IDENTIFIER:'i'
+                              │   ├ body: ┬ BlockStatement
+                              │   │       ├ loc: '        crc = crc8_update(i)'
+                              │   │       └ body[] ┐
+                              │   │                └ 0 ┬ AssignmentExpression
+                              │   │                    ├ loc: 'crc = crc8_update(i)'
+                              │   │                    ├ assignee: ┬ Identifier
+                              │   │                    │           ├ loc: 'crc'
+                              │   │                    │           └ symbol: 'crc'
+                              │   │                    ├ value: ┬ CallExpression
+                              │   │                    │        ├ loc: 'crc8_update(i)'
+                              │   │                    │        ├ caller: ┬ Identifier
+                              │   │                    │        │         ├ loc: 'crc8_update'
+                              │   │                    │        │         └ symbol: 'crc8_update'
+                              │   │                    │        └ arguments[] ┐
+                              │   │                    │                      └ 0 ┬ Identifier
+                              │   │                    │                          ├ loc: 'i'
+                              │   │                    │                          └ symbol: 'i'
+                              │   │                    └ operator: '='
+                              │   ├ quantity_min: ┬ NumericLiteral
+                              │   │               ├ loc: '1'
+                              │   │               ├ value_raw: '1'
+                              │   │               └ value: 1
+                              │   └ quantity_max: ┬ NumericLiteral
+                              │                   ├ loc: '4'
+                              │                   ├ value_raw: '4'
+                              │                   └ value: 4
+                              └ 3 ┬ CallExpression
+                                  ├ loc: 'print(crc)'
+                                  ├ caller: ┬ Identifier
+                                  │         ├ loc: 'print'
+                                  │         └ symbol: 'print'
+                                  └ arguments[] ┐
+                                                └ 0 ┬ Identifier
+                                                    ├ loc: 'crc'
+                                                    └ symbol: 'crc'
+RuntimeException : File "__unspecified__", line 11.
+            let mut int foo = bar(2**55) ? True : failure
+                              ^^^
+Variable 'bar' is not defined. In 'Identifier' statement.

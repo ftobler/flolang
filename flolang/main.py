@@ -16,9 +16,11 @@ from colorama import Fore, Style  # , Back
 from flolang.debugtools import print_ast
 
 
-pretty_print = True
+pretty_print = False
 
-
+def set_pretty_print(value: bool):
+    global pretty_print
+    pretty_print = value
 
 
 def print_exception(e, tok_copy, ast, value):
@@ -81,7 +83,7 @@ def main_execute(script_file, arguments):
         try:
             code = f.read()
             tok = tokenize(code)
-            tok_copy = tok
+            tok_copy = tok.copy()
             ast = parse(tok)
             env = default_environment()
             declare_arguments(env, arguments)
