@@ -48,8 +48,8 @@ class I8Value(_NumberValue):
     def __init__(self, value: int):
         super().__init__()
         v = int(value) & 0xFF
-        if v & 0x80:
-            self.value = 0xFF - 1 - v
+        if v >= 0x80:
+            self.value = v - 0xFF - 1
         else:
             self.value = v
 
@@ -62,8 +62,8 @@ class I16Value(_NumberValue):
     def __init__(self, value: int):
         super().__init__()
         v = int(value) & 0xFFFF
-        if v & 0x8000:
-            self.value = 0xFFFF - 1 - v
+        if v >= 0x8000:
+            self.value = v - 0xFFFF - 1
         else:
             self.value = v
 
@@ -90,7 +90,7 @@ class I64Value(_NumberValue):
     def __init__(self, value: int):
         super().__init__()
         v = int(value) & 0xFFFFFFFFFFFFFFFF
-        if v & 0x8000000000000000:
+        if v >= 0x8000000000000000:
             self.value = v - 0xFFFFFFFFFFFFFFFF - 1
         else:
             self.value = v
@@ -448,13 +448,12 @@ def _expression_find_type_float(left: RuntimeValue, right: RuntimeValue, value: 
 
 def _expression_find_type_int(left: RuntimeValue, right: RuntimeValue, value: any):
     # Ensure integer promotion
-    if isinstance(left, (U64Value, I64Value, U32Value, I32Value)) or isinstance(right, (U64Value, I64Value, U32Value, I32Value)):
-        if isinstance(left, U64Value) or isinstance(right, U64Value):
-            return U64Value(value)
-        if isinstance(left, I64Value) or isinstance(right, I64Value):
-            return I64Value(value)
-        if isinstance(left, U32Value) or isinstance(right, U32Value):
-            return U32Value(value)
+    if isinstance(left, U64Value) or isinstance(right, U64Value):
+        return U64Value(value)
+    if isinstance(left, I64Value) or isinstance(right, I64Value):
+        return I64Value(value)
+    if isinstance(left, U32Value) or isinstance(right, U32Value):
+        return U32Value(value)
     return I32Value(value)
 
 def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: any):
@@ -593,6 +592,8 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         if stmt.operator is lexer.ASSIGN:
             return env.assign(identifier, right, stmt)
         left = env.lookup(identifier, stmt)
+        if stmt.operator is lexer.ASSIGNADD and isinstance(left, StringValue) and isinstance(right, StringValue):
+            return env.assign(identifier, StringValue(left.value + right.value), stmt)
         if stmt.operator is lexer.ASSIGNADD:
             return env.assign(identifier, _expression_find_type(left, right, left.value + right.value), stmt)
         if stmt.operator is lexer.ASSIGNSUB:

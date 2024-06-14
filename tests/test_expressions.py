@@ -1010,17 +1010,20 @@ def test_parse_template_type_1():
     assert eval("let mut foo<T<J>>[] bar = 1") == 1
     assert eval("let mut foo<T<J>[]>[] bar = 1") == 1
 
+
 def test_parse_template_type_2():
     assert eval("let mut foo<100> bar = 1") == 1
     assert eval("let mut foo<T<100>> bar = 1") == 1
     assert eval("let mut foo<T<100>>[] bar = 1") == 1
     assert eval("let mut foo<T<100>[]>[] bar = 1") == 1
 
+
 def test_parse_template_type_3():
     assert eval("let mut foo<100+10> bar = 1") == 1
     assert eval("let mut foo<T<100+10>> bar = 1") == 1
     assert eval("let mut foo<T<100+10>>[] bar = 1") == 1
     assert eval("let mut foo<T<100+10>[]>[] bar = 1") == 1
+
 
 def test_parse_template_type_4():
     assert eval("let mut foo<T<J> > bar = 1") == 1
@@ -1030,6 +1033,133 @@ def test_parse_template_type_4():
     assert eval("let mut foo<T<100+10> > bar = 1") == 1
     assert eval("let mut foo<T<100+10> >[] bar = 1") == 1
 
+
 def test_parse_template_type_5():
     eval("let mut foo<'asdf'> bar = 1")
+
+
+def test_type_1():
+    assert eval("1+1") == 2
+    assert eval("1+-1") == 0
+    assert str(eval("1.0+1")) == "2.0"
+    assert str(eval("1.0+-1")) == "0.0"
+    assert str(eval("1+1.0")) == "2.0"
+    assert str(eval("1+-1.0")) == "0.0"
+    assert str(eval("1.0+1.0")) == "2.0"
+    assert str(eval("1.0+-1.0")) == "0.0"
+
+
+def test_type_2aa():
+    assert eval("let i64 a = 10         let i64 b = 20          a-b") == -10
+    assert eval("let int a = 10         let int b = 20          a-b") == -10
+    assert eval("let i32 a = 10         let i32 b = 20          a-b") == -10
+    assert eval("let i32 a = 10         let i32 b = 20          a-b") == -10
+    assert eval("let i16 a = 10         let i16 b = 20          a-b") == -10
+    assert eval("let i8 a = 10          let i8 b = 20           a-b") == -10
+
+
+def test_type_2ab():
+    assert eval("let i64 a = 10         let i32 b = 20          a-b") == -10
+    assert eval("let int a = 10         let i16 b = 20          a-b") == -10
+    assert eval("let i32 a = 10         let i16 b = 20          a-b") == -10
+    assert eval("let i32 a = 10         let i16 b = 20          a-b") == -10
+    assert eval("let i16 a = 10         let i8 b = 20          a-b") == -10
+
+
+def test_type_2ac():
+    assert eval("let int a = 10         let i64 b = 20          a-b") == -10
+    assert eval("let i32 a = 10         let i64 b = 20          a-b") == -10
+    assert eval("let i32 a = 10         let i64 b = 20          a-b") == -10
+    assert eval("let i16 a = 10         let i32 b = 20          a-b") == -10
+    assert eval("let i8 a = 10          let i16 b = 20           a-b") == -10
+
+
+def test_type_2b():
+    assert eval("let u32 a = 10         let u32 b = 20          a-b") == 4294967286
+    assert eval("let u16 a = 10         let u16 b = 20          a-b") == -10  # int inferred
+    assert eval("let u16 a = 10         let u16 b = 20          let u16 c = a-b") == 65526
+    assert eval("let u8 a = 10          let u8 b = 20           a-b") == -10  # int inferred
+    assert eval("let u8 a = 10          let u8 b = 20           let u8 c = a-b") == 246
+    assert eval("let u8 a = 10          let u8 b = 20           let u16 c = a-b") == 65526
+    assert eval("let u8 a = 10          let u8 b = 20           let u32 c = a-b") == 4294967286
+
+
+def test_type_2c():
+    assert eval("let u32 a = 10         let u32 b = 20          a+b") == 30
+    assert eval("let u16 a = 10         let u16 b = 20          a+b") == 30  # int inferred
+    assert eval("let u16 a = 10         let u16 b = 20          let u16 c = a+b") == 30
+    assert eval("let u8 a = 10          let u8 b = 20           a+b") == 30  # int inferred
+    assert eval("let u8 a = 10          let u8 b = 20           let u8 c = a+b") == 30
+    assert eval("let u8 a = 10          let u8 b = 20           let u16 c = a+b") == 30
+    assert eval("let u8 a = 10          let u8 b = 20           let u32 c = a+b") == 30
+
+
+def test_type_2d():
+    assert eval("let u32 a = 10         let u16 b = 20          a-b") == 4294967286
+    assert eval("let u16 a = 10         let u8 b = 20          a-b") == -10  # int inferred
+    assert eval("let u16 a = 10         let u8 b = 20          let u16 c = a-b") == 65526
+    assert eval("let u8 a = 10          let u16 b = 20           a-b") == -10  # int inferred
+    assert eval("let u8 a = 10          let u16 b = 20           let u8 c = a-b") == 246
+    assert eval("let u8 a = 10          let u16 b = 20           let u16 c = a-b") == 65526
+    assert eval("let u8 a = 10          let u16 b = 20           let u32 c = a-b") == 4294967286
+
+
+def test_type_2e():
+    assert eval("let u32 a = 10         let u32  b = 20          a-b") == 4294967286
+    assert eval("let u16 a = 10         let u32  b = 20          a-b") == 4294967286
+    assert eval("let u8 a = 10          let u32  b = 20          a-b") == 4294967286
+    assert eval("let u16 a = 10         let u32  b = 20          let u16 c = a-b") == 65526
+    assert eval("let u8 a = 10          let u32  b = 20           let u8 c = a-b") == 246
+    assert eval("let u8 a = 10          let u32  b = 20           let u16 c = a-b") == 65526
+    assert eval("let u8 a = 10          let u32  b = 20           let u32 c = a-b") == 4294967286
+
+
+def test_type_3a():
+    assert eval("let i8 a = 1") == 1
+    assert eval("let i8 a = 127") == 127
+    assert eval("let i8 a = -1") == -1
+    assert eval("let i8 a = -10") == -10
+    assert eval("let i8 a = -128") == -128
+
+
+def test_type_3b():
+    assert eval("let u8 a = 1") == 1
+    assert eval("let u8 a = 127") == 127
+    assert eval("let u8 a = -1") == 255
+    assert eval("let u8 a = -10") == 246
+    assert eval("let u8 a = -128") == 128
+
+
+def test_type_3c():
+    assert eval("let u16 a = 1") == 1
+    assert eval("let u16 a = 127") == 127
+    assert eval("let u16 a = -1") == 65535
+    assert eval("let u16 a = -10") == 65526
+    assert eval("let u16 a = -128") == 65408
+
+
+def test_type_3d():
+    assert eval("let i16 a = 1") == 1
+    assert eval("let i16 a = 127") == 127
+    assert eval("let i16 a = -1") == -1
+    assert eval("let i16 a = -10") == -10
+    assert eval("let i16 a = -128") == -128
+
+
+def test_type_3e():
+    max = 2**32
+    assert eval("let u32 a = 1") == 1
+    assert eval("let u32 a = 127") == 127
+    assert eval("let u32 a = -1") == 4294967295
+    assert eval("let u32 a = -10") == 4294967286
+    assert eval("let u32 a = -128") == 4294967168
+
+
+def test_type_3f():
+    assert eval("let i32 a = 1") == 1
+    assert eval("let i32 a = 127") == 127
+    assert eval("let i32 a = -1") == -1
+    assert eval("let i32 a = -10") == -10
+    assert eval("let i32 a = -128") == -128
+
 

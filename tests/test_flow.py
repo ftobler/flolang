@@ -1026,6 +1026,42 @@ n
 """) == 10
 
 
+def test_for_loop_7():
+    assert eval("""
+let mut int n = 0
+for int i in [10,20,30]:
+    n += i
+n
+""") == 60
+
+
+def test_for_loop_8():
+    assert eval("""
+let mut int n = 0
+for int i in []:
+    n += i
+n
+""") == 0
+
+
+def test_for_loop_9a():
+    assert eval("""
+let mut n = ""
+for int i in ["a", 'b', `c`]:
+    n = n + i
+n
+""") == "abc"
+
+
+def test_for_loop_9b():
+    assert eval("""
+let mut n = ""
+for int i in ["a", 'b', `c`]:
+    n += i
+n
+""") == "abc"
+
+
 
 def test_assignment_multiple_1():
     assert eval("""
