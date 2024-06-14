@@ -259,18 +259,67 @@ def test_inline_statements_2():
     assert eval("if False: 1 1123") == 1123
 
 
-def test_assignment():
+def test_assignment_1a():
     assert eval("let mut int i = 10          i = 20") == 20
     assert eval("let mut int i = 10          i += 20") == 30
     assert eval("let mut int i = 10          i -= 20") == -10
     assert eval("let mut int i = 10          i *= 20") == 200
-    assert eval("let mut int i = 10          i /= 20") == 0.5
     assert eval("let mut int i = 10          i %= 7") == 3
     assert eval("let mut int i = 0x09        i &= 0x81") == 0x01
     assert eval("let mut int i = 0x09        i ^= 0x11") == 0x18
     assert eval("let mut int i = 0x09        i |= 0x18") == 0x19
     assert eval("let mut int i = 0x09        i <<= 1") == 0x12
     assert eval("let mut int i = 0x09        i >>= 1") == 0x04
+
+
+def test_assignment_1b():
+    assert eval("let mut float i = 10          i = 20") == 20
+    assert eval("let mut float i = 10          i += 20") == 30
+    assert eval("let mut float i = 10          i -= 20") == -10
+    assert eval("let mut float i = 10          i *= 20") == 200
+    assert eval("let mut float i = 10          i %= 7") == 3
+    with pytest.raises(TypeError):
+        eval("let mut float i = 0x09        i &= 0x81")
+    with pytest.raises(TypeError):
+        eval("let mut float i = 0x09        i ^= 0x11")
+    with pytest.raises(TypeError):
+        eval("let mut float i = 0x09        i |= 0x18")
+    with pytest.raises(TypeError):
+        eval("let mut float i = 0x09        i <<= 1")
+    with pytest.raises(TypeError):
+        eval("let mut float i = 0x09        i >>= 1")
+
+
+def test_assignment_1c():
+    assert eval("let mut i32 i = 10          i = 20") == 20
+    assert eval("let mut i32 i = 10          i += 20") == 30
+    assert eval("let mut i32 i = 10          i -= 20") == -10
+    assert eval("let mut i32 i = 10          i *= 20") == 200
+    assert eval("let mut i32 i = 10          i %= 7") == 3
+    assert eval("let mut i32 i = 0x09        i &= 0x81") == 0x01
+    assert eval("let mut i32 i = 0x09        i ^= 0x11") == 0x18
+    assert eval("let mut i32 i = 0x09        i |= 0x18") == 0x19
+    assert eval("let mut i32 i = 0x09        i <<= 1") == 0x12
+    assert eval("let mut i32 i = 0x09        i >>= 1") == 0x04
+
+
+def test_assignment_1d():
+    assert eval("let mut u32 i = 10          i = 20") == 20
+    assert eval("let mut u32 i = 10          i += 20") == 30
+    assert eval("let mut u32 i = 10          i -= 20") == 4294967286  # overflow -10
+    assert eval("let mut u32 i = 10          i *= 20") == 200
+    assert eval("let mut u32 i = 10          i %= 7") == 3
+    assert eval("let mut u32 i = 0x09        i &= 0x81") == 0x01
+    assert eval("let mut u32 i = 0x09        i ^= 0x11") == 0x18
+    assert eval("let mut u32 i = 0x09        i |= 0x18") == 0x19
+    assert eval("let mut u32 i = 0x09        i <<= 1") == 0x12
+    assert eval("let mut u32 i = 0x09        i >>= 1") == 0x04
+
+
+def test_assignment_2():
+    assert eval("let mut int i = 10          i /= 20") == 0  # conversion to float does not happen
+    assert eval("let mut int i = 10          i /= 20.0") == 0.5  # float inferred
+    assert eval("let mut float i = 10        i /= 20") == 0.5  # float required
 
 
 def test_elvis_1():
@@ -511,9 +560,9 @@ def test_dict_literal_2():
 
 
 def test_dict_literal_3():
-    eval("let int i = {a: 1, b: 2}")
-    eval("let int i = {a: 1, b: 2}")
-    eval("let int i = {pi, euler, tau}")
+    eval("let d = {a: 1, b: 2}")
+    eval("let d = {a: 1, b: 2}")
+    eval("let d = {pi, euler, tau}")
 
 
 @pytest.mark.skip(reason="not yet implemented correctly")

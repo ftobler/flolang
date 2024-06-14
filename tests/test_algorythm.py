@@ -25,14 +25,14 @@ def crc8(data: bytes, polynomial=0x07, init_value=0x00):
     return crc
 
 
-@pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
+# @pytest.mark.skip(reason="not yet implementable. Arrays don't work right now")
 def test_crc_calculation_1():
 
     assert eval("""
 
 fn crc8(int[] dat, int polynomial=0x07, int init_value=0x00) int:
 
-    let int crc = init_value
+    let mut int crc = init_value
     for byte in dat:
         crc ^=byte
         for _ in 0..8:
@@ -221,7 +221,7 @@ def test_calc_pi_variant_1():
     assert eval("""
 
 fn printValueOfPi():
-    let int newpi = round(2 * acos(0.0) * 1000) / 1000
+    let float newpi = round(2 * acos(0.0) * 1000) / 1000
     print(newpi)
     return newpi
 
@@ -239,7 +239,7 @@ def test_calc_pi_variant_2():
 fn printValueOfPi() int:
     # Find value of pi upto 3 places
     # using acos() function
-    let int newpi = round(2 * acos(0.0) * 1000) / 1000
+    let float newpi = round(2 * acos(0.0) * 1000) / 1000
     # Print value of pi upto
     # N decimal places
     print(newpi)

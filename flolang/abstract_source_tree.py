@@ -73,7 +73,7 @@ class Type(Statement):
         self.is_array = is_array
 
 
-class VariableDeclaration(Statement):
+class _VariableDeclaration(Statement):
     def __init__(self, mutable: bool, dynamic: bool, type: Type, identifier: str, value: Expression):
         super().__init__()
         self.mutable = mutable
@@ -83,19 +83,19 @@ class VariableDeclaration(Statement):
         self.value = value
 
 
-class LocalVariableDeclaration(VariableDeclaration):
+class LocalVariableDeclaration(_VariableDeclaration):
     pass
 
 
-class GlobalVariableDeclaration(VariableDeclaration):
+class GlobalVariableDeclaration(_VariableDeclaration):
     pass
 
 
-class DynamicVariableDeclaration(VariableDeclaration):
+class DynamicVariableDeclaration(_VariableDeclaration):
     pass
 
 
-class ClassMemberVariableDeclaration(VariableDeclaration):
+class ClassMemberVariableDeclaration(_VariableDeclaration):
     pass
 
 
@@ -183,7 +183,7 @@ class ForExpression(Statement):
         self.type = type
         self.identifier = identifier
         self.body = body
-        self.quantity_min = quantity_min
+        self.quantity_min = quantity_min  # allowed to be None
         self.quantity_max = quantity_max
 
 
@@ -283,17 +283,17 @@ class Literal(Expression):
     pass
 
 
-class SimpleLiteral(Literal):
+class _SimpleLiteral(Literal):
     pass
 
 
-class Identifier(SimpleLiteral):
+class Identifier(_SimpleLiteral):
     def __init__(self, symbol: str):
         super().__init__()
         self.symbol = symbol
 
 
-class NumericLiteral(SimpleLiteral):
+class NumericLiteral(_SimpleLiteral):
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
@@ -303,14 +303,14 @@ class NumericLiteral(SimpleLiteral):
             self.value = int(value_raw)
 
 
-class FloatLiteral(SimpleLiteral):
+class FloatLiteral(_SimpleLiteral):
     def __init__(self, value_raw: str):
         super().__init__()
         self.value_raw = value_raw
         self.value = float(value_raw)
 
 
-class StringLiteral(SimpleLiteral):
+class StringLiteral(_SimpleLiteral):
     def __init__(self, value: str):
         super().__init__()
         self.value = value
@@ -338,16 +338,10 @@ class ListLiteral(Literal):
         self.values = values
 
 
-class SetLiteral(Literal):
-    def __init__(self, values: list[Expression]):
-        super().__init__()
-        self.values = values
-
-
-class TupleLiteral(Literal):
-    def __init__(self, values: list[Expression]):
-        super().__init__()
-        self.values = values
+# class TupleLiteral(Literal):
+#     def __init__(self, values: list[Expression]):
+#         super().__init__()
+#         self.values = values
 
 
 class Parser:
@@ -420,9 +414,9 @@ class Parser:
         if type is lexer.IF:
             return self.parse_if_declaration()
         if type is lexer.FOR:
-            return self.parse_for_declaration()
+            return self.parse_for_loop_declaration()
         if type is lexer.WHILE:
-            return self.parse_while_declatation()
+            return self.parse_while_loop_declatation()
         if type is lexer.RETURN:
             return self.parse_return_declaration()
         if type is lexer.BREAK:
@@ -771,18 +765,19 @@ class Parser:
     # for int n in {...}:
     # for int n in 0..50:
     # for int n in {...}..{...}:
-    def parse_for_declaration(self):
+    def parse_for_loop_declaration(self):
         loc_start = self.at()
         # eat the 'for' keyword
         self.eat()
 
         # parse the type
-        type = self.parse_next_type()
-        if not type:
-            parser_error("Unable to determine argument type", loc_start, self.at())
+        type, identifier = self.parse_type_and_identifier()
+        # type = self.parse_next_type()
+        # if not type:
+        #     parser_error("Unable to determine argument type", loc_start, self.at())
 
-        # parse the variable identifier
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.", loc_start)
+        # # parse the variable identifier
+        # identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier in argument list.", loc_start)
 
         # eat in keyword^
         # for int n in 0..50:
@@ -791,7 +786,7 @@ class Parser:
 
         # parse the (first) quantifier
         quantity_max = self.parse_expression()
-        quantity_min = NumericLiteral("0")
+        quantity_min = None
 
         # check if a double dot is present
         # for int n in 0..50:
@@ -810,7 +805,7 @@ class Parser:
         return ForExpression(type, identifier, body, quantity_min, quantity_max).location(loc_start, at_last)
 
     # while (...):
-    def parse_while_declatation(self):
+    def parse_while_loop_declatation(self):
         loc_start = self.at()
         # eat the 'while' keyword
         self.eat()

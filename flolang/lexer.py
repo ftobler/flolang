@@ -127,24 +127,24 @@ potentially_reserved_keywords = [
 ]
 
 # # keywords for types
-# INT = "int"
-# OBJ = "obj"
-# STR = "str"
-# BOOL = "bool"
-# I8 = "i8"
-# U8 = "u8"
-# I16 = "i16"
-# U16 = "u16"
-# I32 = "i32"
-# U32 = "u32"
-# I64 = "i64"
-# U64 = "u64"
-# F32 = "f32"
-# F64 = "f64"
-# CHAR = "char"
-# variable_tokens = [
-#     INT, OBJ, STR, BOOL, I8, U8, I16, U16, I32, U32, I64, U64, F32, F64, CHAR
-# ]
+class Pimitives:
+    BOOL = "bool"
+    INT = "int"
+    I8 = "i8"
+    U8 = "u8"
+    I16 = "i16"
+    U16 = "u16"
+    I32 = "i32"
+    U32 = "u32"
+    I64 = "i64"
+    U64 = "u64"
+    F32 = "f32"
+    F64 = "f64"
+    FLOAT = "float"
+    # CHAR = "char"
+    # STR = "str"
+    # OBJ = "dyn"
+
 
 SHEBANG = "#!"
 

@@ -101,7 +101,7 @@ def test_function_variable_scope_2():
     assert eval("""
 fn foo():
     return 963
-let int bar = foo
+let bar = foo
 bar()
 """) == 963
 
@@ -1059,10 +1059,10 @@ def test_function_declaration_order():
 let mut int u = 0x50
 foo(4)
 
-fn foo(int i) int:
+fn foo(int i) float:
     return bar(u - 5 / i, i) # i += i + 3
 
-fn bar(int baaar, int q) int:
+fn bar(float baaar, int q) float:
     return baaar * 5.56 + q
 
 """) - 441.8499999 < 0.0001

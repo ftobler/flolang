@@ -3,8 +3,8 @@
 
 print("this is a string literal!")
 
-let int hello = "hello, "
-let int world = "world!"
+let hello = "hello, "
+let world = "world!"
 print("'" + hello + world + "'")
 
 print(sqrt(125))

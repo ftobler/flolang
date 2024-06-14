@@ -15,7 +15,7 @@ def eval(expression: str, env=None, filename="__runtime__", shebang="#!script"):
         full_expression = expression
     tok = tokenize(full_expression, filename)
     ast = parse(tok)
-    print_ast(ast)  # TODO: remove this
+    print_ast(ast)  # TODO: remove this and make a test which does execute it
     if not env:
         env = default_environment()
     val = interpret(ast, env)
@@ -29,5 +29,5 @@ def eval_parse(expression: str, filename="__runtime__", shebang="#!script"):
         full_expression = expression
     tok = tokenize(full_expression, filename)
     ast = parse(tok)
-    print_ast(ast)  # TODO: remove this
+    print_ast(ast)  # TODO: remove this and make a test which does execute it
     return ast
