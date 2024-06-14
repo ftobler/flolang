@@ -1062,6 +1062,15 @@ n
 """) == "abc"
 
 
+def test_for_loop_10():
+    assert eval("""
+let mut n = 0
+for i in 5:
+    n += i
+n
+""") == 10
+
+
 
 def test_assignment_multiple_1():
     assert eval("""

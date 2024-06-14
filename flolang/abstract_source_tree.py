@@ -588,7 +588,7 @@ class Parser:
             identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable/type declaration", loc_start).value
             return type, identifier
 
-        if self.at().type is lexer.SMALLER or self.at() is lexer.SQUARE_L:
+        if self.at().type is lexer.SMALLER or self.at().type is lexer.SQUARE_L:
             # its this case:
             # int<T> foo
             # int<T>[] foo

@@ -346,7 +346,7 @@ def test_elvis_strings():
     assert eval('"abc" ? "yes" : "no"') == "yes"  # Non-empty string evaluates to True
 
 
-def test_variables():
+def test_variables_1():
     assert eval("static int i = 0") == 0
     assert eval("static int i = 1") == 1
     assert eval("let int i = 0") == 0
@@ -356,6 +356,43 @@ def test_variables():
     assert eval("let mut int i = 0") == 0
     assert eval("let mut int i = 1") == 1
 
+def test_variables_2():
+    assert eval("let bool i = 0") == 0
+    assert eval("let bool i = True") == 1
+    assert eval("let bool i = False") == 0
+    assert eval("let i8 i = 10") == 10
+    assert eval("let u8 i = 10") == 10
+    assert eval("let i16 i = 10") == 10
+    assert eval("let u16 i = 10") == 10
+    assert eval("let i32 i = 10") == 10
+    assert eval("let u32 i = 10") == 10
+    assert eval("let i64 i = 10") == 10
+    assert eval("let u64 i = 10") == 10
+    assert eval("let f32 i = 10") == 10
+    assert eval("let f64 i = 10") == 10
+
+    assert eval("let i = 0") == 0
+    assert eval("let i = True") == 1
+    assert eval("let i = False") == 0
+    assert eval("let i = 0.0") == 0
+
+    assert eval("let i8 i  = -10") == -10
+    assert eval("let i16 i = -10") == -10
+    assert eval("let i32 i = -10") == -10
+    assert eval("let i64 i = -10") == -10
+    assert eval("let f32 i = -10") == -10
+    assert eval("let f64 i = -10") == -10
+
+    assert eval("let i = 10") == 10
+    assert eval("let i = -10") == -10
+    assert str(eval("let i = 10.0")) == "10.0"
+    assert str(eval("let i = -10.0")) == "-10.0"
+    assert eval("let i = 10.5") == 10.5
+    assert eval("let i = -10.5") == -10.5
+    assert eval("let i = ''") == ""
+    assert eval("let i = {}") == {}
+    assert eval("let i = []") == []
+    assert eval("let i = degrees") == "<RuntimeFunction>"
 
 def test_variables_starting_with_keywords():
     #these are critical because they start with keywords
