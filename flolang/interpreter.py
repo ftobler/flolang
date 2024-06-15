@@ -59,72 +59,6 @@ class FloatValue(_NumberValue):
         super().__init__()
         self.value = float(value)
 
-# class I8Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         v = int(value) & 0xFF
-#         if v >= 0x80:
-#             self.value = v - 0xFF - 1
-#         else:
-#             self.value = v
-
-# class U8Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         self.value = int(value) & 0xFF
-
-# class I16Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         v = int(value) & 0xFFFF
-#         if v >= 0x8000:
-#             self.value = v - 0xFFFF - 1
-#         else:
-#             self.value = v
-
-# class U16Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         self.value = int(value) & 0xFFFF
-
-# class I32Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         v = int(value) & 0xFFFFFFFF
-#         if v >= 0x80000000:
-#             self.value = v - 0xFFFFFFFF - 1
-#         else:
-#             self.value = v
-
-# class U32Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         self.value = int(value) & 0xFFFFFFFF
-
-# class I64Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         v = int(value) & 0xFFFFFFFFFFFFFFFF
-#         if v >= 0x8000000000000000:
-#             self.value = v - 0xFFFFFFFFFFFFFFFF - 1
-#         else:
-#             self.value = v
-
-# class U64Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         self.value = int(value) & 0xFFFFFFFFFFFFFFFF
-
-# class F32Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         self.value = float(value)
-
-
-# class F64Value(NumberValue):
-#     def __init__(self, value: int):
-#         super().__init__()
-#         self.value = float(value)
 
 
 
@@ -394,7 +328,6 @@ def _interpreted_value_assign_type(stmt: ast.Statement, type: ast.Type, env: Env
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
     value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
     return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
-
 
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:

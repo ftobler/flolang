@@ -605,29 +605,12 @@ class Parser:
             #          ^^^
             identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable/type declaration", loc_start).value
 
+            return type, identifier
+
         # just an identifier found.
         # foo
         # ^^^
         return None, first
-
-        type = self.parse_next_type()
-        identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable after type declaration", loc_start).value
-        return type, identifier
-        # first = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable type declaration", loc_start).value
-        # if self.at().type is lexer.IDENTIFIER:
-        #     # int foo
-        #     # ^^^
-        #     type = self.parse_next_type()
-        #     # int foo
-        #     #     ^^^
-        #     identifier = self.eat().value
-        #     return type, identifier
-        # else:
-        #     # foo
-        #     # ^^^
-        #     type = None
-        #     identifier = first
-        #     return type, identifier
 
 
     def parse_next_type(self) -> Type:
