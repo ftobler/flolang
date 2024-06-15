@@ -257,7 +257,7 @@ def test_calc_pi_variant_3():
 let mut int k = 1
 
 # Initialize sum
-let mut int s = 0
+let mut float s = 0
 
 let int n = 100
 let mut int i = 0
@@ -281,7 +281,7 @@ def test_calc_pi_variant_4():
 let mut int k = 1
 
 # Initialize sum
-let mut int s = 0
+let mut float s = 0
 
 for int i in 100:
     if i % 2 == 0: # even index elements are positive

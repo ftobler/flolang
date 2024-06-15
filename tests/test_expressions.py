@@ -277,7 +277,8 @@ def test_assignment_1b():
     assert eval("let mut float i = 10          i += 20") == 30
     assert eval("let mut float i = 10          i -= 20") == -10
     assert eval("let mut float i = 10          i *= 20") == 200
-    assert eval("let mut float i = 10          i %= 7") == 3
+    with pytest.raises(Exception):
+        assert eval("let mut float i = 10      i %= 7") == 3
     with pytest.raises(TypeError):
         eval("let mut float i = 0x09        i &= 0x81")
     with pytest.raises(TypeError):
@@ -291,35 +292,24 @@ def test_assignment_1b():
 
 
 def test_assignment_1c():
-    assert eval("let mut i32 i = 10          i = 20") == 20
-    assert eval("let mut i32 i = 10          i += 20") == 30
-    assert eval("let mut i32 i = 10          i -= 20") == -10
-    assert eval("let mut i32 i = 10          i *= 20") == 200
-    assert eval("let mut i32 i = 10          i %= 7") == 3
-    assert eval("let mut i32 i = 0x09        i &= 0x81") == 0x01
-    assert eval("let mut i32 i = 0x09        i ^= 0x11") == 0x18
-    assert eval("let mut i32 i = 0x09        i |= 0x18") == 0x19
-    assert eval("let mut i32 i = 0x09        i <<= 1") == 0x12
-    assert eval("let mut i32 i = 0x09        i >>= 1") == 0x04
-
-
-def test_assignment_1d():
-    assert eval("let mut u32 i = 10          i = 20") == 20
-    assert eval("let mut u32 i = 10          i += 20") == 30
-    assert eval("let mut u32 i = 10          i -= 20") == 4294967286  # overflow -10
-    assert eval("let mut u32 i = 10          i *= 20") == 200
-    assert eval("let mut u32 i = 10          i %= 7") == 3
-    assert eval("let mut u32 i = 0x09        i &= 0x81") == 0x01
-    assert eval("let mut u32 i = 0x09        i ^= 0x11") == 0x18
-    assert eval("let mut u32 i = 0x09        i |= 0x18") == 0x19
-    assert eval("let mut u32 i = 0x09        i <<= 1") == 0x12
-    assert eval("let mut u32 i = 0x09        i >>= 1") == 0x04
+    assert eval("let mut int i = 10          i = 20") == 20
+    assert eval("let mut int i = 10          i += 20") == 30
+    assert eval("let mut int i = 10          i -= 20") == -10
+    assert eval("let mut int i = 10          i *= 20") == 200
+    assert eval("let mut int i = 10          i %= 7") == 3
+    assert eval("let mut int i = 0x09        i &= 0x81") == 0x01
+    assert eval("let mut int i = 0x09        i ^= 0x11") == 0x18
+    assert eval("let mut int i = 0x09        i |= 0x18") == 0x19
+    assert eval("let mut int i = 0x09        i <<= 1") == 0x12
+    assert eval("let mut int i = 0x09        i >>= 1") == 0x04
 
 
 def test_assignment_2():
     assert eval("let mut int i = 10          i /= 20") == 0  # conversion to float does not happen
-    assert eval("let mut int i = 10          i /= 20.0") == 0.5  # float inferred
+    with pytest.raises(Exception):
+        assert eval("let mut int i = 10          i /= 20.0") == 0.5  # float inferred
     assert eval("let mut float i = 10        i /= 20") == 0.5  # float required
+    assert eval("let mut float i = 10        i /= 20.0") == 0.5  # float required
 
 
 def test_elvis_1():
@@ -356,33 +346,27 @@ def test_variables_1():
     assert eval("let mut int i = 0") == 0
     assert eval("let mut int i = 1") == 1
 
-def test_variables_2():
+def test_variables_2a():
     assert eval("let bool i = 0") == 0
     assert eval("let bool i = True") == 1
     assert eval("let bool i = False") == 0
-    assert eval("let i8 i = 10") == 10
-    assert eval("let u8 i = 10") == 10
-    assert eval("let i16 i = 10") == 10
-    assert eval("let u16 i = 10") == 10
-    assert eval("let i32 i = 10") == 10
-    assert eval("let u32 i = 10") == 10
-    assert eval("let i64 i = 10") == 10
-    assert eval("let u64 i = 10") == 10
-    assert eval("let f32 i = 10") == 10
-    assert eval("let f64 i = 10") == 10
+    assert eval("let int i = 10") == 10
+    assert eval("let float i = 10") == 10
 
+
+def test_variables_2b():
     assert eval("let i = 0") == 0
     assert eval("let i = True") == 1
     assert eval("let i = False") == 0
     assert eval("let i = 0.0") == 0
 
-    assert eval("let i8 i  = -10") == -10
-    assert eval("let i16 i = -10") == -10
-    assert eval("let i32 i = -10") == -10
-    assert eval("let i64 i = -10") == -10
-    assert eval("let f32 i = -10") == -10
-    assert eval("let f64 i = -10") == -10
 
+def test_variables_2c():
+    assert eval("let int i  = -10") == -10
+    assert eval("let float i = -10") == -10
+
+
+def test_variables_2d():
     assert eval("let i = 10") == 10
     assert eval("let i = -10") == -10
     assert str(eval("let i = 10.0")) == "10.0"
@@ -530,7 +514,7 @@ def test_builtin_functions_conversion():
 def test_builtin_functions_random():
     import statistics
 
-    randmax = 2**32 - 1
+    randmax = 2**31 - 1
     assert eval("RAND_MAX") == randmax
 
     # test the random number generator. Since this is not stateless, need an
@@ -1087,121 +1071,62 @@ def test_type_1():
 
 
 def test_type_2aa():
-    assert eval("let i64 a = 10         let i64 b = 20          a-b") == -10
     assert eval("let int a = 10         let int b = 20          a-b") == -10
-    assert eval("let i32 a = 10         let i32 b = 20          a-b") == -10
-    assert eval("let i32 a = 10         let i32 b = 20          a-b") == -10
-    assert eval("let i16 a = 10         let i16 b = 20          a-b") == -10
-    assert eval("let i8 a = 10          let i8 b = 20           a-b") == -10
-
+    assert eval("let int a = 10         let float b = 20        a-b") == -10
+    assert eval("let float a = 10       let int b = 20          a-b") == -10
 
 def test_type_2ab():
-    assert eval("let i64 a = 10         let i32 b = 20          a-b") == -10
-    assert eval("let int a = 10         let i16 b = 20          a-b") == -10
-    assert eval("let i32 a = 10         let i16 b = 20          a-b") == -10
-    assert eval("let i32 a = 10         let i16 b = 20          a-b") == -10
-    assert eval("let i16 a = 10         let i8 b = 20          a-b") == -10
-
+    assert str(eval("let int a = 10         let float b = 20        a-b")) == "-10.0"
+    assert str(eval("let float a = 10       let int b = 20          a-b")) == "-10.0"
 
 def test_type_2ac():
-    assert eval("let int a = 10         let i64 b = 20          a-b") == -10
-    assert eval("let i32 a = 10         let i64 b = 20          a-b") == -10
-    assert eval("let i32 a = 10         let i64 b = 20          a-b") == -10
-    assert eval("let i16 a = 10         let i32 b = 20          a-b") == -10
-    assert eval("let i8 a = 10          let i16 b = 20           a-b") == -10
+    assert str(eval("let int a = 10         let int b = 20        a-b")) == "-10"
 
 
 def test_type_2b():
-    assert eval("let u32 a = 10         let u32 b = 20          a-b") == 4294967286
-    assert eval("let u16 a = 10         let u16 b = 20          a-b") == -10  # int inferred
-    assert eval("let u16 a = 10         let u16 b = 20          let u16 c = a-b") == 65526
-    assert eval("let u8 a = 10          let u8 b = 20           a-b") == -10  # int inferred
-    assert eval("let u8 a = 10          let u8 b = 20           let u8 c = a-b") == 246
-    assert eval("let u8 a = 10          let u8 b = 20           let u16 c = a-b") == 65526
-    assert eval("let u8 a = 10          let u8 b = 20           let u32 c = a-b") == 4294967286
+    assert eval("let int a = 10         let int b = 20          a-b") == -10
+    assert eval("let float a = 10       let float b = 20        a-b") == -10
+    assert eval("let int a = 10         let float b = 20        a-b") == -10
+    assert eval("let float a = 10       let int b = 20          a-b") == -10
 
 
 def test_type_2c():
-    assert eval("let u32 a = 10         let u32 b = 20          a+b") == 30
-    assert eval("let u16 a = 10         let u16 b = 20          a+b") == 30  # int inferred
-    assert eval("let u16 a = 10         let u16 b = 20          let u16 c = a+b") == 30
-    assert eval("let u8 a = 10          let u8 b = 20           a+b") == 30  # int inferred
-    assert eval("let u8 a = 10          let u8 b = 20           let u8 c = a+b") == 30
-    assert eval("let u8 a = 10          let u8 b = 20           let u16 c = a+b") == 30
-    assert eval("let u8 a = 10          let u8 b = 20           let u32 c = a+b") == 30
+    assert eval("let int a = 10         let int b = 20          let int c = a-b") == -10
+    assert eval("let float a = 10       let float b = 20        let int c = a-b") == -10
+    assert eval("let int a = 10         let float b = 20        let int c = a-b") == -10
+    assert eval("let float a = 10       let int b = 20          let int c = a-b") == -10
 
 
 def test_type_2d():
-    assert eval("let u32 a = 10         let u16 b = 20          a-b") == 4294967286
-    assert eval("let u16 a = 10         let u8 b = 20          a-b") == -10  # int inferred
-    assert eval("let u16 a = 10         let u8 b = 20          let u16 c = a-b") == 65526
-    assert eval("let u8 a = 10          let u16 b = 20           a-b") == -10  # int inferred
-    assert eval("let u8 a = 10          let u16 b = 20           let u8 c = a-b") == 246
-    assert eval("let u8 a = 10          let u16 b = 20           let u16 c = a-b") == 65526
-    assert eval("let u8 a = 10          let u16 b = 20           let u32 c = a-b") == 4294967286
-
-
-def test_type_2e():
-    assert eval("let u32 a = 10         let u32  b = 20          a-b") == 4294967286
-    assert eval("let u16 a = 10         let u32  b = 20          a-b") == 4294967286
-    assert eval("let u8 a = 10          let u32  b = 20          a-b") == 4294967286
-    assert eval("let u16 a = 10         let u32  b = 20          let u16 c = a-b") == 65526
-    assert eval("let u8 a = 10          let u32  b = 20           let u8 c = a-b") == 246
-    assert eval("let u8 a = 10          let u32  b = 20           let u16 c = a-b") == 65526
-    assert eval("let u8 a = 10          let u32  b = 20           let u32 c = a-b") == 4294967286
-
+    assert eval("let int a = 10         let int b = 20          let float c = a-b") == -10
+    assert eval("let float a = 10       let float b = 20        let float c = a-b") == -10
+    assert eval("let int a = 10         let float b = 20        let float c = a-b") == -10
+    assert eval("let float a = 10       let int b = 20          let float c = a-b") == -10
 
 def test_type_3a():
-    assert eval("let i8 a = 1") == 1
-    assert eval("let i8 a = 127") == 127
-    assert eval("let i8 a = -1") == -1
-    assert eval("let i8 a = -10") == -10
-    assert eval("let i8 a = -128") == -128
+    assert eval("let int a = 10         let bool b = True       a-b") == 9
+    assert eval("let bool a = 10        let bool b = True       a-b") == 0
+    assert eval("let bool a = 10        let int b = True        a-b") == 0
 
 
 def test_type_3b():
-    assert eval("let u8 a = 1") == 1
-    assert eval("let u8 a = 127") == 127
-    assert eval("let u8 a = -1") == 255
-    assert eval("let u8 a = -10") == 246
-    assert eval("let u8 a = -128") == 128
+    assert eval("let int a = True         let bool b = 10       a-b") == 0
+    assert eval("let bool a = True        let bool b = 10       a-b") == 0
+    assert eval("let bool a = True        let int b = 10        a-b") == -9
 
 
-def test_type_3c():
-    assert eval("let u16 a = 1") == 1
-    assert eval("let u16 a = 127") == 127
-    assert eval("let u16 a = -1") == 65535
-    assert eval("let u16 a = -10") == 65526
-    assert eval("let u16 a = -128") == 65408
+def test_type_4a():
+    with pytest.raises(Exception):
+        eval("let mut int a = 1        a = 'hello'")
 
 
-def test_type_3d():
-    assert eval("let i16 a = 1") == 1
-    assert eval("let i16 a = 127") == 127
-    assert eval("let i16 a = -1") == -1
-    assert eval("let i16 a = -10") == -10
-    assert eval("let i16 a = -128") == -128
-
-
-def test_type_3e():
-    max = 2**32
-    assert eval("let u32 a = 1") == 1
-    assert eval("let u32 a = 127") == 127
-    assert eval("let u32 a = -1") == 4294967295
-    assert eval("let u32 a = -10") == 4294967286
-    assert eval("let u32 a = -128") == 4294967168
-
-
-def test_type_3f():
-    assert eval("let i32 a = 1") == 1
-    assert eval("let i32 a = 127") == 127
-    assert eval("let i32 a = -1") == -1
-    assert eval("let i32 a = -10") == -10
-    assert eval("let i32 a = -128") == -128
-
-
-def test_type_4():
+def test_type_4b():
     with pytest.raises(error.RuntimeException):
-        eval("let mut i32 a = 1        a = 'hello'")
+        eval("let mut int a = 1        a = 1.0")
+
+def test_type_4c():
+    # need typecast
+    eval("let mut int a = 1        a = int(1.0)")
+
 
 

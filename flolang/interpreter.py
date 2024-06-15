@@ -44,35 +44,8 @@ class _NumberValue(RuntimeValue):
     def __repr__(self):
         return str(self.value)
 
-class I8Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        v = int(value) & 0xFF
-        if v >= 0x80:
-            self.value = v - 0xFF - 1
-        else:
-            self.value = v
 
-class U8Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        self.value = int(value) & 0xFF
-
-class I16Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        v = int(value) & 0xFFFF
-        if v >= 0x8000:
-            self.value = v - 0xFFFF - 1
-        else:
-            self.value = v
-
-class U16Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        self.value = int(value) & 0xFFFF
-
-class I32Value(_NumberValue):
+class IntValue(_NumberValue):
     def __init__(self, value: int):
         super().__init__()
         v = int(value) & 0xFFFFFFFF
@@ -81,47 +54,79 @@ class I32Value(_NumberValue):
         else:
             self.value = v
 
-class U32Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        self.value = int(value) & 0xFFFFFFFF
-
-class I64Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        v = int(value) & 0xFFFFFFFFFFFFFFFF
-        if v >= 0x8000000000000000:
-            self.value = v - 0xFFFFFFFFFFFFFFFF - 1
-        else:
-            self.value = v
-
-class U64Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        self.value = int(value) & 0xFFFFFFFFFFFFFFFF
-
-class F32Value(_NumberValue):
+class FloatValue(_NumberValue):
     def __init__(self, value: int):
         super().__init__()
         self.value = float(value)
 
+# class I8Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         v = int(value) & 0xFF
+#         if v >= 0x80:
+#             self.value = v - 0xFF - 1
+#         else:
+#             self.value = v
 
-class F64Value(_NumberValue):
-    def __init__(self, value: int):
-        super().__init__()
-        self.value = float(value)
+# class U8Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         self.value = int(value) & 0xFF
+
+# class I16Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         v = int(value) & 0xFFFF
+#         if v >= 0x8000:
+#             self.value = v - 0xFFFF - 1
+#         else:
+#             self.value = v
+
+# class U16Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         self.value = int(value) & 0xFFFF
+
+# class I32Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         v = int(value) & 0xFFFFFFFF
+#         if v >= 0x80000000:
+#             self.value = v - 0xFFFFFFFF - 1
+#         else:
+#             self.value = v
+
+# class U32Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         self.value = int(value) & 0xFFFFFFFF
+
+# class I64Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         v = int(value) & 0xFFFFFFFFFFFFFFFF
+#         if v >= 0x8000000000000000:
+#             self.value = v - 0xFFFFFFFFFFFFFFFF - 1
+#         else:
+#             self.value = v
+
+# class U64Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         self.value = int(value) & 0xFFFFFFFFFFFFFFFF
+
+# class F32Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         self.value = float(value)
 
 
+# class F64Value(NumberValue):
+#     def __init__(self, value: int):
+#         super().__init__()
+#         self.value = float(value)
 
 
-
-class FloatValue(RuntimeValue):
-    def __init__(self, value: int):
-        super().__init__()
-        self.value = float(value)
-
-    def __repr__(self):
-        return str(self.value)
 
 
 class StringValue(RuntimeValue):
@@ -246,15 +251,16 @@ class Environment:
             self.mutables.append(name)
         return value
 
-    def assign(self, name: str, value: RuntimeValue, stmt: ast.Statement) -> RuntimeValue:
+    def assign(self, name: str, value: RuntimeValue, stmt: ast.Statement, force=False) -> RuntimeValue:
         env = self._resolve(name)
         if env:
             if name not in env.mutables:
                 statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
-            # TODO: check assignment type
-            # old = env.scope[name]
-            # if type(old) != type(value):
-            #     statement_error("Variable assigned to '%s' must be of same type." % (name), stmt)
+            if not force:
+                # check assignment type
+                old = env.scope[name]
+                if type(old) != type(value):
+                    statement_error("Variable assigned to '%s' must be of same type." % (name), stmt)
             env.scope[name] = value
             return value
         statement_error("Variable '%s' is not defined." % name, stmt)
@@ -305,10 +311,10 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.AssignmentExpression):
         return interpret_assignment_expression(stmt, env)
 
-    if isinstance(stmt, ast.NumericLiteral):  #a lways integer
-        return I32Value(stmt.value)
+    if isinstance(stmt, ast.NumericLiteral):  # always integer
+        return IntValue(stmt.value)
     if isinstance(stmt, ast.FloatLiteral):
-        return F32Value(stmt.value)
+        return FloatValue(stmt.value)
     if isinstance(stmt, ast.StringLiteral):
         return StringValue(stmt.value)
     if isinstance(stmt, ast.Identifier):
@@ -365,28 +371,14 @@ def _assign_Type(value: any, type: ast.Type):
     type_id = type.type
     if type_id == lexer.Pimitives.BOOL:
         return BooleanValue(value)
-    elif type_id == lexer.Pimitives.I8:
-        return I8Value(value)
-    elif type_id == lexer.Pimitives.U8:
-        return U8Value(value)
-    elif type_id == lexer.Pimitives.I16:
-        return I16Value(value)
-    elif type_id == lexer.Pimitives.U16:
-        return U16Value(value)
-    elif type_id == lexer.Pimitives.I32 or type_id == lexer.Pimitives.INT:
-        return I32Value(value)
-    elif type_id == lexer.Pimitives.U32:
-        return U32Value(value)
-    elif type_id == lexer.Pimitives.I64:
-        return I64Value(value)
-    elif type_id == lexer.Pimitives.U64:
-        return U64Value(value)
-    elif type_id == lexer.Pimitives.F32 or type_id == lexer.Pimitives.FLOAT:
-        return F32Value(value)
-    elif type_id == lexer.Pimitives.F64:
-        return F64Value(value)
+    elif type_id == lexer.Pimitives.INT:
+        return IntValue(value)
+    elif type_id == lexer.Pimitives.FLOAT:
+        return FloatValue(value)
+    elif type_id == lexer.Pimitives.STR:
+        return StringValue(value)
     else:
-        raise statement_error("Variable type to declare not implemented '%s'." % type_id, None)
+        raise statement_error("Variable type to declare not implemented '%s'." % type_id, type)
 
 
 def _interpreted_value_assign_type(stmt: ast.Statement, type: ast.Type, env: Environment) -> RuntimeValue:
@@ -415,31 +407,25 @@ def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, 
     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
-def _expression_find_type_float(left: RuntimeValue, right: RuntimeValue, value: any):
-    # Floating-point promotion
-    if isinstance(left, F64Value) or isinstance(right, F64Value):
-        return F64Value(value)
-    return F32Value(value)
-
-
-def _expression_find_type_int(left: RuntimeValue, right: RuntimeValue, value: any):
-    # Ensure integer promotion
-    if isinstance(left, U64Value) or isinstance(right, U64Value):
-        return U64Value(value)
-    if isinstance(left, I64Value) or isinstance(right, I64Value):
-        return I64Value(value)
-    if isinstance(left, U32Value) or isinstance(right, U32Value):
-        return U32Value(value)
-    return I32Value(value)
-
 def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: any):
     # Type promotion rules similar to C
-    if isinstance(left, (F64Value, F32Value)) or isinstance(right, (F64Value, F32Value)):
+    if isinstance(left, FloatValue) or isinstance(right, FloatValue):
         # Floating-point promotion
-        return _expression_find_type_float(left, right, value)
-
+        return FloatValue(value)
     # Ensure integer promotion
-    return _expression_find_type_int(left, right, value)
+    return IntValue(value)
+
+def _expression_find_type_everything(left: RuntimeValue, right: RuntimeValue, value: any):
+    if isinstance(left, FloatValue) or isinstance(right, FloatValue):
+        # Floating-point promotion
+        return FloatValue(value)
+    if isinstance(left, IntValue) or isinstance(right, IntValue):
+        # Floating-point promotion
+        return IntValue(value)
+    if isinstance(left, StringValue) or isinstance(right, StringValue):
+        # Floating-point promotion
+        return StringValue(value)
+    raise Exception("cannot assign this")
 
 
 def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) -> RuntimeValue:
@@ -455,11 +441,11 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
         if stmt.operator is lexer.AND:
             return BooleanValue(left.value and right.value)
         if stmt.operator is lexer.BITOR:
-            return _expression_find_type_int(left, right, left.value | right.value)
+            return IntValue(left.value | right.value)
         if stmt.operator is lexer.XOR:
-            return _expression_find_type_int(left, right, left.value ^ right.value)
+            return IntValue(left.value ^ right.value)
         if stmt.operator is lexer.BITAND:
-            return _expression_find_type_int(left, right, left.value & right.value)
+            return IntValue(left.value & right.value)
         if stmt.operator is lexer.COMPARE:
             return BooleanValue(left.value == right.value)
         if stmt.operator is lexer.NOTCOMPARE:
@@ -473,9 +459,9 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
         if stmt.operator is lexer.SMALLER:
             return BooleanValue(left.value < right.value)
         if stmt.operator is lexer.SHIFTRIGHT:
-            return _expression_find_type_int(left, right, left.value >> right.value)
+            return IntValue(left.value >> right.value)
         if stmt.operator is lexer.SHIFTLEFT:
-            return _expression_find_type_int(left, right, left.value << right.value)
+            return IntValue(left.value << right.value)
         if stmt.operator is lexer.PLUS:
             return _expression_find_type(left, right, left.value + right.value)
         if stmt.operator is lexer.MINUS:
@@ -483,43 +469,24 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
         if stmt.operator is lexer.MUL:
             return _expression_find_type(left, right, left.value * right.value)
         if stmt.operator is lexer.DIV:
-            return _expression_find_type_float(left, right, left.value / right.value)
+            return FloatValue(left.value / right.value)
         if stmt.operator is lexer.MOD:
-            return _expression_find_type_int(left, right, left.value % right.value)
+            return IntValue(left.value % right.value)
         if stmt.operator is lexer.INTDIV:
-            return _expression_find_type(left, right, int(left.value // right.value))
+            return IntValue(int(left.value // right.value))
         if stmt.operator is lexer.POW:
             return _expression_find_type(left, right, left.value ** right.value)
     except TypeError as te:
         statement_error('Interpreter type error "%s". Unable to resolve operation with given types.' % str(te), stmt)
 
 
-def _expression_unary_find_type_float(expression: RuntimeValue, value: any):
-    # Floating-point promotion
-    if isinstance(expression, F64Value) or isinstance(expression, F64Value):
-        return F64Value(value)
-    return F32Value(value)
-
-
-def _expression_unary_find_type_int(expression: RuntimeValue, value: any):
-    # Ensure integer promotion
-    if isinstance(expression, U64Value):
-        return U64Value(value)
-    if isinstance(expression, I64Value):
-        return I64Value(value)
-    if isinstance(expression, U32Value):
-        return U32Value(value)
-    return I32Value(value)
-
-
 def _expression_unary_find_type(expression: RuntimeValue, value: any):
     # Type promotion rules similar to C
-    if isinstance(expression, (F64Value, F32Value)):
+    if isinstance(expression, FloatValue):
         # Floating-point promotion
-        return _expression_unary_find_type_float(expression, value)
-
+        return FloatValue(value)
     # Ensure integer promotion
-    return _expression_unary_find_type_int(expression, value)
+    return IntValue(value)
 
 
 def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Environment) -> RuntimeValue:
@@ -527,7 +494,7 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
     if stmt.operator is lexer.NOT:
         return BooleanValue(not expression.value)
     if stmt.operator is lexer.BITNOT:
-        return _expression_unary_find_type_int(expression, ~expression.value)
+        return IntValue(~expression.value)
     if stmt.operator is lexer.PLUS:
         return expression  # does nothing
     if stmt.operator is lexer.MINUS:
@@ -565,9 +532,9 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
     if isinstance(stmt.assignee, ast.Identifier):
         identifier = stmt.assignee.symbol
         right = interpret(stmt.value, env)
-        if stmt.operator is lexer.ASSIGN:
-            return env.assign(identifier, right, stmt)
         left = env.lookup(identifier, stmt)
+        if stmt.operator is lexer.ASSIGN:
+            return env.assign(identifier, _expression_find_type_everything(left, right, right.value), stmt)
         if stmt.operator is lexer.ASSIGNADD and isinstance(left, StringValue) and isinstance(right, StringValue):
             return env.assign(identifier, StringValue(left.value + right.value), stmt)
         if stmt.operator is lexer.ASSIGNADD:
@@ -579,17 +546,17 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         if stmt.operator is lexer.ASSIGNDIV:
             return env.assign(identifier, _expression_find_type(left, right, left.value / right.value), stmt)
         if stmt.operator is lexer.ASSIGNREM:
-            return env.assign(identifier, _expression_find_type_int(left, right, left.value % right.value), stmt)
+            return env.assign(identifier, IntValue(left.value % right.value), stmt)
         if stmt.operator is lexer.ASSIGNBITAND:
-            return env.assign(identifier, _expression_find_type_int(left, right, left.value & right.value), stmt)
+            return env.assign(identifier, IntValue(left.value & right.value), stmt)
         if stmt.operator is lexer.ASSIGNBITXOR:
-            return env.assign(identifier, _expression_find_type_int(left, right, left.value ^ right.value), stmt)
+            return env.assign(identifier, IntValue(left.value ^ right.value), stmt)
         if stmt.operator is lexer.ASSIGNBITOR:
-            return env.assign(identifier, _expression_find_type_int(left, right, left.value | right.value), stmt)
+            return env.assign(identifier, IntValue(left.value | right.value), stmt)
         if stmt.operator is lexer.ASSIGNBITSHIFTR:
-            return env.assign(identifier, _expression_find_type_int(left, right, left.value >> right.value), stmt)
+            return env.assign(identifier, IntValue(left.value >> right.value), stmt)
         if stmt.operator is lexer.ASSIGNBITSHIFTL:
-            return env.assign(identifier, _expression_find_type_int(left, right, left.value << right.value), stmt)
+            return env.assign(identifier, IntValue(left.value << right.value), stmt)
         statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
     elif isinstance(stmt.assignee, ast.MemberExpression):
         object = interpret(stmt.assignee.object, env).value
@@ -829,7 +796,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
 
     # fallback type
     if not stmt.type:
-        stmt.type = ast.Type(lexer.Pimitives.I32)
+        stmt.type = ast.Type(lexer.Pimitives.INT)
 
 
     # for loop has the limited scope iteration variable. Make a new Environment for it.
@@ -840,7 +807,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     # do the loop
     for i in iterator:
         if is_range_iterator:
-            scope.assign(loopvarname, I32Value(i), stmt)
+            scope.assign(loopvarname, IntValue(i), stmt)
         else:
             scope.assign(loopvarname, i, stmt)
 

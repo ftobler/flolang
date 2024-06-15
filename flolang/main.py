@@ -65,7 +65,7 @@ def main_console(arguments=None):
             tok_copy = tok.copy()
             ast = parse(tok)
             value = interpret(ast, env)
-            env.assign("_", value, None)
+            env.assign("_", value, None, force=True)
             print(to_native(value))
         except Exception as e:
             print_exception(e, tok_copy, ast, value)
