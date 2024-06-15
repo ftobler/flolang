@@ -1200,3 +1200,8 @@ def test_type_3f():
     assert eval("let i32 a = -128") == -128
 
 
+def test_type_4():
+    with pytest.raises(error.RuntimeException):
+        eval("let mut i32 a = 1        a = 'hello'")
+
+

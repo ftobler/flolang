@@ -1047,16 +1047,27 @@ n
 def test_for_loop_9a():
     assert eval("""
 let mut n = ""
-for int i in ["a", 'b', `c`]:
+for i in ["a", 'b', `c`]:
     n = n + i
 n
 """) == "abc"
 
 
 def test_for_loop_9b():
-    assert eval("""
+    # this must fail because "a" is not an int
+    with pytest.raises(Exception):
+        assert eval("""
 let mut n = ""
 for int i in ["a", 'b', `c`]:
+    n += i
+n
+""") == "abc"
+
+
+def test_for_loop_9c():
+    assert eval("""
+let mut n = ""
+for i in ["a", 'b', `c`]:
     n += i
 n
 """) == "abc"
@@ -1066,6 +1077,57 @@ def test_for_loop_10():
     assert eval("""
 let mut n = 0
 for i in 5:
+    n += i
+n
+""") == 10
+
+
+def test_for_loop_11():
+    assert eval("""
+let mut n = 0
+for i in 0..5:
+    n += i
+n
+""") == 10
+
+
+def test_for_loop_12():
+    assert eval("""
+let start = 5
+let end = 10
+let mut n = 0
+for i in start..end:
+    n += i
+n
+""") == 35
+
+
+def test_for_loop_13():
+    assert eval("""
+let u8 start = 5
+let u8 end = 10
+let mut n = 0
+for i in start..end:
+    n += i
+n
+""") == 35
+
+
+def test_for_loop_14():
+    assert eval("""
+let u8 loops = 5
+let mut n = 0
+for i in loops:
+    n += i
+n
+""") == 10
+
+
+def test_for_loop_15():
+    assert eval("""
+let i32 loops = 5
+let mut n = 0
+for i in loops:
     n += i
 n
 """) == 10
@@ -1100,7 +1162,6 @@ j
 
 def test_function_declaration_order():
     assert eval("""
-                
 let mut int u = 0x50
 foo(4)
 

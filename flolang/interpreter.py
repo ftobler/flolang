@@ -251,6 +251,10 @@ class Environment:
         if env:
             if name not in env.mutables:
                 statement_error("Variable '%s' is not mutable. Use '%s' keyword on declaration to make it mutable." % (name, lexer.MUT), stmt)
+            # TODO: check assignment type
+            # old = env.scope[name]
+            # if type(old) != type(value):
+            #     statement_error("Variable assigned to '%s' must be of same type." % (name), stmt)
             env.scope[name] = value
             return value
         statement_error("Variable '%s' is not defined." % name, stmt)
@@ -357,85 +361,57 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
 
 
-def interpreted_value_assign_type(stmt: ast.Statement, type: ast.Type, env: Environment) -> RuntimeValue:
+def _assign_Type(value: any, type: ast.Type):
+    type_id = type.type
+    if type_id == lexer.Pimitives.BOOL:
+        return BooleanValue(value)
+    elif type_id == lexer.Pimitives.I8:
+        return I8Value(value)
+    elif type_id == lexer.Pimitives.U8:
+        return U8Value(value)
+    elif type_id == lexer.Pimitives.I16:
+        return I16Value(value)
+    elif type_id == lexer.Pimitives.U16:
+        return U16Value(value)
+    elif type_id == lexer.Pimitives.I32 or type_id == lexer.Pimitives.INT:
+        return I32Value(value)
+    elif type_id == lexer.Pimitives.U32:
+        return U32Value(value)
+    elif type_id == lexer.Pimitives.I64:
+        return I64Value(value)
+    elif type_id == lexer.Pimitives.U64:
+        return U64Value(value)
+    elif type_id == lexer.Pimitives.F32 or type_id == lexer.Pimitives.FLOAT:
+        return F32Value(value)
+    elif type_id == lexer.Pimitives.F64:
+        return F64Value(value)
+    else:
+        raise statement_error("Variable type to declare not implemented '%s'." % type_id, None)
+
+
+def _interpreted_value_assign_type(stmt: ast.Statement, type: ast.Type, env: Environment) -> RuntimeValue:
     # check if type is declared
     if type:
-        interpreted = interpret(stmt, env).value
-        type_id = type.type
-        if type_id == lexer.Pimitives.BOOL:
-            return BooleanValue(interpreted)
-        elif type_id == lexer.Pimitives.I8:
-            return I8Value(interpreted)
-        elif type_id == lexer.Pimitives.U8:
-            return U8Value(interpreted)
-        elif type_id == lexer.Pimitives.I16:
-            return I16Value(interpreted)
-        elif type_id == lexer.Pimitives.U16:
-            return U16Value(interpreted)
-        elif type_id == lexer.Pimitives.I32 or type_id == lexer.Pimitives.INT:
-            return I32Value(interpreted)
-        elif type_id == lexer.Pimitives.U32:
-            return U32Value(interpreted)
-        elif type_id == lexer.Pimitives.I64:
-            return I64Value(interpreted)
-        elif type_id == lexer.Pimitives.U64:
-            return U64Value(interpreted)
-        elif type_id == lexer.Pimitives.F32 or type_id == lexer.Pimitives.FLOAT:
-            return F32Value(interpreted)
-        elif type_id == lexer.Pimitives.F64:
-            return F64Value(interpreted)
-        else:
-            raise statement_error("Variable type to declare not implemented '%s'." % type_id, stmt)
+        value = interpret(stmt, env).value
+        return _assign_Type(value, type)
     else:
         # no type given. need to infer type.
         return interpret(stmt, env)
 
 
 def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
-    # # check if type is declared
-    # if stmt.type:
-    #     interpreted = interpret(stmt.value, env).value
-    #     type = stmt.type.type
-    #     if type == lexer.Pimitives.BOOL:
-    #         value = BooleanValue(interpreted)
-    #     elif type == lexer.Pimitives.I8:
-    #         value = I8Value(interpreted)
-    #     elif type == lexer.Pimitives.U8:
-    #         value = U8Value(interpreted)
-    #     elif type == lexer.Pimitives.I16:
-    #         value = I16Value(interpreted)
-    #     elif type == lexer.Pimitives.U16:
-    #         value = U16Value(interpreted)
-    #     elif type == lexer.Pimitives.I32 or type == lexer.Pimitives.INT:
-    #         value = I32Value(interpreted)
-    #     elif type == lexer.Pimitives.U32:
-    #         value = U32Value(interpreted)
-    #     elif type == lexer.Pimitives.I64:
-    #         value = I64Value(interpreted)
-    #     elif type == lexer.Pimitives.U64:
-    #         value = U64Value(interpreted)
-    #     else:
-    #         raise statement_error("Variable type to declare not implemented '%s'." % type, stmt)
-
-    #     return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
-    # else:
-    #     # no type given. need to infer type.
-    #     interpreted_value = interpret(stmt.value, env)
-
-    #     return env.declare_local(stmt.identifier, interpreted_value, stmt.mutable, stmt)
-
-    value = interpreted_value_assign_type(stmt.value, stmt.type, env)
+    value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
     return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
 
 
 
 def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
-    value = interpreted_value_assign_type(stmt.value, stmt.type, env)
+    value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
 def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
-    value = interpreted_value_assign_type(stmt.value, stmt.type, env)
+    value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
@@ -838,7 +814,7 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
     is_range_iterator = False
     if not stmt.quantity_min:
         max = interpret(stmt.quantity_max, env)
-        if isinstance(max, I32Value):
+        if isinstance(max, _NumberValue):
             iterator = range(max.value)
             is_range_iterator = True
         elif isinstance(max, ListValue):
@@ -851,10 +827,15 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
         iterator = range(min, max)
         is_range_iterator = True
 
+    # fallback type
+    if not stmt.type:
+        stmt.type = ast.Type(lexer.Pimitives.I32)
+
+
     # for loop has the limited scope iteration variable. Make a new Environment for it.
     scope = Environment(env)
     loopvarname = stmt.identifier
-    scope.declare_local(loopvarname, I32Value(0), True, stmt)
+    scope.declare_local(loopvarname, _assign_Type(0, stmt.type), True, stmt)
 
     # do the loop
     for i in iterator:
@@ -862,6 +843,13 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
             scope.assign(loopvarname, I32Value(i), stmt)
         else:
             scope.assign(loopvarname, i, stmt)
+
+        if is_range_iterator:
+            value = i  # it is of type numeric (python native)
+        else:
+            value = i.value  # it is of type RuntypeValue
+        scope.assign(loopvarname, _assign_Type(value, stmt.type), stmt)
+
         last = interpret_block_expression(stmt.body, scope)
         env.state = scope.state  # propagate state outwards
         # check for any flow interrupt conditions condition on environment
