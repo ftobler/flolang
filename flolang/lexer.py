@@ -1,5 +1,7 @@
 import re
 from .error import error_symbol, LocationError
+from typing import Any
+
 
 ignores = [" ", "\t", "\n", "\r"]
 
@@ -171,11 +173,12 @@ def count_leading_spaces(string: str) -> int:
     return count
 
 
-def count_idents(string: str, symbols: tuple) -> int:
+def count_idents(string: str, symbols: Symbols) -> int:
     spaces = count_leading_spaces(string)
     if spaces % 4 == 0:
         return spaces // 4
     error_symbol("indentation is not a multiple of 4 (its %d)." % spaces, symbols)
+    return 0  # never reach because above we throw exception
 
 
 def consume_idents(line: str, ident: int) -> str:
@@ -183,7 +186,7 @@ def consume_idents(line: str, ident: int) -> str:
 
 
 class Token:
-    def __init__(self, symbols: tuple, type: any, value: any = None):
+    def __init__(self, symbols: Symbols, type: int|str, value: Any = None):
         self.type = type
         self.value = value
         # debug symbols. If anything goes wrong, want to have the information which line is affected

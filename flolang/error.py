@@ -1,3 +1,5 @@
+from .lexer import Symbols
+
 
 class RuntimeException(Exception):
     pass
@@ -52,7 +54,7 @@ def error_token(comment: str, token):
     error_symbol(comment, token.symbols)
 
 
-def error_symbol(comment: str, symbols: tuple):
+def error_symbol(comment: str, symbols: Symbols):
     message = error_text(comment, symbols.line, symbols.filename, symbols.line_nr, symbols.line_pos)
     raise TokenError(message)
 
