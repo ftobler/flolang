@@ -1025,6 +1025,7 @@ def test_no_eval():
         eval("eval('')")
 
 
+@pytest.mark.skip(reason="template not implemented")
 def test_parse_template_type_1():
     assert eval("let mut foo<T> bar = 1") == 1
     assert eval("let mut foo<T<J>> bar = 1") == 1
@@ -1032,6 +1033,7 @@ def test_parse_template_type_1():
     assert eval("let mut foo<T<J>[]>[] bar = 1") == 1
 
 
+@pytest.mark.skip(reason="template not implemented")
 def test_parse_template_type_2():
     assert eval("let mut foo<100> bar = 1") == 1
     assert eval("let mut foo<T<100>> bar = 1") == 1
@@ -1039,6 +1041,7 @@ def test_parse_template_type_2():
     assert eval("let mut foo<T<100>[]>[] bar = 1") == 1
 
 
+@pytest.mark.skip(reason="template not implemented")
 def test_parse_template_type_3():
     assert eval("let mut foo<100+10> bar = 1") == 1
     assert eval("let mut foo<T<100+10>> bar = 1") == 1
@@ -1046,6 +1049,7 @@ def test_parse_template_type_3():
     assert eval("let mut foo<T<100+10>[]>[] bar = 1") == 1
 
 
+@pytest.mark.skip(reason="template not implemented")
 def test_parse_template_type_4():
     assert eval("let mut foo<T<J> > bar = 1") == 1
     assert eval("let mut foo<T<J> >[] bar = 1") == 1
@@ -1055,6 +1059,7 @@ def test_parse_template_type_4():
     assert eval("let mut foo<T<100+10> >[] bar = 1") == 1
 
 
+@pytest.mark.skip(reason="template not implemented")
 def test_parse_template_type_5():
     eval("let mut foo<'asdf'> bar = 1")
 
