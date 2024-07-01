@@ -10,6 +10,8 @@ from flolang.interpreter import interpret
 def to_native(val : inter.RuntimeValue):
     if isinstance(val, inter.NoneValue):
         return None
+    if isinstance(val, inter.RuntimeFunction):
+        return "<" + val.variant + ">"
     if hasattr(val, "value"):
         return val.value
     return "<" + val.variant + ">"

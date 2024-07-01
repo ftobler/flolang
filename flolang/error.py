@@ -1,4 +1,15 @@
-from .lexer import Symbols
+
+class Symbols:
+    def __init__(self, filename: str, line_nr: int, line_pos: int, line: str):
+        self.filename = filename
+        self.line_nr = line_nr
+        self.line_pos = line_pos
+        self.line = line
+        if line_pos < 0 or line_nr < 0:
+            raise LocationError("line_nr or line_pos out of range")
+
+    def unpack(self):
+        return self.filename, self.line_nr, self.line_pos, self.line
 
 
 class RuntimeException(Exception):

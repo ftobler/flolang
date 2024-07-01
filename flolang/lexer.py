@@ -1,5 +1,7 @@
 import re
-from .error import error_symbol, LocationError
+from .error import error_symbol
+from .error import LocationError
+from .error import Symbols
 from typing import Any
 
 
@@ -149,19 +151,6 @@ class Pimitives:
 
 
 SHEBANG = "#!"
-
-
-class Symbols:
-    def __init__(self, filename: str, line_nr: int, line_pos: int, line: str):
-        self.filename = filename
-        self.line_nr = line_nr
-        self.line_pos = line_pos
-        self.line = line
-        if line_pos < 0 or line_nr < 0:
-            raise LocationError("line_nr or line_pos out of range")
-
-    def unpack(self):
-        return self.filename, self.line_nr, self.line_pos, self.line
 
 # Counts the number of leading spaces in a string.
 def count_leading_spaces(string: str) -> int:

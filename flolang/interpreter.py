@@ -4,9 +4,13 @@ import itertools
 from flolang.error import runtime_error
 import typing  # Callable, Self
 from decimal import Decimal
+from typing import Any
+import typing
 
 
 class RuntimeValue:
+    value : Any = None
+
     def __init__(self):
         self.variant = type(self).__name__
 
@@ -29,7 +33,7 @@ class NoneValue(RuntimeValue):
 # instead of instantiating a class with the
 # same content over and over again,
 # reuse this instance
-noneValue = NoneValue()
+noneValueInstance = NoneValue()
 
 
 class BooleanValue(RuntimeValue):
@@ -73,7 +77,7 @@ class StringValue(RuntimeValue):
 
 
 class ListValue(RuntimeValue):
-    def __init__(self, value: list[any]):
+    def __init__(self, value: list[Any]):
         super().__init__()
         self.value = list(value)
 
@@ -114,7 +118,7 @@ class NativeFunction(RuntimeValue):
 
 
 class RuntimeFunctionParameter:
-    def __init__(self, mutable: bool, type: ast.Type, identifier: str, default: RuntimeValue = None):
+    def __init__(self, mutable: bool, type: ast.Type, identifier: str, default: RuntimeValue | None = None):
         self.mutable = mutable
         self.type = type
         self.identifier = identifier
@@ -146,9 +150,9 @@ class envstate:
 
 
 class Environment:
-    def __init__(self, parent_environment_self=None, runtime_function: RuntimeFunction = None):
-        self.scope = {}
-        self.mutables = []
+    def __init__(self, parent_environment_self=None, runtime_function: RuntimeFunction | None = None):
+        self.scope : dict[str, RuntimeValue] = {}
+        self.mutables : list[str] = []
         self.parent = parent_environment_self  # cannot use typing.Self on older python versions
         self.state = envstate.RUN
         self.runtime_function = runtime_function
@@ -162,6 +166,7 @@ class Environment:
         if self.get_root_env().is_script:
             return self._declare(name, value, is_mutable, stmt)
         statement_error("Cannot declare local variable '%s'in global environment." % name, stmt)
+        return noneValueInstance
 
     def declare_global(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement):
         # declare variable on current scope. A function does have its own global scope.
@@ -198,6 +203,7 @@ class Environment:
             env.scope[name] = value
             return value
         statement_error("Variable '%s' is not defined." % name, stmt)
+        return noneValueInstance
 
     def lookup(self, name: str, stmt: ast.Statement):
         env = self._resolve(name)
@@ -211,7 +217,7 @@ class Environment:
         env = self._resolve(name)
         if env:
             del env.scope[name]
-            return noneValue
+            return noneValueInstance
         statement_error("Variable '%s' is not defined." % name, stmt)
 
     def has(self, name: str):
@@ -299,9 +305,10 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
         statement_error("Reached unreachable expression.", stmt)
 
     statement_error("Unable to interpret AST node '%s'." % stmt.kind, stmt)
+    return noneValueInstance
 
 
-def _assign_Type(value: any, type: ast.Type):
+def _assign_Type(value: Any, type: ast.Type):
     type_id = type.type
     if type_id == lexer.Pimitives.BOOL:
         return BooleanValue(value)
@@ -340,7 +347,7 @@ def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, 
     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
-def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: any):
+def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: Any):
     # Type promotion rules similar to C
     if isinstance(left, FloatValue) or isinstance(right, FloatValue):
         # Floating-point promotion
@@ -348,7 +355,7 @@ def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: any):
     # Ensure integer promotion
     return IntValue(value)
 
-def _expression_find_type_everything(left: RuntimeValue, right: RuntimeValue, value: any):
+def _expression_find_type_everything(left: RuntimeValue, right: RuntimeValue, value: Any):
     if isinstance(left, FloatValue) or isinstance(right, FloatValue):
         # Floating-point promotion
         return FloatValue(value)
@@ -412,8 +419,11 @@ def interpret_binary_expression(stmt: ast.BinaryExpression, env: Environment) ->
     except TypeError as te:
         statement_error('Interpreter type error "%s". Unable to resolve operation with given types.' % str(te), stmt)
 
+    statement_error('Did not found a operation for this expression.', stmt)
+    return noneValueInstance
 
-def _expression_unary_find_type(expression: RuntimeValue, value: any):
+
+def _expression_unary_find_type(expression: RuntimeValue, value: Any):
     # Type promotion rules similar to C
     if isinstance(expression, FloatValue):
         # Floating-point promotion
@@ -433,6 +443,7 @@ def interpret_unary_before_expression(stmt: ast.UnaryBeforeExpression, env: Envi
     if stmt.operator is lexer.MINUS:
         return _expression_unary_find_type(expression, -expression.value)
     statement_error("Statement operator invalid '%s' for unary." % stmt.operator, stmt)
+    return noneValueInstance
 
 
 def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBeforeExpression, env: Environment) -> RuntimeValue:
@@ -446,6 +457,7 @@ def interpret_unary_identifier_before_expression(stmt: ast.UnaryIdentifierBefore
         env.assign(stmt.identifier, variable, stmt)
         return variable
     statement_error("Statement operator invalid '%s' for unary." % stmt.operator, stmt)
+    return noneValueInstance
 
 
 def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterExpression, env: Environment) -> RuntimeValue:
@@ -459,6 +471,7 @@ def interpret_unary_identifier_after_expression(stmt: ast.UnaryIdentifierAfterEx
         env.assign(stmt.identifier, variable, stmt)
         return variable_original
     statement_error("Statement operator invalid '%s' for unary post expression." % stmt.operator, stmt)
+    return noneValueInstance
 
 
 def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environment) -> RuntimeValue:
@@ -498,6 +511,7 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
         else:
             key = interpret(stmt.assignee.key, env).value
         right = interpret(stmt.value, env)
+        left = object[key]
         if stmt.operator is lexer.ASSIGN:
             object[key] = right
             return right
@@ -532,10 +546,11 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
             object[key] = left.value << right.value
             return right
         statement_error("Statement operator invalid '%s'." % stmt.operator, stmt)
+    return noneValueInstance
 
 
 def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
-    last = noneValue
+    last = noneValueInstance
 
     # defer all direct function calls in first pass
     defer = []
@@ -602,7 +617,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
         argument_list = [interpret(s, env) for s in stmt.arguments]
         result = function.callback(argument_list)
         if result is None:  # native function might not return anything, fix this here.
-            result = noneValue
+            result = noneValueInstance
         if not isinstance(result, RuntimeValue):
             statement_error("Result of native function call is not of a runtime type.", stmt)
         return result
@@ -649,9 +664,10 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             # must reset the state because we catched the case and it does not propagate outward
             env.state = envstate.RUN
             return last
-        return noneValue  # block has ran to end
+        return noneValueInstance  # block has ran to end
 
     statement_error("Function type not implemented.", stmt)
+    return noneValueInstance
 
 
 def interpret_member_expression(stmt: ast.MemberExpression, env: Environment) -> RuntimeValue:
@@ -663,10 +679,11 @@ def interpret_member_expression(stmt: ast.MemberExpression, env: Environment) ->
     if isinstance(object, dict):
         if key in object:
             return object[key]
-        return noneValue
+        return noneValueInstance
     if isinstance(object, list):
         return object[key]
     statement_error("Incompatible Datatype in expression: %s%s%s%s" % (object, lexer.SQUARE_L, key, lexer.SQUARE_R), stmt)
+    return noneValueInstance
 
 
 def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> RuntimeValue:
@@ -675,21 +692,21 @@ def interpret_if_expression(stmt: ast.IfExpression, env: Environment) -> Runtime
     if condition.value:
         last = interpret_block_expression(stmt.consequent, env)
         if env.state is envstate.BREAK:
-            return noneValue  # not allowed here, but might be a loop somewhere on the callstack
+            return noneValueInstance  # not allowed here, but might be a loop somewhere on the callstack
         if env.state is envstate.CONTINUE:
-            return noneValue  # not allowed here, but might be a loop somewhere on the callstack
+            return noneValueInstance  # not allowed here, but might be a loop somewhere on the callstack
         if env.state is envstate.RETURN:
             return last
     else:
         if stmt.alternate:
             last = interpret(stmt.alternate, env)
             if env.state is envstate.BREAK:
-                return noneValue  # not allowed here, but might be a loop somewhere on the callstack
+                return noneValueInstance  # not allowed here, but might be a loop somewhere on the callstack
             if env.state is envstate.CONTINUE:
-                return noneValue  # not allowed here, but might be a loop somewhere on the callstack
+                return noneValueInstance  # not allowed here, but might be a loop somewhere on the callstack
             if env.state is envstate.RETURN:
                 return last
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> RuntimeValue:
@@ -707,7 +724,7 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
             continue
         if env.state is envstate.RETURN:
             return last
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> RuntimeValue:
@@ -763,25 +780,25 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
             continue
         if env.state is envstate.RETURN:
             return last
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> RuntimeValue:
     # create a new local environment. C has this, so we need too.
     scope = Environment(env)
     # go through all statements and execute
-    last = noneValue
+    last = noneValueInstance
     for statement in stmt.body:
         last = interpret(statement, scope)
         env.state = scope.state  # propagate state outwards
         # check for any flow interrupt conditions condition on environment
         if env.state is envstate.BREAK:
-            return noneValue
+            return noneValueInstance
         if env.state is envstate.CONTINUE:
-            return noneValue
+            return noneValueInstance
         if env.state is envstate.RETURN:
             return last
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
@@ -793,17 +810,17 @@ def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) ->
         return last
     # set state to return
     env.state = envstate.RETURN
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_break_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
     env.state = envstate.BREAK
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_continue_expression(stmt: ast.ContinueExpression, env: Environment) -> RuntimeValue:
     env.state = envstate.CONTINUE
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_elvis_expression(stmt: ast.ElvisExpression, env: Environment) -> RuntimeValue:
@@ -846,10 +863,10 @@ def interpret_shebang_expression(stmt: ast.ShebangExpression, env: Environment):
     if expression == "#!script":
         env.get_root_env().is_script = True
 
-    return noneValue
+    return noneValueInstance
 
 
 def interpret_delete_expression(stmt: ast.DeleteExpression, env: Environment):
     identifier = stmt.identifier
     env.delete(identifier, stmt)
-    return noneValue
+    return noneValueInstance
