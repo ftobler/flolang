@@ -110,7 +110,7 @@ class NativeFunction(RuntimeValue):
     def __init__(self, callback: typing.Callable):
         super().__init__()
         self.callback = callback
-        if not isinstance(callback, typing.Callable):
+        if not callable(callback):
             raise Exception("Reqire value to be a function.")
 
     def __repr__(self):
@@ -632,6 +632,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
             # make sure the function has enough parameters if not, that is fatal
             if param is None:
                 statement_error("function does not have enough parameters.", stmt)
+                return noneValueInstance
 
             # TODO: use the type
             if True:
@@ -730,6 +731,7 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
 
 def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> RuntimeValue:
     is_range_iterator = False
+    iterator : Any = 0
     if not stmt.quantity_min:
         max = interpret(stmt.quantity_max, env)
         if isinstance(max, _NumberValue):
@@ -740,9 +742,9 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
         else:
             statement_error("For loop encountered incompatible type to iterate. Can only iterate Numbers and Lists.", stmt)
     else:
-        min = interpret(stmt.quantity_min, env).value
-        max = interpret(stmt.quantity_max, env).value
-        iterator = range(min, max)
+        i_min : int = interpret(stmt.quantity_min, env).value
+        i_max : int = interpret(stmt.quantity_max, env).value
+        iterator = range(i_min, i_max)
         is_range_iterator = True
 
     # fallback type
@@ -788,7 +790,7 @@ def interpret_block_expression(stmt: ast.BlockStatement, env: Environment) -> Ru
     # create a new local environment. C has this, so we need too.
     scope = Environment(env)
     # go through all statements and execute
-    last = noneValueInstance
+    last: RuntimeValue = noneValueInstance
     for statement in stmt.body:
         last = interpret(statement, scope)
         env.state = scope.state  # propagate state outwards
@@ -843,10 +845,11 @@ def interpret_object_literal(stmt: ast.ObjectLiteral, env: Environment) -> Runti
     for property in stmt.properties:
         key: str = property.key
         if property.value:
-            value: RuntimeValue = interpret(property.value, env)
+            property_value: RuntimeValue = interpret(property.value, env)
+            obj[key] = property_value
         else:
-            value: RuntimeValue = env.lookup(key, stmt)
-        obj[key] = value
+            environment_value: RuntimeValue = env.lookup(key, stmt)
+            obj[key] = environment_value
     return ObjectValue(obj)
 
 
