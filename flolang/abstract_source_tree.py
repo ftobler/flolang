@@ -2,6 +2,7 @@
 import flolang.lexer as lexer
 from .lexer import Token
 from .error import error_token, parser_error, LocationError
+from typing import Any
 
 
 class Location:
@@ -100,7 +101,7 @@ class ClassMemberVariableDeclaration(_VariableDeclaration):
 
 
 class ParameterStatement(Statement):
-    def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression = None):
+    def __init__(self, mutable: bool, type: Type, identifier: str, default: Expression | None = None):
         super().__init__()
         self.mutable = mutable
         self.type = type
@@ -142,7 +143,7 @@ class ClassDeclaration(Statement):
 
 
 class EnumFieldDeclaration(Statement):
-    def __init__(self, identifier: str, value: Expression = None):
+    def __init__(self, identifier: str, value: Expression | None = None):
         super().__init__()
         self.identifier = identifier
         self.value = value
@@ -170,7 +171,7 @@ class ElvisExpression(Statement):
 
 
 class IfExpression(Statement):
-    def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement = None):
+    def __init__(self, condition: Expression, consequent: BlockStatement, alternate: BlockStatement | None = None):
         super().__init__()
         self.test = condition
         self.consequent = consequent
@@ -195,7 +196,7 @@ class WhileExpression(Statement):
 
 
 class ReturnExpression(Statement):
-    def __init__(self, value: Expression = None):
+    def __init__(self, value: Expression | None = None):
         super().__init__()
         self.value = value
 
@@ -320,7 +321,7 @@ class StringLiteral(_SimpleLiteral):
 
 
 class ObjectProperty(Literal):
-    def __init__(self, key: str, value: Expression = None):
+    def __init__(self, key: str, value: Expression | None = None):
         super().__init__()
         self.key = key
         self.value = value
@@ -368,19 +369,19 @@ class Parser:
         self.tokens.insert(0, self._last_eaten)
         self._last_eaten = None
 
-    def eat_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
+    def eat_expect(self, token_type: int | str, error_comment: str, loc_start: Token) -> Token:
         prev = self.eat()
         if prev.type is not token_type:
             self._expect_parser_error(error_comment, loc_start, prev)
         return prev
 
-    def at_expect(self, token_type: str, error_comment: any, loc_start: Token) -> Token:
+    def at_expect(self, token_type: int | str, error_comment: str, loc_start: Token) -> Token:
         prev = self.at()
         if prev.type is not token_type:
             parser_error(error_comment, loc_start, prev)
         return prev
 
-    def _expect_parser_error(self, error_comment, loc_start, prev):
+    def _expect_parser_error(self, error_comment: str, loc_start: Token, prev):
             type = prev.type
             if isinstance(prev.type, int):
                 type = prev.value
@@ -519,7 +520,7 @@ class Parser:
     # (int a, int b = 5)
     def parse_function_arguments(self) -> list[ParameterStatement]:
         loc_start = self.at()
-        args: list[Type] = []
+        args: list[ParameterStatement] = []
 
         # (int a, int b)
         # ^
@@ -564,7 +565,7 @@ class Parser:
                 # expect a ","
                 self.eat_expect(lexer.COMMA, "Expected '%s' or '%s' following argument." % (lexer.COMMA, lexer.COURVE_R), loop_loc_start)
 
-            args.append(ParameterStatement(mutable, type, identifier, default).location(loop_loc_start, self.at()))
+            args.append(ParameterStatement(mutable, type, identifier.value, default).location(loop_loc_start, self.at()))
 
         # (int a, int b)
         #              ^
@@ -647,7 +648,7 @@ class Parser:
                     # let type<T> varname = (...)
                     #          ^
                     inner_type = self.parse_next_type()
-                    template = Type(inner_type).location(loop_loc_start, self.at_last())
+                    template = Type(inner_type.type).location(loop_loc_start, self.at_last())
                 else:
                     # everything else could be a constant expression.
                     # let type<100> varname = (...)
@@ -670,7 +671,7 @@ class Parser:
                     # There is a potential problem here. The '>>' keyword could match
                     # Exception: "Expect '>' or ',' after Identifier opening '<' template bracket. Got '>>' instead.""
                     if self.at().type is lexer.SHIFTRIGHT:
-                        symbols = self.eat()  # consume '>>'
+                        symbols = self.eat().symbols  # consume '>>'
                         tok = Token(symbols, lexer.BIGGER)
                         self.tokens.insert(0, tok)  # isert '>'
                         self.tokens.insert(0, tok)  # isert '>'

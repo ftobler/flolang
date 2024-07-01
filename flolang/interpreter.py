@@ -59,7 +59,7 @@ class IntValue(_NumberValue):
             self.value = v
 
 class FloatValue(_NumberValue):
-    def __init__(self, value: int):
+    def __init__(self, value: int | float):
         super().__init__()
         self.value = float(value)
 
@@ -131,6 +131,7 @@ class RuntimeFunction(RuntimeValue):
         self.parameters = parameters
         self.result = result
         self.body = body
+        self.env : Environment
 
     def __repr__(self):
         return "<runtime_function>"
@@ -342,7 +343,7 @@ def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, e
     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
-def interpret_dynamic_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
+def interpret_dynamic_variable_declaration(stmt: ast.DynamicVariableDeclaration, env: Environment) -> RuntimeValue:
     value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
@@ -550,7 +551,7 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
 
 
 def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
-    last = noneValueInstance
+    last : RuntimeValue = noneValueInstance
 
     # defer all direct function calls in first pass
     defer = []
@@ -646,7 +647,7 @@ def interpret_call_expression(stmt: ast.CallExpression, env: Environment) -> Run
                 else:
                     statement_error("Either argument default or a value for argument must be provided", stmt)
 
-                scope.declare_local(param.identifier.value, value, param.mutable, stmt)
+                scope.declare_local(param.identifier, value, param.mutable, stmt)
 
             # TODO: use the type
             # else:
@@ -680,7 +681,7 @@ def interpret_member_expression(stmt: ast.MemberExpression, env: Environment) ->
         if key in object:
             return object[key]
         return noneValueInstance
-    if isinstance(object, list):
+    if isinstance(object, list) and isinstance(key, int):
         return object[key]
     statement_error("Incompatible Datatype in expression: %s%s%s%s" % (object, lexer.SQUARE_L, key, lexer.SQUARE_R), stmt)
     return noneValueInstance
@@ -813,7 +814,7 @@ def interpret_return_expression(stmt: ast.ReturnExpression, env: Environment) ->
     return noneValueInstance
 
 
-def interpret_break_expression(stmt: ast.ReturnExpression, env: Environment) -> RuntimeValue:
+def interpret_break_expression(stmt: ast.BreakExpression, env: Environment) -> RuntimeValue:
     env.state = envstate.BREAK
     return noneValueInstance
 
