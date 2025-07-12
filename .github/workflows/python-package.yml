@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         # skip 3.9 because some type operands are not yet supported
-        python-version: ["3.10", "3.11", "3.12", "3.13.0-beta.1", "3.13.0-beta.2", "3.13.0-beta.3"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
