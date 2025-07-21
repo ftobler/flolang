@@ -160,6 +160,10 @@ def main_func_interpreter():
     main()
 
 
+def main_func_compiler():
+    raise Exception("compiling is unimplemented")
+
+
 # entry case for standalone run
 if __name__ == "__main__":
     main()

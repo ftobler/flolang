@@ -24,9 +24,9 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'flo=flolang.main.main_func_interpreter',
-            'floc=flolang.main.main_func_compiler'
-            'flolang=flolang.main:main_func',
+            'flo=flolang.main:main_func_interpreter',
+            'floc=flolang.main:main_func_compiler',
+            'flolang=flolang.main:main_func_interpreter',
             # a^      b^     c^   d^
             # a => the command line argument
             # b => the package name
