@@ -1,7 +1,4 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import pytest
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
 

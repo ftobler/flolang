@@ -1,16 +1,6 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
 import pytest
-
-
-def test_function_0():
-
-    with pytest.raises(Exception):
-        x = 1 / 0
 
 
 def test_function_1():
@@ -36,7 +26,7 @@ def test_function_3():
 fn foo():
     return
 foo()
-""") == None
+""") is None
 
 
 def test_function_4():
@@ -150,7 +140,6 @@ i
 """) == 2
 
 
-
 def test_condition_if_elif_else_1():
     # check an if-elif-else which is ifing
     assert eval("""
@@ -228,6 +217,7 @@ elif False:
 i
 """) == 0
 
+
 def test_condition_very_long_block_1():
     # got once strange behaviour when the lines before or after a block
     # had length corresponding or not to the block
@@ -242,6 +232,7 @@ elif               False :
 i
 """) == 0
 
+
 def test_condition_very_long_block_2():
     # got once strange behaviour when the lines before or after a block
     # had length corresponding or not to the block
@@ -255,6 +246,7 @@ elif False :
     i = 123456789
 i
 """) == 0
+
 
 def test_condition_very_long_block_3():
     # got once strange behaviour when the lines before or after a block
@@ -271,6 +263,7 @@ elif False :
     i = 123456789
 i
 """) == 0
+
 
 def test_condition_very_long_block_4():
     # got once strange behaviour when the lines before or after a block
@@ -289,6 +282,7 @@ elif False:
 i
 """) == 0
 
+
 def test_condition_very_long_block_5():
     # got once strange behaviour when the lines before or after a block
     # had length corresponding or not to the block
@@ -306,6 +300,7 @@ elif False:
 i
 """) == 0
 
+
 def test_condition_very_long_block_6():
     # got once strange behaviour when the lines before or after a block
     # had length corresponding or not to the block
@@ -322,6 +317,7 @@ elif False:
 
 i
 """) == 0
+
 
 def test_condition_very_long_block_7():
     # got once strange behaviour when the lines before or after a block
@@ -519,11 +515,11 @@ i
 
 
 def test_unreachable_code_1():
-    #unreachable keyword is never reached
+    # unreachable keyword is never reached
     assert eval("""
 if False:
     unreachable
-""") == None
+""") is None
 
 
 def test_unreachable_code_2():
@@ -534,7 +530,7 @@ let int x = 1
 let int y = 2
 if x + y != 3:
     unreachable
-""") == None
+""") is None
 
 
 def test_unreachable_code_3():
@@ -542,7 +538,7 @@ def test_unreachable_code_3():
     with pytest.raises(Exception):
         eval("""
 unreachable
-""") == None
+""") is None
 
 
 def test_scopes_1():
@@ -647,8 +643,6 @@ foo()
 """) == 57
 
 
-
-
 def test_return_break_statements_1():
     # check a simple while loop with break
     # expect 5 loops
@@ -709,7 +703,7 @@ fn foo():
     while True:
         break
 foo()
-""") == None
+""") is None
 
 
 def test_return_break_statements_4b():
@@ -734,7 +728,7 @@ fn foo():
     while True:
         return
 foo()
-""") == None
+""") is None
 
 
 def test_return_break_statements_6():
@@ -938,7 +932,7 @@ fn foo():
         if outer_count == 2:
             return outer_count == 2 and middle_count == 2 and inner_count == 3
 foo()
-""") == True
+""") is True
 
 
 def test_multiple_loops_with_recursion():
@@ -988,7 +982,6 @@ n
 """) == 11
 
 
-
 def test_for_loop_3():
     assert eval("""
 let mut int n = 0
@@ -1016,7 +1009,6 @@ n
 """) == 14
 
 
-
 def test_for_loop_6():
     assert eval("""
 let mut int n = 0
@@ -1042,6 +1034,7 @@ for int i in []:
     n += i
 n
 """) == 0
+
 
 @pytest.mark.skip(reason="Type interence for string not implemented here")
 def test_for_loop_9a():
@@ -1143,13 +1136,12 @@ n
 """) == 10
 
 
-
 def test_assignment_multiple_1():
     assert eval("""
 let mut int i = 0
 let mut int j = 1
 i = j = 5
-""") == 5 # value of i
+""") == 5  # value of i
 
 
 def test_assignment_multiple_2():
@@ -1158,7 +1150,7 @@ let mut int i = 0
 let mut int j = 1
 i = j = 5
 i
-""") == 5 # value of i
+""") == 5  # value of i
 
 
 def test_assignment_multiple_3():
@@ -1167,7 +1159,7 @@ let mut int i = 0
 let mut int j = 1
 i = j = 5
 j
-""") == 5 # value of j
+""") == 5  # value of j
 
 
 def test_function_declaration_order():

@@ -1,12 +1,7 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import pytest
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret
 from flolang.lexer import Symbols
-import pytest
-
 import flolang.error as err
 import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
@@ -84,4 +79,3 @@ def test_error_symbol_4():
     with pytest.raises(err.TokenError):
         symbol = Symbols(None, 123, 2, None)
         err.error_symbol(None, symbol)
-

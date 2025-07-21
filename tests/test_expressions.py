@@ -1,10 +1,6 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import pytest
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval, eval_parse
-import pytest
 import math
 import time
 import flolang.error as error
@@ -163,27 +159,27 @@ def test_math_expression():
 
 def test_logic_expressions_1():
     # asked chatgpt for some random logic expressions
-    assert eval("5 > 3 and 2 < 4") == True
-    assert eval("10 == 10") == True
-    assert eval("10 != 10") == False
-    assert eval("7 == 8 or 10 != 10") == False
-    assert eval("not False") == True
-    assert eval("3 < 2") == False
-    assert eval("not (3 < 2)") == True
+    assert eval("5 > 3 and 2 < 4") is True
+    assert eval("10 == 10") is True
+    assert eval("10 != 10") is False
+    assert eval("7 == 8 or 10 != 10") is False
+    assert eval("not False") is True
+    assert eval("3 < 2") is False
+    assert eval("not (3 < 2)") is True
     assert eval("5 & 3") == 1
     assert eval("6 | 2") == 6
     assert eval("4 ^ 1") == 5
     assert eval("~5") == -6
     assert eval("8 >> 2") == 2
     assert eval("3 << 1") == 6
-    assert eval("True and False") == False
-    assert eval("False or True") == True
-    assert eval("not (True and False)") == True
+    assert eval("True and False") is False
+    assert eval("False or True") is True
+    assert eval("not (True and False)") is True
     assert eval("10 & 7 | 3") == 3
     assert eval("8 | 1 ^ 2") == 11
     assert eval("7 & 3 << 2") == 4
     assert eval("12 >> 2 ^ 1") == 2
-    assert eval("not (6 > 2 and 4 <= 4)") == False
+    assert eval("not (6 > 2 and 4 <= 4)") is False
     assert eval("(5 | 3) & (7 ^ 2)") == 5
     assert eval("3 & ~2 | 1") == 1
     assert eval("(8 >> 1) << 2") == 16
@@ -192,57 +188,57 @@ def test_logic_expressions_1():
 @pytest.mark.skip(reason="not yet implemented")
 def test_logic_expressions_2():
     # asked chatgpt for some random logic expressions
-    assert eval("False is not True") == True
-    assert eval("False is not False") == False
-    assert eval("False is True") == False
-    assert eval("False is False") == True
+    assert eval("False is not True") is True
+    assert eval("False is not False") is False
+    assert eval("False is True") is False
+    assert eval("False is False") is True
 
 
 def test_logic_math_expressions():
     # asked chatgpt for some random logic expressions
-    assert eval("(3 + 4 * 2) > 10 and 5 < 7") == True
-    assert eval("10 / 2 == 5 or 6 - 1 != 5") == True
-    assert eval("not (3 * 2 > 10)") == True
-    assert eval("(5 & 3) + 2 == 3") == True
+    assert eval("(3 + 4 * 2) > 10 and 5 < 7") is True
+    assert eval("10 / 2 == 5 or 6 - 1 != 5") is True
+    assert eval("not (3 * 2 > 10)") is True
+    assert eval("(5 & 3) + 2 == 3") is True
     assert eval("6 | (2 > 4)") == 6
-    assert eval("(6 | 2) > 4") == True
+    assert eval("(6 | 2) > 4") is True
     assert eval("6 | True") == 7
     assert eval("6 | False") == 6
-    assert eval("~5 + 6 == 0") == True
-    assert eval("8 >> 2 == 2 and 3 < 5") == True
-    assert eval("3 << 1 == 6 or 2 > 4") == True
-    assert eval("True and 5 * 2 == 10") == True
-    assert eval("False or 7 - 4 == 3") == True
-    assert eval("(10 & 7 | 3) > 0") == True
+    assert eval("~5 + 6 == 0") is True
+    assert eval("8 >> 2 == 2 and 3 < 5") is True
+    assert eval("3 << 1 == 6 or 2 > 4") is True
+    assert eval("True and 5 * 2 == 10") is True
+    assert eval("False or 7 - 4 == 3") is True
+    assert eval("(10 & 7 | 3) > 0") is True
     assert eval("8 | (1 ^ 2)") == 11
-    assert eval("(12 >> 2 ^ 1) < 4") == True
-    assert eval("not (6 > 2 and 4 <= 4 - 1)") == True
-    assert eval("5 + (3 | 1) > 7") == True
-    assert eval("3 & ~2 | (1 + 1) == 3") == True
-    assert eval("(8 >> 1) << 2 == 16 and 4 > 2") == True
-    assert eval("not (True and 10 / 2 != 5)") == True
+    assert eval("(12 >> 2 ^ 1) < 4") is True
+    assert eval("not (6 > 2 and 4 <= 4 - 1)") is True
+    assert eval("5 + (3 | 1) > 7") is True
+    assert eval("3 & ~2 | (1 + 1) == 3") == 1
+    assert eval("(8 >> 1) << 2 == 16 and 4 > 2") is True
+    assert eval("not (True and 10 / 2 != 5)") is True
 
 
 def test_logic_math_expressions_precidence_problems_1():
     # differs from python because == has more precidence
-    # assert eval("8 | (1 ^ 2) == 11") == True
-    assert eval("(8 | (1 ^ 2)) == 11") == True
+    # assert eval("8 | (1 ^ 2) == 11") is True
+    assert eval("(8 | (1 ^ 2)) == 11") is True
     assert eval("8 | (1 ^ 2) == 11") == 8
 
 
 def test_logic_math_expressions_precidence_problems_2():
     # differs from python because == has more precidence
-    # assert eval("7 & (3 << 2) == 4") == True
-    assert eval("(7 & (3 << 2)) == 4") == True
+    # assert eval("7 & (3 << 2) == 4") is True
+    assert eval("(7 & (3 << 2)) == 4") is True
     assert eval("7 & (3 << 2) == 4") == 0
 
 
 def test_logic_math_expressions_precidence_problems_3():
     # this one is interesing because it differs from python.
     # 2>4 is evaluated first, then bitwise OR yields 6.
-    # assert eval("6 | 2 > 4") == True
+    # assert eval("6 | 2 > 4") is True
     assert eval("6 | 2 > 4") == 6
-    # assert eval("4 ^ 1 < 6") == True
+    # assert eval("4 ^ 1 < 6") is True
 
 
 def test_inline_statements_2():
@@ -477,16 +473,16 @@ def test_builtin_native_functions_round():
 
 
 def test_builtin_native_functions_nan():
-    assert eval("isnan(nan)") == True
-    assert eval("isnan(pi)") == False
-    assert eval("isnan(inf)") == False
+    assert eval("isnan(nan)") is True
+    assert eval("isnan(pi)") is False
+    assert eval("isnan(inf)") is False
 
 
 def test_builtin_native_functions_inf():
-    assert eval("isinf(inf)") == True
-    assert eval("isinf(-inf)") == True
-    assert eval("isinf(pi)") == False
-    assert eval("isinf(nan)") == False
+    assert eval("isinf(inf)") is True
+    assert eval("isinf(-inf)") is True
+    assert eval("isinf(pi)") is False
+    assert eval("isinf(nan)") is False
 
 
 def test_builtin_functions_const():
@@ -497,8 +493,8 @@ def test_builtin_functions_const():
 
 
 def test_builtin_functions_nan_inf():
-    assert math.isnan(eval("nan")) == True
-    assert math.isinf(eval("inf")) == True
+    assert math.isnan(eval("nan")) is True
+    assert math.isinf(eval("inf")) is True
 
 
 def test_builtin_functions_floor():
@@ -641,7 +637,7 @@ def test_unary_1():
 def test_unary_2():
     assert eval("let mut i = 3       ~i") == -4
     assert eval("let mut i = 3       ~i            i") == 3
-    assert eval("let mut i = 3       not i") == False
+    assert eval("let mut i = 3       not i") is False
     assert eval("let mut i = 3       i++") == 3
     assert eval("let mut i = 3       i++           i") == 4
     assert eval("let mut i = 3       i--") == 3

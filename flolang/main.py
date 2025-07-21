@@ -18,6 +18,7 @@ from flolang.debugtools import print_ast
 
 pretty_print = False
 
+
 def set_pretty_print(value: bool):
     global pretty_print
     pretty_print = value
@@ -152,7 +153,7 @@ def main():
         main_console()
 
 
-def main_func():
+def main_func_interpreter():
     """
     entry case for python package entry_points console_scripts
     """

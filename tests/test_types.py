@@ -1,7 +1,5 @@
-from flolang.interpreter import *
 import pytest
-
-
+from flolang.interpreter import NativeFunction
 
 
 def test_native_function_1():
@@ -16,7 +14,7 @@ def test_native_function_1():
 
 def test_native_function_2():
     with pytest.raises(Exception):
-        nf = NativeFunction("not a callback")
+        NativeFunction("not a callback")
 
 
 

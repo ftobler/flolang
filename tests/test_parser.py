@@ -1,7 +1,3 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret
 import pytest
@@ -31,7 +27,3 @@ def test_types_1():
 @pytest.mark.skip(reason="not yet parsing correctly")
 def test_types_2():
     parseeval("let int[][] i = 5")
-
-
-
-

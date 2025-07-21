@@ -1,14 +1,10 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pytest
 import flolang.main as main
-# from flolang.main import main, set_pretty_print
-import re
+from typing import Any
+import sys
 
 
-def create_input_iterator(list: list[any]):
+def create_input_iterator(list: list[Any]):
 
     # the inputs for input() I want to simulate in a list
     inputs = iter(list)
@@ -113,6 +109,6 @@ def test_main_function_help(monkeypatch, capfd):
     out, err = capfd.readouterr()
 
     # split into lines / assert out
-    assert out  == main.get_help()  #check that the text is equal to the help text
+    assert out == main.get_help()  # check that the text is equal to the help text
     assert len(out) >= 200  # potentially guarding against not printing enough text
     assert len(out.split("\n")) >= 10  # potentially guarding against not printing multiple lines
