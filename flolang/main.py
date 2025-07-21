@@ -126,9 +126,10 @@ run interpreter (default)
 usage: flolang
 
 additional switches:
-    -p       disable pretty print
-    -c       compile script
-    -help    prints help (this text)
+    -p --pretty        disable pretty print
+    -c --compile       compile script
+    -h --help          prints help (this text)
+    -i --interactive   prints help (this text)
 """
 
 
@@ -138,16 +139,21 @@ def print_help():
 
 def main():
     switches, args = parse_arguments(sys.argv)
-    if "p" in switches:
+
+    if "--pretty" in switches or "p" in switches:
         set_pretty_print(False)
-    if "--help" in switches:
+
+    if "--help" in switches or "h" in switches:
         print_help()
         return
-    if "c" in switches:
+
+    if "--compile" in switches or "c" in switches:
         raise Exception("compiling is unimplemented")
-    if "i" in switches:
+
+    if "--interactive" in switches or "i" in switches:
         main_console(args)
         return
+
     if len(args):
         script_file = args[0]
         arguments = args[1:]
