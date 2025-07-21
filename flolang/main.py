@@ -12,41 +12,8 @@ if __name__ == "__main__":
 
 
 from flolang import tokenize, default_environment, parse, interpret, to_native, eval
-from colorama import Fore, Style  # , Back
-from flolang.debugtools import print_ast
 
-
-pretty_print = False
-
-
-def set_pretty_print(value: bool):
-    global pretty_print
-    pretty_print = value
-
-
-def print_exception(e, tok_copy, ast, value):
-    if pretty_print:
-        print(Fore.LIGHTBLACK_EX, end="")
-        if tok_copy:
-            print(tok_copy)
-        if ast:
-            print_ast(ast)
-        if value:
-            print(value)
-        print(Fore.YELLOW, end="")
-        typename = type(e).__name__
-        print(Fore.RED, end="")
-        print(typename, ":", e)
-        print(Style.RESET_ALL, end="")
-    else:
-        if tok_copy:
-            print(tok_copy)
-        if ast:
-            print_ast(ast)
-        if value:
-            print(value)
-        typename = type(e).__name__
-        print(typename, ":", e)
+from flolang.console import parse_arguments, print_exception, set_pretty_print
 
 
 def main_console(arguments=None):
@@ -96,25 +63,6 @@ def main_execute(script_file, arguments):
             print_exception(e, tok_copy, ast, value)
 
 
-def parse_arguments(argv):
-    # note: arguments at this stage are
-    # ['path/to/flolang']
-    # ['path/to/flolang', 'arg']
-    args = argv[1:]
-    switches = []
-    while len(args):
-        arg = args[0]
-        if arg.startswith("--"):
-            switches.append(arg)
-            args = args[1:]  # consume this arg
-        elif arg.startswith("-"):
-            switches += list(arg[1:])
-            args = args[1:]  # consume this arg
-        else:
-            break
-    return switches, args
-
-
 def get_help():
     return """run script:
 usage: flolang [script] [arg] [arg]...
@@ -141,7 +89,7 @@ def main():
     switches, args = parse_arguments(sys.argv)
 
     if "--pretty" in switches or "p" in switches:
-        set_pretty_print(False)
+        set_pretty_print(True)
 
     if "--help" in switches or "h" in switches:
         print_help()
@@ -167,10 +115,6 @@ def main_func_interpreter():
     entry case for python package entry_points console_scripts
     """
     main()
-
-
-def main_func_compiler():
-    raise Exception("compiling is unimplemented")
 
 
 # entry case for standalone run

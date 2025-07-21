@@ -25,7 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'flo=flolang.main:main_func_interpreter',
-            'floc=flolang.main:main_func_compiler',
+            'floc=flolang.main_compiler:main_func_compiler',
             'flolang=flolang.main:main_func_interpreter',
             # a^      b^     c^   d^
             # a => the command line argument

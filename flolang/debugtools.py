@@ -3,7 +3,7 @@
 import flolang.abstract_source_tree as ast
 
 
-def print_ast_json(tree, indentation=""):
+def print_ast_json(tree, indentation="", file=None):
     # ─ │ ┐ ┘ ┌ └ ├ ┤ ┬ ┴ ┼
     # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
     items = tree.items()
@@ -21,19 +21,19 @@ def print_ast_json(tree, indentation=""):
             tree = "├"
         if isinstance(value, ast.Statement):
             jsonvalue = value.json()
-            print(indentation + tree + " " + key + ": ┬ " + jsonvalue["kind"])
+            print(indentation + tree + " " + key + ": ┬ " + jsonvalue["kind"], file=file)
             whitespace = len(key) * " " + "   "
             if obj_terminated:
                 tree = " "
             else:
                 tree = "│"
-            print_ast_json(jsonvalue, indentation + tree + whitespace)
+            print_ast_json(jsonvalue, indentation + tree + whitespace, file=file)
 
         elif isinstance(value, list):
             if len(value) == 0:
-                print(indentation + tree + " " + key + "[] = []")
+                print(indentation + tree + " " + key + "[] = []", file=file)
             else:
-                print(indentation + tree + " " + key + "[] ┐")
+                print(indentation + tree + " " + key + "[] ┐", file=file)
                 whitespace_list = len(key) * " " + "    "
                 if obj_terminated:
                     tree = " "
@@ -49,21 +49,21 @@ def print_ast_json(tree, indentation=""):
                     else:
                         looptree = "├"
                     jsonvalue = element.json()
-                    print(indentation + tree + whitespace_list + looptree + " %d " % j + "┬ " + jsonvalue["kind"])
+                    print(indentation + tree + whitespace_list + looptree + " %d " % j + "┬ " + jsonvalue["kind"], file=file)
                     whitespace_index = len(str(j)) * " " + "  "
                     if list_terminated:
                         looptree = " "
                     else:
                         looptree = "│"
-                    print_ast_json(jsonvalue, indentation + tree + whitespace_list + looptree + whitespace_index)
+                    print_ast_json(jsonvalue, indentation + tree + whitespace_list + looptree + whitespace_index, file=file)
 
         else:
             if key != "ldoc" and key != "kind":
                 if isinstance(value, str):
                     value = "'" + value + "'"
-                print(indentation + tree + " " + key + ": " + str(value))
+                print(indentation + tree + " " + key + ": " + str(value), file=file)
 
 
-def print_ast(ast):
-    print_ast_json(ast.json())
+def print_ast(ast, file=None):
+    print_ast_json(ast.json(), file=file)
     # print(ast)
