@@ -30,7 +30,7 @@ def file_ending(file_name, ending):
     return file_name
 
 
-def compile(code: str, f: TextIOWrapper, emit: str):
+def compile(code: str, f: TextIOWrapper, emit: str | None):
     if emit == "token":
         tok = tokenize(code)
         for t in tok:
@@ -48,9 +48,9 @@ def compile(code: str, f: TextIOWrapper, emit: str):
         raise ValueError(f"Unknown emit type: {emit}")
 
 
-def main_func_compiler():
+def compiler_run(argv: list[str]):
     ap = ArgumentParser(
-        sys.argv,
+        argv,
         ["pretty", "help", "token"],
         ["emit", "output"],)
 
@@ -69,6 +69,10 @@ def main_func_compiler():
     for input_file in ap.args():
         with open(input_file, "r") as f:
             code = f.read()
-            output_file = file_ending(auto_filename(output, input_file), "." + emit)
+            output_file = file_ending(auto_filename(output, input_file), f".{emit}")
             with open(output_file, "w") as out:
                 compile(code, out, emit)
+
+
+def main_func_compiler():
+    compiler_run(sys.argv)
