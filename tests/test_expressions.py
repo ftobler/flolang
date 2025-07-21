@@ -51,7 +51,7 @@ def test_literal_string_expressions_2():
     assert eval("'1'") == "1"
     assert eval("'1asdfasdfasd'") == "1asdfasdfasd"
     assert eval("'+*ç%&/()='") == "+*ç%&/()="
-    assert eval("'\\\\\\''") == "\\'" # this here is an interesting one
+    assert eval("'\\\\\\''") == "\\'"  # this here is an interesting one
 
 
 def test_literal_string_expressions_3():
@@ -248,8 +248,8 @@ def test_inline_statements_2():
     assert eval("True 1") == 1
 
     # is the evaluation of if because that is the last statement that is executed
-    assert eval("if True: 1") == None
-    assert eval("if False: 1") == None
+    assert eval("if True: 1") is None
+    assert eval("if False: 1") is None
     # is the evaluation of the number at the end because that is executed either case
     assert eval("if True: 1 123") == 123
     assert eval("if False: 1 1123") == 1123
@@ -342,6 +342,7 @@ def test_variables_1():
     assert eval("let mut int i = 0") == 0
     assert eval("let mut int i = 1") == 1
 
+
 def test_variables_2a():
     assert eval("let bool i = 0") == 0
     assert eval("let bool i = True") == 1
@@ -374,8 +375,9 @@ def test_variables_2d():
     assert eval("let i = []") == []
     assert eval("let i = degrees") == "<RuntimeFunction>"
 
+
 def test_variables_starting_with_keywords():
-    #these are critical because they start with keywords
+    # these are critical because they start with keywords
     assert eval("let int function = 1") == 1
     assert eval("let int returnee = 1") == 1
     assert eval("let int forloop = 1") == 1
@@ -399,7 +401,7 @@ def test_variables_exotic_names():
 
 def test_illegal_variable_1():
     # with pytest.raises(Exception):
-    eval("let i = 10") # legal now
+    eval("let i = 10")  # legal now
 
     with pytest.raises(Exception):
         eval("var int i = 10")
@@ -449,9 +451,9 @@ def test_illegal_variable_cases():
 
 
 def test_builtin_native_functions():
-    #these are pure native functions
-    assert eval("print(1)") == None
-    assert abs(eval("time()") - time.time()) < 0.01 #might break if interpreter is suuuper slow
+    # these are pure native functions
+    assert eval("print(1)") is None
+    assert abs(eval("time()") - time.time()) < 0.01  # might break if interpreter is suuuper slow
 
 
 def test_builtin_native_functions_trigonometry():
@@ -527,7 +529,7 @@ def test_builtin_functions_random():
     mean_value = statistics.mean(values)
     print(values)
     variance_value = statistics.variance(values)
-    #mean must be about
+    # mean must be about
     assert mean_value > randmax * 0.4 and mean_value < randmax * 0.6
     assert variance_value > randmax
 
@@ -535,18 +537,18 @@ def test_builtin_functions_random():
 def test_builtin_functions_sleep():
     import time
     t = time.time()
-    assert eval("sleep(0.1)") == None
+    assert eval("sleep(0.1)") is None
     assert time.time() - t < 0.05
 
 
 def test_comments():
-    assert eval("") == None
-    assert eval("#") == None
-    assert eval(" #") == None
-    assert eval(" # ") == None
-    assert eval("# ") == None
-    assert eval("# comment") == None
-    assert eval(" # comment") == None
+    assert eval("") is None
+    assert eval("#") is None
+    assert eval(" #") is None
+    assert eval(" # ") is None
+    assert eval("# ") is None
+    assert eval("# comment") is None
+    assert eval(" # comment") is None
     assert eval("1 # comment") == 1
     assert eval("1     #           comment") == 1
 
@@ -554,9 +556,9 @@ def test_comments():
 def test_comments_shebang():
     # want to allow this. Normally the ' ' after the '#' is
     # mandatory, so this is an exception
-    assert eval("#!/bin/sh") == None
-    assert eval("#!/usr/bin/python") == None
-    assert eval("#!flolang") == None
+    assert eval("#!/bin/sh") is None
+    assert eval("#!/usr/bin/python") is None
+    assert eval("#!flolang") is None
 
 
 def test_inline_double_declaration_to_itself():
@@ -634,6 +636,7 @@ def test_unary_1():
     with pytest.raises(Exception):  # incomplete
         eval("let mut i = 3+")
 
+
 def test_unary_2():
     assert eval("let mut i = 3       ~i") == -4
     assert eval("let mut i = 3       ~i            i") == 3
@@ -643,8 +646,9 @@ def test_unary_2():
     assert eval("let mut i = 3       i--") == 3
     assert eval("let mut i = 3       i--           i ") == 2
 
+
 def test_unary_3():
-    # these might differ from python as python does not have --i, but will just 
+    # these might differ from python as python does not have --i, but will just
     # interpret it ast -(-(i))
     assert eval("let mut i = 3       i--         1") == 1
     assert eval("let mut i = 3       i++         1") == 1
@@ -654,6 +658,7 @@ def test_unary_3():
     assert eval("let mut i = 3       i--1") == 1
     assert eval("let mut i = 3       i++1") == 1
 
+
 def test_unary_4():
     # these are ambiguous and therefore banned
     with pytest.raises(error.ParserError):  # incomplete
@@ -661,11 +666,13 @@ def test_unary_4():
     with pytest.raises(error.ParserError):  # incomplete
         eval("let mut i = 3       i---1")
 
+
 def test_unary_5():
     assert eval("-1") == -1
     assert eval("+1") == +1
     assert eval("++1") == 2
     assert eval("--1") == 0
+
 
 def test_unary_6():
     with pytest.raises(error.ParserError):
@@ -676,6 +683,7 @@ def test_unary_6():
         assert eval("let mut i = 3--") == 3
     assert eval("let mut i = --3") == 2
     assert eval("let mut i = -3") == -3
+
 
 def test_unary_7():
     # these are not allowed on identifiers
@@ -695,7 +703,7 @@ foo()
 
 
 def test_function_default_values_2():
-    #this is not allowed
+    # this is not allowed
     with pytest.raises(Exception):
         eval("""
 fn foo(int n) int:
@@ -817,7 +825,7 @@ fn foo(int a=1 , int b) int:
     return a + b
 foo(1, 3)
 """) == 4
-    
+
 
 def test_function_default_value_syntax_5():
     assert eval("""
@@ -913,6 +921,7 @@ def test_return_expression_1():
     with pytest.raises(Exception):
         eval("return")
 
+
 def test_return_expression_2():
     assert eval("""
 fn foo(int n) int:
@@ -922,8 +931,8 @@ fn foo(int n) int:
         return n
 foo(7)
 
-"""
-) == 7
+""") == 7
+
 
 def test_break_not_allowed_in_function_1():
     with pytest.raises(Exception):
@@ -1076,9 +1085,11 @@ def test_type_2aa():
     assert eval("let int a = 10         let float b = 20        a-b") == -10
     assert eval("let float a = 10       let int b = 20          a-b") == -10
 
+
 def test_type_2ab():
     assert str(eval("let int a = 10         let float b = 20        a-b")) == "-10.0"
     assert str(eval("let float a = 10       let int b = 20          a-b")) == "-10.0"
+
 
 def test_type_2ac():
     assert str(eval("let int a = 10         let int b = 20        a-b")) == "-10"
@@ -1104,6 +1115,7 @@ def test_type_2d():
     assert eval("let int a = 10         let float b = 20        let float c = a-b") == -10
     assert eval("let float a = 10       let int b = 20          let float c = a-b") == -10
 
+
 def test_type_3a():
     assert eval("let int a = 10         let bool b = True       a-b") == 9
     assert eval("let bool a = 10        let bool b = True       a-b") == 0
@@ -1125,9 +1137,7 @@ def test_type_4b():
     with pytest.raises(error.RuntimeException):
         eval("let mut int a = 1        a = 1.0")
 
+
 def test_type_4c():
     # need typecast
     eval("let mut int a = 1        a = int(1.0)")
-
-
-

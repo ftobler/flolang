@@ -3,7 +3,6 @@ from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret
 
 
-
 def test_alloc_1():
     assert len(tokenize("@alloc")) == 2
 

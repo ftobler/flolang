@@ -1,6 +1,7 @@
 import pytest
 from tests.context import resolve_path
 from flolang import tokenize, default_environment, parse, interpret
+import os
 
 
 # run a script file per filename

@@ -41,7 +41,7 @@ fn crc8(int[] dat, int polynomial=0x07, int init_value=0x00) int:
 
 crc8([1,2,3,4])
 
-""") == crc8([1,2,3,4])
+""") == crc8([1, 2, 3, 4])
 
 
 def test_crc_calculation_2():
@@ -65,12 +65,12 @@ for int i in 1..5:
 
 crc
 
-""") == crc8([1,2,3,4])
+""") == crc8([1, 2, 3, 4])
 
 
 def test_crc_calculation_3():
 
-    #this time overload the polynominal default value
+    # this time overload the polynominal default value
     assert eval("""
 
 fn crc8_update(int dat, int polynomial=0x07) int:
@@ -91,7 +91,7 @@ for int i in 1..5:
 
 crc
 
-""") == crc8([1,2,3,4], 0x10)
+""") == crc8([1, 2, 3, 4], 0x10)
 
 
 def test_factorial_variant_1():
@@ -290,4 +290,3 @@ for int i in 100:
 s
 
 """) == 3.1315929035585537
-

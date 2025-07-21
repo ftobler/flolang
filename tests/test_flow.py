@@ -1260,5 +1260,3 @@ fn foo(mut int i) int:
 foo(4)
 
 """)
-
-

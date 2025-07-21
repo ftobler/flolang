@@ -15,14 +15,3 @@ def test_native_function_1():
 def test_native_function_2():
     with pytest.raises(Exception):
         NativeFunction("not a callback")
-
-
-
-
-
-
-
-
-
-
-

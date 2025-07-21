@@ -25,7 +25,7 @@ def test_main_function_input(monkeypatch, capfd):
     # monkeypatch set the input simulations. need a lambda or a function
     monkeypatch.setattr('builtins.input', create_input_iterator(["2**8+4", KeyboardInterrupt()]))
 
-    #monkeypatch set the sys.argv list
+    # monkeypatch set the sys.argv list
     monkeypatch.setattr(sys, 'argv', ['name_does_not_matter.py'])
 
     # call the main function. this is the same as the main entry point for the command line
@@ -52,7 +52,7 @@ def test_main_function_error(monkeypatch, capfd):
     # monkeypatch set the input simulations. need a lambda or a function
     monkeypatch.setattr('builtins.input', create_input_iterator(["undefined_symbol", KeyboardInterrupt()]))
 
-    #monkeypatch set the sys.argv list
+    # monkeypatch set the sys.argv list
     monkeypatch.setattr(sys, 'argv', ['name_does_not_matter.py'])
 
     # call the main function. this is the same as the main entry point for the command line
@@ -77,12 +77,13 @@ undefined_symbol
 Variable 'undefined_symbol' is not defined. In 'Identifier' statement.
 # """
 
+
 @pytest.mark.skip(reason="fails because of formatting changes")
 @pytest.mark.timeout(5)  # timeout in case it is stuck in interpreter mode
 def test_main_function_exception_file(monkeypatch, capfd):
     main.set_pretty_print(False)
 
-    #monkeypatch set the sys.argv list
+    # monkeypatch set the sys.argv list
     monkeypatch.setattr(sys, 'argv', ['name_does_not_matter.py', 'tests/exception.txt'])
 
     main.main()
