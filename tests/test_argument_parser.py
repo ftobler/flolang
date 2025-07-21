@@ -5,16 +5,16 @@ from flolang.main import parse_arguments
 
 
 def test_argument_parser_1a():
-    argv = ["/path/to/flolang", "-switch", "script", "script_argument"]
+    argv = ["/path/to/flolang", "--switch", "script", "script_argument"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch"]
+    assert switches == ["--switch"]
     assert args == ["script", "script_argument"]
 
 
 def test_argument_parser_1b():
-    argv = ["/path/to/flolang", "-switch", "script"]
+    argv = ["/path/to/flolang", "--switch", "script"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch"]
+    assert switches == ["--switch"]
     assert args == ["script"]
 
 
@@ -33,30 +33,30 @@ def test_argument_parser_2b():
 
 
 def test_argument_parser_3():
-    argv = ["/path/to/flolang", "-switch"]
+    argv = ["/path/to/flolang", "--switch"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch"]
+    assert switches == ["--switch"]
     assert args == []
 
 
 def test_argument_parser_4a():
-    argv = ["/path/to/flolang", "-switch1", "-switch2", "script", "script_argument"]
+    argv = ["/path/to/flolang", "--switch1", "--switch2", "script", "script_argument"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch1", "switch2"]
+    assert switches == ["--switch1", "--switch2"]
     assert args == ["script", "script_argument"]
 
 
 def test_argument_parser_4b():
-    argv = ["/path/to/flolang", "-switch1", "-switch2", "script"]
+    argv = ["/path/to/flolang", "--switch1", "--switch2", "script"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch1", "switch2"]
+    assert switches == ["--switch1", "--switch2"]
     assert args == ["script"]
 
 
 def test_argument_parser_5():
-    argv = ["/path/to/flolang", "-switch1", "-switch2"]
+    argv = ["/path/to/flolang", "--switch1", "--switch2"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch1", "switch2"]
+    assert switches == ["--switch1", "--switch2"]
     assert args == []
 
 
@@ -75,16 +75,16 @@ def test_argument_parser_6b():
 
 
 def test_argument_parser_7a():
-    argv = ["/path/to/flolang", "-switch", "script", "-script_argument"]
+    argv = ["/path/to/flolang", "--switch", "script", "-script_argument"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch"]
+    assert switches == ["--switch"]
     assert args == ["script", "-script_argument"]
 
 
 def test_argument_parser_7b():
-    argv = ["/path/to/flolang", "-switch", "script", "-script_argument1", "-script_argument2"]
+    argv = ["/path/to/flolang", "--switch", "script", "-script_argument1", "-script_argument2"]
     switches, args = parse_arguments(argv)
-    assert switches == ["switch"]
+    assert switches == ["--switch"]
     assert args == ["script", "-script_argument1", "-script_argument2"]
 
 

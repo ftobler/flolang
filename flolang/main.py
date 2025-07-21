@@ -104,8 +104,11 @@ def parse_arguments(argv):
     switches = []
     while len(args):
         arg = args[0]
-        if arg.startswith("-"):
-            switches.append(arg[1:])
+        if arg.startswith("--"):
+            switches.append(arg)
+            args = args[1:]  # consume this arg
+        elif arg.startswith("-"):
+            switches += list(arg[1:])
             args = args[1:]  # consume this arg
         else:
             break
@@ -137,7 +140,7 @@ def main():
     switches, args = parse_arguments(sys.argv)
     if "p" in switches:
         set_pretty_print(False)
-    if "help" in switches:
+    if "--help" in switches:
         print_help()
         return
     if "c" in switches:

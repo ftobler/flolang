@@ -102,7 +102,7 @@ def test_main_function_exception_file(monkeypatch, capfd):
 def test_main_function_help(monkeypatch, capfd):
     main.set_pretty_print(False)
 
-    monkeypatch.setattr(sys, 'argv', ['name_does_not_matter.py', '-help'])
+    monkeypatch.setattr(sys, 'argv', ['name_does_not_matter.py', '--help'])
 
     main.main()
 
