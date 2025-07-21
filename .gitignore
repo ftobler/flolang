@@ -5,3 +5,4 @@ deleteme.py
 todo.md
 .venv
 .env
+.mypy_cache
