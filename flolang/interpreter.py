@@ -132,7 +132,7 @@ class RuntimeFunction(RuntimeValue):
         self.parameters = parameters
         self.result = result
         self.body = body
-        self.env : Environment
+        self.env: Environment
 
     def __repr__(self):
         return "<runtime_function>"

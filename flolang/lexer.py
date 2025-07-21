@@ -348,7 +348,7 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
                 if match:
                     number = match[0]
                     number = check_numeric_expression_for_dotdot(number)
-                    match2 = re.search("E|\.", number)
+                    match2 = re.search("E|\\.", number)
                     if (match2):
                         # found a float
                         tokens.append(Token(symbols, FLOAT, number))

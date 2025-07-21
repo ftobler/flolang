@@ -4,6 +4,7 @@ from .interpreter import interpret
 from .native import create_default_environment as default_environment, to_native
 from .debugtools import print_ast
 
+
 def parse(tok):
     return Parser().parse(tok)
 

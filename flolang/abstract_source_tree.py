@@ -24,7 +24,7 @@ class Location:
             # some of those are hard to catch
             end = len(line)
         if start <= end:
-            snippet = line[start:end+1]
+            snippet = line[start:end + 1]
             return "'" + snippet + "'"
         if self.is_multiline:
             return str(self.start) + ".." + str(self.end)
