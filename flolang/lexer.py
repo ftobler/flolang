@@ -130,6 +130,7 @@ potentially_reserved_keywords = [
     "generic", "try", "catch", "except", "raise", "finally", "always", "type", "range"
 ]
 
+
 # # keywords for types
 class Pimitives:
     BOOL = "bool"
@@ -152,6 +153,7 @@ class Pimitives:
 
 SHEBANG = "#!"
 
+
 # Counts the number of leading spaces in a string.
 def count_leading_spaces(string: str) -> int:
     count = 0
@@ -171,11 +173,11 @@ def count_idents(string: str, symbols: Symbols) -> int:
 
 
 def consume_idents(line: str, ident: int) -> str:
-    return line[(ident*4):]
+    return line[(ident * 4):]
 
 
 class Token:
-    def __init__(self, symbols: Symbols, type: int|str, value: Any = None):
+    def __init__(self, symbols: Symbols, type: int | str, value: Any = None):
         self.type = type
         self.value = value
         # debug symbols. If anything goes wrong, want to have the information which line is affected
@@ -417,4 +419,3 @@ def tokenize(sourcecode: str, filename: str = "__unspecified__") -> list[Token]:
         symbols = Symbols(filename, 0, 0, "")
     tokens.append(Token(symbols, EOF))
     return tokens
-

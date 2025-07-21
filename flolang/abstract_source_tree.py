@@ -131,8 +131,8 @@ class ClassMemberFunctionDeclaration(FunctionDeclaration):
 class ClassDeclaration(Statement):
     def __init__(self, classname: str,
                  functions: list[ClassMemberFunctionDeclaration],
-                 dynamics:  list[ClassMemberVariableDeclaration],
-                 mutables:  list[ClassMemberVariableDeclaration],
+                 dynamics: list[ClassMemberVariableDeclaration],
+                 mutables: list[ClassMemberVariableDeclaration],
                  constants: list[ClassMemberVariableDeclaration]):
         super().__init__()
         self.classname = classname
@@ -382,14 +382,14 @@ class Parser:
         return prev
 
     def _expect_parser_error(self, error_comment: str, loc_start: Token, prev):
-            type = prev.type
-            if isinstance(prev.type, int):
-                type = prev.value
-            if type is not None:
-                got_message = " Got '%s' instead." % type
-            else:
-                got_message = " Unexpected end of input."
-            parser_error(error_comment + got_message, loc_start, prev)
+        type = prev.type
+        if isinstance(prev.type, int):
+            type = prev.value
+        if type is not None:
+            got_message = " Got '%s' instead." % type
+        else:
+            got_message = " Unexpected end of input."
+        parser_error(error_comment + got_message, loc_start, prev)
 
     def unimplemented(self):
         if self.not_eof():
@@ -514,7 +514,6 @@ class Parser:
             return ClassMemberFunctionDeclaration(args, type, identifier, body).location(loc_start, self.at())
         return FunctionDeclaration(args, type, identifier, body).location(loc_start, self.at())
 
-
     # (int a)
     # (int a, int b)
     # (int a, int b = 5)
@@ -612,7 +611,6 @@ class Parser:
         # foo
         # ^^^
         return None, first
-
 
     def parse_next_type(self) -> Type:
         # assuming we are at a type. Not encountering a type is a exception here.
@@ -1420,4 +1418,3 @@ class Parser:
             return value
         # invalid token reached
         parser_error("Unexpected or unimplemented token reached. Token is %s." % str(self.at()), loc_start, self.at())
-

@@ -2,7 +2,8 @@
 
 import flolang.abstract_source_tree as ast
 
-def print_ast_json(tree, indentation = ""):
+
+def print_ast_json(tree, indentation=""):
     # ─ │ ┐ ┘ ┌ └ ├ ┤ ┬ ┴ ┼
     # ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬
     items = tree.items()
@@ -61,7 +62,6 @@ def print_ast_json(tree, indentation = ""):
                 if isinstance(value, str):
                     value = "'" + value + "'"
                 print(indentation + tree + " " + key + ": " + str(value))
-
 
 
 def print_ast(ast):

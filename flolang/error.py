@@ -78,5 +78,3 @@ def error_text(comment, full_line, file=None, line_nr=0, line_pos=0, length=1):
     msg = "File %s, line %d.\n%s\n%s\n%s" % (filename, line_nr, full_line,
                                              indicator, comment)
     return msg
-
-

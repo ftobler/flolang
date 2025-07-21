@@ -5,11 +5,10 @@ from flolang.error import runtime_error
 import typing  # Callable, Self
 from decimal import Decimal
 from typing import Any
-import typing
 
 
 class RuntimeValue:
-    value : Any = None
+    value: Any = None
 
     def __init__(self):
         self.variant = type(self).__name__
@@ -44,6 +43,7 @@ class BooleanValue(RuntimeValue):
     def __repr__(self):
         return str(self.value)
 
+
 class _NumberValue(RuntimeValue):
     def __repr__(self):
         return str(self.value)
@@ -58,13 +58,14 @@ class IntValue(_NumberValue):
         else:
             self.value = v
 
+
 class FloatValue(_NumberValue):
     def __init__(self, value: int | float):
         super().__init__()
         self.value = float(value)
 
 
-
+# ---- #
 
 
 class StringValue(RuntimeValue):
@@ -152,8 +153,8 @@ class envstate:
 
 class Environment:
     def __init__(self, parent_environment_self=None, runtime_function: RuntimeFunction | None = None):
-        self.scope : dict[str, RuntimeValue] = {}
-        self.mutables : list[str] = []
+        self.scope: dict[str, RuntimeValue] = {}
+        self.mutables: list[str] = []
         self.parent = parent_environment_self  # cannot use typing.Self on older python versions
         self.state = envstate.RUN
         self.runtime_function = runtime_function
@@ -199,7 +200,7 @@ class Environment:
             if not force:
                 # check assignment type
                 old = env.scope[name]
-                if type(old) != type(value):
+                if type(old) is not type(value):
                     statement_error("Variable assigned to '%s' must be of same type." % (name), stmt)
             env.scope[name] = value
             return value
@@ -355,6 +356,7 @@ def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: Any):
         return FloatValue(value)
     # Ensure integer promotion
     return IntValue(value)
+
 
 def _expression_find_type_everything(left: RuntimeValue, right: RuntimeValue, value: Any):
     if isinstance(left, FloatValue) or isinstance(right, FloatValue):
@@ -551,7 +553,7 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
 
 
 def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
-    last : RuntimeValue = noneValueInstance
+    last: RuntimeValue = noneValueInstance
 
     # defer all direct function calls in first pass
     defer = []
@@ -731,7 +733,7 @@ def interpret_while_expression(stmt: ast.WhileExpression, env: Environment) -> R
 
 def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> RuntimeValue:
     is_range_iterator = False
-    iterator : Any = 0
+    iterator: Any = 0
     if not stmt.quantity_min:
         max = interpret(stmt.quantity_max, env)
         if isinstance(max, _NumberValue):
@@ -742,15 +744,14 @@ def interpret_for_expression(stmt: ast.ForExpression, env: Environment) -> Runti
         else:
             statement_error("For loop encountered incompatible type to iterate. Can only iterate Numbers and Lists.", stmt)
     else:
-        i_min : int = interpret(stmt.quantity_min, env).value
-        i_max : int = interpret(stmt.quantity_max, env).value
+        i_min: int = interpret(stmt.quantity_min, env).value
+        i_max: int = interpret(stmt.quantity_max, env).value
         iterator = range(i_min, i_max)
         is_range_iterator = True
 
     # fallback type
     if not stmt.type:
         stmt.type = ast.Type(lexer.Pimitives.INT)
-
 
     # for loop has the limited scope iteration variable. Make a new Environment for it.
     scope = Environment(env)

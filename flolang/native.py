@@ -7,7 +7,8 @@ from flolang.lexer import tokenize
 from flolang.abstract_source_tree import Parser
 from flolang.interpreter import interpret
 
-def to_native(val : inter.RuntimeValue):
+
+def to_native(val: inter.RuntimeValue):
     if isinstance(val, inter.NoneValue):
         return None
     if isinstance(val, inter.RuntimeFunction):
@@ -15,6 +16,7 @@ def to_native(val : inter.RuntimeValue):
     if hasattr(val, "value"):
         return val.value
     return "<" + val.variant + ">"
+
 
 def create_default_environment():
     env = inter.Environment()
@@ -120,10 +122,12 @@ def create_default_environment():
 
     return env
 
+
 def _run_builtin_code(env: inter.Environment):
     tok = tokenize(builtin)
     ast = Parser().parse(tok)
     interpret(ast, env)
+
 
 builtin = """
 
