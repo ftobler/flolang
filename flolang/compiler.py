@@ -70,7 +70,7 @@ def compiler_run(argv: list[str]):
         with open(input_file, "r", encoding="utf-8") as f:
             code = f.read()
             output_file = file_ending(auto_filename(output, input_file), f".{emit}")
-            with open(output_file, "w") as out:
+            with open(output_file, "w", encoding="utf-8") as out:
                 compile(code, out, emit)
 
 
