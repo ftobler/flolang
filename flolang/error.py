@@ -12,7 +12,7 @@ class Symbols:
         return self.filename, self.line_nr, self.line_pos, self.line
 
 
-class RuntimeException(Exception):
+class CompileException(Exception):
     pass
 
 
@@ -28,7 +28,11 @@ class LocationError(Exception):
     pass
 
 
-def runtime_error(comment: str, loc=None):
+class IntermediateError():
+    pass
+
+
+def compile_error(comment: str, loc=None):
     if loc:
         file = loc.start.symbols.filename
         line_nr = loc.start.symbols.line_nr
@@ -45,7 +49,7 @@ def runtime_error(comment: str, loc=None):
         length = 0
         full_line = ""
     message = error_text(comment, full_line, file, line_nr, start, length)
-    raise RuntimeException(message)
+    raise CompileException(message)
 
 
 def parser_error(comment: str, start_token, end_token):

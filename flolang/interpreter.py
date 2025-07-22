@@ -1,5 +1,5 @@
 import itertools
-from flolang.error import runtime_error
+from flolang.error import compile_error
 import typing  # Callable, Self
 from decimal import Decimal
 from typing import Any
@@ -140,7 +140,7 @@ class RuntimeFunction(RuntimeValue):
 
 def statement_error(message, stmt: ast.Statement):
     mesg = message + " In '%s' statement." % stmt.kind
-    runtime_error(mesg, stmt.loc)
+    compile_error(mesg, stmt.loc)
 
 
 # small name because its used as enumeration

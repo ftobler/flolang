@@ -71,7 +71,7 @@ def test_main_function_error(monkeypatch, capfd):
          └ 0 ┬ Identifier
              ├ loc: 'undefined_symbol'
              └ symbol: 'undefined_symbol'
-RuntimeException : File "__interpreter__", line 0.
+CompileException : File "__interpreter__", line 0.
 undefined_symbol
 ^^^^^^^^^^^^^^^^
 Variable 'undefined_symbol' is not defined. In 'Identifier' statement.

@@ -7,30 +7,30 @@ import flolang.abstract_source_tree as ast
 import flolang.lexer as lexer
 
 
-def test_runtime_error_1():
-    with pytest.raises(err.RuntimeException):
-        err.runtime_error("comment")
+def test_compiler_error_1():
+    with pytest.raises(err.CompileException):
+        err.compile_error("comment")
 
 
-def test_runtime_error_2():
-    with pytest.raises(err.RuntimeException):
+def test_rcompiler_error_2():
+    with pytest.raises(err.CompileException):
         tok = lexer.Token(Symbols("filename", 123, 2, "full_line"), "type", None)
-        err.runtime_error("comment", ast.Location(tok, tok, False))
+        err.compile_error("comment", ast.Location(tok, tok, False))
 
 
-def test_runtime_error_3():
+def test_compiler_error_3():
     # technically not specified to be allowed
     # but it works now, so want to see when it breaks
-    with pytest.raises(err.RuntimeException):
+    with pytest.raises(err.CompileException):
         tok = lexer.Token(Symbols(None, 123, 2, None), None, None)
-        err.runtime_error(None, ast.Location(tok, tok, False))
+        err.compile_error(None, ast.Location(tok, tok, False))
 
 
-def test_runtime_error_4():
+def test_compiler_error_4():
     # technically not specified to be allowed
     # but it works now, so want to see when it breaks
-    with pytest.raises(err.RuntimeException):
-        err.runtime_error(None, None)
+    with pytest.raises(err.CompileException):
+        err.compile_error(None, None)
 
 
 def test_parser_error_1():

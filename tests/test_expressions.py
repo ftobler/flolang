@@ -970,7 +970,7 @@ sin(pi/2)
 
 
 def test_unreachable():
-    with pytest.raises(error.RuntimeException):
+    with pytest.raises(error.CompileException):
         eval("unreachable")
 
 
@@ -985,7 +985,7 @@ def test_delete_2():
     # delete is not allowed in normal mode without the script shebang.
     # that is passed by default in the tests, so the code is shorter
     # and requires no main function
-    with pytest.raises(error.RuntimeException):
+    with pytest.raises(error.CompileException):
         eval("""
 static int i = 0
 delete i
@@ -1001,7 +1001,7 @@ let int i = 0
 
 
 def test_delete_4():
-    with pytest.raises(error.RuntimeException):
+    with pytest.raises(error.CompileException):
         eval("""
 let int i = 0
 let int i = 0
@@ -1010,7 +1010,7 @@ let int i = 0
 
 @pytest.mark.skip(reason="type checking not yet implemented")
 def test_template():
-    with pytest.raises(error.RuntimeException):
+    with pytest.raises(error.CompileException):
         eval("""
 class Animal<T>:
     let T: appendage
@@ -1026,7 +1026,7 @@ def test_alloc_expression():
 
 def test_no_eval():
     # there must be no eval
-    with pytest.raises(error.RuntimeException):
+    with pytest.raises(error.CompileException):
         eval("eval('')")
 
 
@@ -1134,7 +1134,7 @@ def test_type_4a():
 
 
 def test_type_4b():
-    with pytest.raises(error.RuntimeException):
+    with pytest.raises(error.CompileException):
         eval("let mut int a = 1        a = 1.0")
 
 
