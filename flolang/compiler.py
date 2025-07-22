@@ -25,9 +25,10 @@ def auto_filename(file_name, input_file):
 
 
 def file_ending(file_name, ending):
-    if not file_name.endswith(ending):
-        return file_name + ending
-    return file_name
+    name, ext = os.path.splitext(file_name)
+    if ending == ext:
+        return file_name
+    return file_name + ending
 
 
 def compile(code: str, f: TextIOWrapper, emit: str | None):
