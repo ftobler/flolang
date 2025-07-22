@@ -64,6 +64,6 @@ def print_ast_json(tree, indentation="", file=None):
                 print(indentation + tree + " " + key + ": " + str(value), file=file)
 
 
-def print_ast(ast, file=None):
+def print_ast(ast: ast.Statement, file=None):
     print_ast_json(ast.json(), file=file)
     # print(ast)
