@@ -1,8 +1,8 @@
 import re
-from .error import error_symbol
-from .error import LocationError
-from .error import Symbols
 from typing import Any
+from flolang.error import error_symbol
+from flolang.error import LocationError
+from flolang.error import Symbols
 
 
 ignores = [" ", "\t", "\n", "\r"]

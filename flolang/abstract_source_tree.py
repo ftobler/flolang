@@ -1,7 +1,7 @@
 
 import flolang.lexer as lexer
-from .lexer import Token
-from .error import error_token, parser_error, LocationError
+from flolang.lexer import Token
+from flolang.error import error_token, parser_error, LocationError
 from typing import Any
 
 

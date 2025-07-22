@@ -1,10 +1,10 @@
-import flolang.abstract_source_tree as ast
-import flolang.lexer as lexer
 import itertools
 from flolang.error import runtime_error
 import typing  # Callable, Self
 from decimal import Decimal
 from typing import Any
+import flolang.abstract_source_tree as ast
+import flolang.lexer as lexer
 
 
 class RuntimeValue:

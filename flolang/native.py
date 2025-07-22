@@ -1,11 +1,11 @@
-import flolang.interpreter as inter
+
 import time
 import math
 import random
 
 from flolang.lexer import tokenize
 from flolang.abstract_source_tree import Parser
-from flolang.interpreter import interpret
+import flolang.interpreter as inter
 
 
 def to_native(val: inter.RuntimeValue):
@@ -126,7 +126,7 @@ def create_default_environment():
 def _run_builtin_code(env: inter.Environment):
     tok = tokenize(builtin)
     ast = Parser().parse(tok)
-    interpret(ast, env)
+    inter.interpret(ast, env)
 
 
 builtin = """
