@@ -859,16 +859,16 @@ class Parser:
         identifier = self.eat_expect(lexer.IDENTIFIER, "Identifier expected after '%s' keyword." % lexer.DELETE, loc_start).value
         return DeleteExpression(identifier).location(loc_start, self.at())
 
-    # #:flolang
+    # #!flolang
     def parse_shebang(self):
         # eat the shebang '#:' keyword
-        # #:flolang
+        # #!flolang
         # ^^^^^^^^^
         loc_start = self.eat()
 
-        # this is the value at this point
-        # #:flolang
-        #   ^^^^^^^
+        # this is the value at this point (full line)
+        # #!flolang
+        # ^^^^^^^^^
         shebang_value = loc_start.value
 
         return ShebangExpression(shebang_value).location(loc_start, loc_start)

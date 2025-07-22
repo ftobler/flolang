@@ -862,7 +862,7 @@ def interpret_object_literal(stmt: ast.ObjectLiteral, env: Environment) -> Runti
 def interpret_shebang_expression(stmt: ast.ShebangExpression, env: Environment):
     # this is used to configure the interpreter. Conveniently, that is this module.
     # the expression is the entire line
-    # #:flolang
+    # #!flolang
     expression = stmt.shebang
 
     if expression == "#!script":
