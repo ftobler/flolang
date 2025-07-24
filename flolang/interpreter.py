@@ -167,7 +167,7 @@ class Environment:
         # if we are script, then we allow this.
         if self.get_root_env().is_script:
             return self._declare(name, value, is_mutable, stmt)
-        statement_error("Cannot declare local variable '%s'in global environment." % name, stmt)
+        statement_error("Cannot declare local variable '%s' in global environment." % name, stmt)
         return noneValueInstance
 
     def declare_global(self, name: str, value: RuntimeValue, is_mutable: bool, stmt: ast.Statement):
@@ -240,8 +240,8 @@ class Environment:
 
 def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
 
-    if isinstance(stmt, ast.DynamicVariableDeclaration):
-        return interpret_dynamic_variable_declaration(stmt, env)
+    # if isinstance(stmt, ast.DynamicVariableDeclaration):
+    #     return interpret_dynamic_variable_declaration(stmt, env)
     if isinstance(stmt, ast.BinaryExpression):
         return interpret_binary_expression(stmt, env)
     if isinstance(stmt, ast.UnaryBeforeExpression):
@@ -262,10 +262,10 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     if isinstance(stmt, ast.Identifier):
         return env.lookup(stmt.symbol, stmt)
 
-    if isinstance(stmt, ast.GlobalVariableDeclaration):
-        return interpret_global_variable_declaration(stmt, env)
-    if isinstance(stmt, ast.LocalVariableDeclaration):
-        return interpret_local_variable_declaration(stmt, env)
+    # if isinstance(stmt, ast.GlobalVariableDeclaration):
+    #     return interpret_global_variable_declaration(stmt, env)
+    if isinstance(stmt, ast.VariableDeclaration):
+        return interpret_variable_declaration(stmt, env)
 
     if isinstance(stmt, ast.Program):
         return interpret_program(stmt, env)
@@ -299,8 +299,6 @@ def interpret(stmt: ast.Statement, env: Environment) -> RuntimeValue:
     # if isinstance(stmt, ast.TupleLiteral):
     #     return interpret_tuple_literal(stmt, env)
 
-    if isinstance(stmt, ast.ShebangExpression):
-        return interpret_shebang_expression(stmt, env)
     if isinstance(stmt, ast.DeleteExpression):
         return interpret_delete_expression(stmt, env)
     if isinstance(stmt, ast.UnreachableExpression):
@@ -334,19 +332,19 @@ def _interpreted_value_assign_type(stmt: ast.Statement, type: ast.Type, env: Env
         return interpret(stmt, env)
 
 
-def interpret_local_variable_declaration(stmt: ast.LocalVariableDeclaration, env: Environment) -> RuntimeValue:
+def interpret_variable_declaration(stmt: ast.VariableDeclaration, env: Environment) -> RuntimeValue:
     value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
     return env.declare_local(stmt.identifier, value, stmt.mutable, stmt)
 
 
-def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
-    value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
-    return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
+# def interpret_global_variable_declaration(stmt: ast.GlobalVariableDeclaration, env: Environment) -> RuntimeValue:
+#     value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
+#     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
-def interpret_dynamic_variable_declaration(stmt: ast.DynamicVariableDeclaration, env: Environment) -> RuntimeValue:
-    value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
-    return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
+# def interpret_dynamic_variable_declaration(stmt: ast.DynamicVariableDeclaration, env: Environment) -> RuntimeValue:
+#     value = _interpreted_value_assign_type(stmt.value, stmt.type, env)
+#     return env.declare_global(stmt.identifier, value, stmt.mutable, stmt)
 
 
 def _expression_find_type(left: RuntimeValue, right: RuntimeValue, value: Any):
@@ -554,6 +552,9 @@ def interpret_assignment_expression(stmt: ast.AssignmentExpression, env: Environ
 
 def interpret_program(stmt: ast.Program, env: Environment) -> RuntimeValue:
     last: RuntimeValue = noneValueInstance
+
+    if stmt.shebang is not None:
+        interpret_shebang_expression(stmt.shebang, env)
 
     # defer all direct function calls in first pass
     defer = []

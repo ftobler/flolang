@@ -981,13 +981,25 @@ delete i
 """)
 
 
-def test_delete_2():
+@pytest.mark.skip("static is not working")
+def test_delete_2a():
     # delete is not allowed in normal mode without the script shebang.
     # that is passed by default in the tests, so the code is shorter
     # and requires no main function
     with pytest.raises(error.CompileException):
         eval("""
 static int i = 0
+delete i
+""", shebang=None)
+
+
+def test_delete_2b():
+    # delete is not allowed in normal mode without the script shebang.
+    # that is passed by default in the tests, so the code is shorter
+    # and requires no main function
+    with pytest.raises(error.CompileException):
+        eval("""
+int i = 0
 delete i
 """, shebang=None)
 

@@ -64,40 +64,34 @@ class Program(Statement):
     def __init__(self):
         super().__init__()
         self.body = []
+        self.shebang = None
+
+    def add(self, stmt: Statement):
+        if isinstance(stmt, ShebangExpression):
+            if self.shebang is None:
+                self.shebang = stmt  # assign the first one only. The rest are comments
+        else:
+            self.body.append(stmt)
 
 
 class Type(Statement):
-    def __init__(self, type: str, templates: list[Expression] = [], is_array: bool = False):
+    def __init__(self, typename: str, templates: list[Expression] = [], is_array: bool = False, number_elements: Expression | None = None):
         super().__init__()
-        self.type = type
-        self.templates = templates
+        self.type = typename
+        self.templates = templates  # type template list
         self.is_array = is_array
+        self.number = number_elements  # number of elements
 
 
-class _VariableDeclaration(Statement):
-    def __init__(self, mutable: bool, dynamic: bool, type: Type, identifier: str, value: Expression):
+class VariableDeclaration(Statement):
+    def __init__(self, mutable: bool, dynamic: bool, type: Type, identifier: str, value: Expression, is_global=False):
         super().__init__()
         self.mutable = mutable
-        self.dynamic = dynamic
+        self.dynamic = dynamic  # dynamic allocated
         self.type = type
         self.identifier = identifier
         self.value = value
-
-
-class LocalVariableDeclaration(_VariableDeclaration):
-    pass
-
-
-class GlobalVariableDeclaration(_VariableDeclaration):
-    pass
-
-
-class DynamicVariableDeclaration(_VariableDeclaration):
-    pass
-
-
-class ClassMemberVariableDeclaration(_VariableDeclaration):
-    pass
+        self.is_global = is_global
 
 
 class ParameterStatement(Statement):
@@ -131,15 +125,11 @@ class ClassMemberFunctionDeclaration(FunctionDeclaration):
 class ClassDeclaration(Statement):
     def __init__(self, classname: str,
                  functions: list[ClassMemberFunctionDeclaration],
-                 dynamics: list[ClassMemberVariableDeclaration],
-                 mutables: list[ClassMemberVariableDeclaration],
-                 constants: list[ClassMemberVariableDeclaration]):
+                 variables: list[VariableDeclaration]):
         super().__init__()
         self.classname = classname
         self.functions = functions
-        self.dynamics = dynamics
-        self.mutables = mutables
-        self.constants = constants
+        self.variables = variables
 
 
 class EnumFieldDeclaration(Statement):
@@ -403,7 +393,7 @@ class Parser:
         self.program = program
         # parse until there is nothing left
         while self.not_eof():
-            program.body.append(self.parse_statement())
+            program.add(self.parse_statement())
         return program
 
     def parse_statement(self) -> Statement:
@@ -476,9 +466,9 @@ class Parser:
         #                 ^^^^^
         value = self.parse_expression()
         if is_static:
-            return GlobalVariableDeclaration(is_mutable, False, type, identifier, value).location(loc_start, self.at())
+            return VariableDeclaration(is_mutable, False, type, identifier, value, is_global=True).location(loc_start, self.at())
         else:
-            return LocalVariableDeclaration(is_mutable, False, type, identifier, value).location(loc_start, self.at())
+            return VariableDeclaration(is_mutable, False, type, identifier, value, is_global=False).location(loc_start, self.at())
 
     # fn foo():
     # fn foo(a, b, c) d:
@@ -584,6 +574,7 @@ class Parser:
         if self.at().type is lexer.IDENTIFIER:
             # its this case:
             # int foo
+            #     ^^^ = self.at()
             type = Type(first).location(loc_start, self.at())
             identifier = self.eat_expect(lexer.IDENTIFIER, "Expect identifier for variable/type declaration", loc_start).value
             return type, identifier
@@ -594,7 +585,7 @@ class Parser:
             # int<T>[] foo
             # int[] foo
             # foo
-            # need to backtrack the 'first' eat
+            # need to backtrack the 'first' eat because this ia a full type following
             self.backtrack()
 
             # int<T>[] foo
@@ -682,12 +673,17 @@ class Parser:
         # let type[] varname = (...)
         #         ^^
         is_array = False
+        number_of_array_elements: Expression | None = None
         if self.at().type is lexer.SQUARE_L:
             is_array = True
             self.eat()  # consume '['
+            if self.at().type is not lexer.SQUARE_R:
+                # let type[...] varname = (...)
+                #          ^^^
+                number_of_array_elements = self.parse_expression()
             self.eat_expect(lexer.SQUARE_R, "Expect '%s' after '%s' in type declaration for an array." % (lexer.SQUARE_R, lexer.SQUARE_L), loc_start)
 
-        return Type(type, templates, is_array).location(loc_start, self.at_last())
+        return Type(type, templates, is_array, number_of_array_elements).location(loc_start, self.at_last())
 
     def parse_if_declaration(self):
         loc_start = self.at()
@@ -958,7 +954,7 @@ class Parser:
         # mut int a = (...)
         #             ^^^^^
         value = self.parse_expression()
-        return ClassMemberVariableDeclaration(is_mutable, is_dynamic, type, identifier, value).location(loc_start, self.at())
+        return VariableDeclaration(is_mutable, is_dynamic, type, identifier, value, is_global=False).location(loc_start, self.at())
 
     def parse_enum(self):
         # eat then 'enum' keyword

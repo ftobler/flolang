@@ -114,10 +114,11 @@ IS = "is"  # logical ==. Also used to check dynamic References
 UNREACHABLE = "unreachable"
 ALLOC = "@alloc"
 DELETE = "delete"
+ASSERT = "assert"
 keyword_tokens = [
     AND, OR, NOT, FUNCTION, CLASS, ENUM, IMPORT, IF, ELSE, ELIF, WHILE,
     FOR, RETURN, BREAK, CONTINUE, LET, STATIC, MUT, DYN, PASS, IN, UNREACHABLE, DELETE,
-    ALLOC
+    ALLOC, ASSERT
 ]
 
 potentially_reserved_keywords = [

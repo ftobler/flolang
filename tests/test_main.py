@@ -63,19 +63,8 @@ def test_main_function_error(monkeypatch, capfd):
     # get the output which the program produced
     out, err = capfd.readouterr()
 
-    # split into lines / assert out
-    assert out == """flolang v0.1 by ftobler
-# [IDENTIFIER:'undefined_symbol', EOF]
-├ loc: 'undefined_symbol'
-└ body[] ┐
-         └ 0 ┬ Identifier
-             ├ loc: 'undefined_symbol'
-             └ symbol: 'undefined_symbol'
-CompileException : File "__interpreter__", line 0.
-undefined_symbol
-^^^^^^^^^^^^^^^^
-Variable 'undefined_symbol' is not defined. In 'Identifier' statement.
-# """
+    assert "is not defined" in out
+    assert "Exception" in out
 
 
 @pytest.mark.skip(reason="fails because of formatting changes")

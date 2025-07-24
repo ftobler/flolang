@@ -130,6 +130,7 @@ def _run_builtin_code(env: inter.Environment):
 
 
 builtin = """
+#!script
 
 static bool True = 1
 static bool False = 0
